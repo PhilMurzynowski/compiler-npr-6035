@@ -1,7 +1,1 @@
-*.sw*
-
 /tests/
-
-/autogen/
-/classes/
-/dist/
