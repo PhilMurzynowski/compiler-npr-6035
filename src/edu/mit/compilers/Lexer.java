@@ -8,6 +8,8 @@ class Lexer {
 
   private List<Token> tokens;
   private final StringBuilder text;
+  private int line;
+  private int column;
 
   public Lexer() {
     text = new StringBuilder();
@@ -16,6 +18,8 @@ class Lexer {
   public List<Token> lex(String input) throws LexerException {
     tokens = new ArrayList<Token>();
     text.setLength(0);
+    line = 1;
+    column = 1;
 
     LexFunction lexFunction = this::lexEmpty;
     for (char c : input.toCharArray()) {
@@ -29,13 +33,13 @@ class Lexer {
   private LexFunction lexLogical(char c, Token.Type type) {
     return (Optional<Character> character) -> {
       if (!character.isPresent()) {
-        throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+        throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "expected '" + c + "'");
       } else if (character.get() == c) {
         consume(character);
         produce(type);
         return reset();
       } else {
-        throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+        throw new LexerException(line, column, LexerException.Type.INVALID_CHARACTER, "expected '" + c + "'");
       }
     };
   }
@@ -94,12 +98,12 @@ class Lexer {
 
   private LexFunction lexZeroX(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "expected [0-9A-Fa-f]");
     } else if (isHexadecimal(character.get())) {
       consume(character);
       return next(this::lexHexadecimal);
     } else {
-      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+      throw new LexerException(line, column, LexerException.Type.INVALID_CHARACTER, "expected [0-9A-Fa-f]");
     }
   }
 
@@ -131,7 +135,7 @@ class Lexer {
 
   private LexFunction lexCharacter(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "expected [\\x20-\\x7E&&[^\"']]");
     } else if (character.get() == '\\') {
       consume(character);
       return next(this::lexCharacterEscape);
@@ -139,36 +143,36 @@ class Lexer {
       consume(character);
       return next(this::lexCharacterClose);
     } else {
-      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+      throw new LexerException(line, column, LexerException.Type.INVALID_CHARACTER, "expected [\\x20-\\x7E&&[^\"']]");
     }
   }
 
   private LexFunction lexCharacterEscape(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "expected [\"'\\tn]");
     } else if (isEscaped(character.get())) {
       consume(character);
       return next(this::lexCharacterClose);
     } else {
-      throw new LexerException(LexerException.Type.INVALID_ESCAPE);
+      throw new LexerException(line, column, LexerException.Type.INVALID_ESCAPE, "expected [\"'\\tn]");
     }
   }
 
   private LexFunction lexCharacterClose(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "expected '\\''");
     } else if (character.get() == '\'') {
       consume(character);
       produce(Token.Type.CHARACTER);
       return reset();
     } else {
-      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+      throw new LexerException(line, column, LexerException.Type.INVALID_CHARACTER, "expected '\\''");
     }
   }
 
   private LexFunction lexString(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "no matching '\"'");
     } else if (character.get() == '\\') {
       consume(character);
       return next(this::lexStringEscape);
@@ -180,18 +184,18 @@ class Lexer {
       consume(character);
       return next(this::lexString);
     } else {
-      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+      throw new LexerException(line, column, LexerException.Type.INVALID_CHARACTER, "expected [\\x20-\\x7E&&[^']]");
     }
   }
 
   private LexFunction lexStringEscape(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "expected [\"'\\tn]");
     } else if (isEscaped(character.get())) {
       consume(character);
       return next(this::lexString);
     } else {
-      throw new LexerException(LexerException.Type.INVALID_ESCAPE);
+      throw new LexerException(line, column, LexerException.Type.INVALID_ESCAPE, "expected [\"'\\tn]");
     }
   }
 
@@ -200,8 +204,10 @@ class Lexer {
       produce(Token.Type.SLASH);
       return accept();
     } else if (character.get() == '/') {
+      consume(character);
       return next(this::lexSingleLineComment);
     } else if (character.get() == '*') {
+      consume(character);
       return next(this::lexMultiLineComment);
     } else {
       produce(Token.Type.SLASH);
@@ -213,28 +219,37 @@ class Lexer {
     if (!character.isPresent()) {
       return accept();
     } else if (character.get() == '\n') {
+      consume(character);
       return reset();
     } else {
+      consume(character);
       return next(this::lexSingleLineComment);
     }
   }
 
   private LexFunction lexMultiLineComment(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "no matching \"*/\"");
     } else if (character.get() == '*') {
+      consume(character);
       return next(this::lexMultiLineCommentClose);
     } else {
+      consume(character);
       return next(this::lexMultiLineComment);
     }
   }
 
   private LexFunction lexMultiLineCommentClose(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      throw new LexerException(line, column, LexerException.Type.UNEXPECTED_EOF, "no matching \"*/\"");
     } else if (character.get() == '/') {
+      consume(character);
       return reset();
+    } else if (character.get() == '*') {
+      consume(character);
+      return next(this::lexMultiLineCommentClose);
     } else {
+      consume(character);
       return next(this::lexMultiLineComment);
     }
   }
@@ -354,6 +369,7 @@ class Lexer {
     if (!character.isPresent()) {
       return accept();
     } else if (isWhitespace(character.get())) {
+      consume(character);
       return next(this::lexWhitespace);
     } else {
       return redo(character);
@@ -361,7 +377,8 @@ class Lexer {
   }
 
   private LexFunction lexEOF(Optional<Character> character) throws LexerException {
-    throw new LexerException(LexerException.Type.EOF);
+    assert(false);
+    return accept();
   }
 
   private LexFunction lexEmpty(Optional<Character> character) throws LexerException {
@@ -483,7 +500,7 @@ class Lexer {
       consume(character);
       return next(this::lexWhitespace);
     } else {
-      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+      throw new LexerException(line, column, LexerException.Type.INVALID_CHARACTER, "invalid character");
     }
   }
 
@@ -492,11 +509,17 @@ class Lexer {
   }
 
   private void consume(Optional<Character> character) {
+    if (character.get() == '\n') {
+      line++;
+      column = 1;
+    } else {
+      column++;
+    }
     text.append(character.get());
   }
 
   private void produce(Token.Type tokenType) {
-    tokens.add(new Token(tokenType, text.toString()));
+    tokens.add(new Token(line, column - text.length(), tokenType, text.toString()));
   }
 
   private LexFunction reset() {
@@ -574,15 +597,15 @@ class Lexer {
 
   private boolean isUnescaped(char c) {
     switch (c) {
-      case ' ': case '!': case '"': case '#': case '$': case '%':  case '&': case '\'': case '(': case ')': case '*': 
-      case '+': case ',': case '-': case '.': case '/': case '0':  case '1': case '2':  case '3': case '4': case '5': 
-      case '6': case '7': case '8': case '9': case ':': case ';':  case '<': case '=':  case '>': case '?': case '@': 
-      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':  case 'G': case 'H':  case 'I': case 'J': case 'K': 
-      case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q':  case 'R': case 'S':  case 'T': case 'U': case 'V': 
-      case 'W': case 'X': case 'Y': case 'Z': case '[': case '\\': case ']': case '^':  case '_': case '`': case 'a': 
-      case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':  case 'h': case 'i':  case 'j': case 'k': case 'l': 
-      case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':  case 's': case 't':  case 'u': case 'v': case 'w': 
-      case 'x': case 'y': case 'z': case '{': case '|': case '}':  case '~':
+      case ' ': case '!': case '#': case '$': case '%': case '&': case '(': case ')': case '*': case '+': case ',': 
+      case '-': case '.': case '/': case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': 
+      case '8': case '9': case ':': case ';': case '<': case '=': case '>': case '?': case '@': case 'A': case 'B': 
+      case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M':
+      case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': 
+      case 'Y': case 'Z': case '[': case ']': case '^': case '_': case '`': case 'a': case 'b': case 'c': case 'd': 
+      case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': 
+      case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z': 
+      case '{': case '|': case '}': case '~':
         return true;
       default:
         return false;

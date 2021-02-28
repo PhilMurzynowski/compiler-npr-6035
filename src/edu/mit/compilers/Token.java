@@ -1,5 +1,7 @@
 package edu.mit.compilers;
 
+import java.util.Objects;
+
 class Token {
 
   public enum Type {
@@ -53,21 +55,59 @@ class Token {
 
   }
 
+  private final int line;
+  private final int column;
   private final Type type;
   private final String text;
 
-  public Token(Type type, String text) {
+  public Token(int line, int column, Type type, String text) {
+    this.line = line;
+    this.column = column;
     this.type = type;
     this.text = text;
   }
 
-  @Override
-  public String toString() {
-    return "Token { type: " + type + ", text: '" + text + "' }";
+  public int getLine() {
+    return line;
   }
 
-  // TODO(rbd): Implement equals() for immutable type Token
+  public int getColumn() {
+    return column;
+  }
 
-  // TODO(rbd): Implement hashCode() for immutable type Token
+  public Type getType() {
+    return type;
+  }
+
+  public String getText() {
+    return text;
+  }
+
+  @Override
+  public String toString() {
+    return "Token {"
+      + " line: " + line + "," 
+      + " column: " + column + ","
+      + " type: " + type + ","
+      + " text: '" + text + "',"
+      + " }";
+  }
+
+  public boolean equals(Token that) {
+    return (line == that.line)
+      && (column == that.column)
+      && (type.equals(that.type))
+      && (text.equals(that.text));
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return (that instanceof Token) && equals((Token)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(column, line, type, text);
+  }
 
 }
