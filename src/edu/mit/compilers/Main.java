@@ -80,7 +80,7 @@ class Main {
       PrintStream outputStream = CLI.outfile == null ? System.out : new PrintStream(new FileOutputStream(CLI.outfile));
       switch (CLI.target) {
         case SCAN:
-          lex("filename", input, outputStream);
+          lex(CLI.infile == null ? "STDIN" : CLI.infile, input, outputStream);
           break;
         case PARSE:
         case DEFAULT:
