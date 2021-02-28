@@ -60,7 +60,7 @@ class Lexer {
     };
   }
 
-  private LexFunction lexPlusMinus(char c, Token.Type base, Token.Type baseEqual, Token.Type baseDouble) {
+  private LexFunction lexPlusMinus(char c, Token.Type base, Token.Type baseEqual, Token.Type baseBase) {
     return (Optional<Character> character) -> {
       if (!character.isPresent()) {
         produce(base);
@@ -71,7 +71,7 @@ class Lexer {
         return reset();
       } else if (character.get() == c) {
         consume(character);
-        produce(baseDouble);
+        produce(baseBase);
         return reset();
       } else {
         produce(base);

@@ -58,7 +58,7 @@ class Main {
         outputStream.println(tokenString(token));
       }
     } catch (LexerException lexerException) {
-      outputStream.println(lexerExceptionString(filename, input, lexerException));
+      System.err.println(lexerExceptionString(filename, input, lexerException));
       System.exit(1);
     }
   }
@@ -89,7 +89,7 @@ class Main {
           break;
       }
     } catch (Exception exception) {
-      System.out.print(exception);
+      System.err.print(exception);
       System.exit(-1);
     }
   }
