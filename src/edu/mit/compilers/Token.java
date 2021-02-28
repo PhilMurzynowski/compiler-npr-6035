@@ -26,10 +26,10 @@ class Token {
     MINUS,               // -
     BANG_EQUAL,          // !=
     BANG,                // !
-    LESS_THAN_EQUAL,     // <=
-    LESS_THAN,           // <
-    GREATER_THAN_EQUAL,  // >=
-    GREATER_THAN,        // >
+    LESS_EQUAL,          // <=
+    LESS,                // <
+    GREATER_EQUAL,       // >=
+    GREATER,             // >
     HEXADECIMAL,         // 0x[a-zA-Z0-9]+
     DECIMAL,             // [0-9]+
     CHARACTER,           // '.'
@@ -63,7 +63,7 @@ class Token {
 
   @Override
   public String toString() {
-    return "Token { type: " + this.type + ", text: '" + this.text + "' }";
+    return "Token { type: " + type + ", text: '" + text + "' }";
   }
 
   // TODO(rbd): Implement equals() for immutable type Token

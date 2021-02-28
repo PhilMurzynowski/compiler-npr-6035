@@ -10,525 +10,592 @@ class Lexer {
   private final StringBuilder text;
 
   public Lexer() {
-    this.text = new StringBuilder();
+    text = new StringBuilder();
   }
 
-  private interface LexFunction {
-    public LexFunction apply(Optional<Character> character) throws LexerException;
-  }
-
-  public List<Token> lex(String text) throws LexerException {
-    this.tokens = new ArrayList<Token>();
+  public List<Token> lex(String input) throws LexerException {
+    tokens = new ArrayList<Token>();
+    text.setLength(0);
 
     LexFunction lexFunction = this::lexEmpty;
-    for (char c : text.toCharArray()) {
+    for (char c : input.toCharArray()) {
       lexFunction = lexFunction.apply(Optional.of(c));
     }
     lexFunction.apply(Optional.empty());
 
-    return this.tokens;
+    return tokens;
   }
 
-  private LexFunction done(Token.Type tokenType, Optional<Character> character) {
-    this.text.append(character.get());
-    this.tokens.add(new Token(tokenType, this.text.toString()));
-    return this::lexEmpty;
+  private LexFunction lexLogical(char c, Token.Type type) {
+    return (Optional<Character> character) -> {
+      if (!character.isPresent()) {
+        throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+      } else if (character.get() == c) {
+        consume(character);
+        produce(type);
+        return reset();
+      } else {
+        throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+      }
+    };
   }
 
-  private LexFunction next(LexFunction lexFunction, Optional<Character> character) {
-    this.text.append(character.get());
-    return lexFunction;
+  private LexFunction lexComparison(Token.Type base, Token.Type baseEqual) {
+    return (Optional<Character> character) -> {
+      if (!character.isPresent()) {
+        produce(base);
+        return accept();
+      } else if (character.get() == '=') {
+        consume(character);
+        produce(baseEqual);
+        return reset();
+      } else {
+        produce(base);
+        return redo(character);
+      }
+    };
   }
 
-  private LexFunction eof(Token.Type tokenType) {
-    this.tokens.add(new Token(tokenType, this.text.toString()));
-    return this::lexEOF;
+  private LexFunction lexPlusMinus(char c, Token.Type base, Token.Type baseEqual, Token.Type baseDouble) {
+    return (Optional<Character> character) -> {
+      if (!character.isPresent()) {
+        produce(base);
+        return accept();
+      } else if (character.get() == '=') {
+        consume(character);
+        produce(baseEqual);
+        return reset();
+      } else if (character.get() == c) {
+        consume(character);
+        produce(baseDouble);
+        return reset();
+      } else {
+        produce(base);
+        return redo(character);
+      }
+    };
   }
 
-  private LexFunction forward(Token.Type tokenType, Optional<Character> character) throws LexerException {
-    this.tokens.add(new Token(tokenType, this.text.toString()));
-    return this.lexEmpty(character);
-  }
-
-  private LexFunction lexEmpty(Optional<Character> character) throws LexerException {
-    this.text.setLength(0);
-
+  private LexFunction lexZero(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      return this::lexEOF;
+      produce(Token.Type.DECIMAL);
+      return accept();
+    } else if (character.get() == 'x') {
+      consume(character);
+      return next(this::lexZeroX);
+    } else if (isDecimal(character.get())) {
+      consume(character);
+      return next(this::lexDecimal);
+    } else {
+      produce(Token.Type.DECIMAL);
+      return redo(character);
     }
+  }
 
-    switch (character.get()) {
-      case ';':
-        return this.done(Token.Type.SEMICOLON, character);
-      case '[':
-        return this.done(Token.Type.LEFT_SQUARE, character);
-      case ']':
-        return this.done(Token.Type.RIGHT_SQUARE, character);
-      case ',':
-        return this.done(Token.Type.COMMA, character);
-      case '(':
-        return this.done(Token.Type.LEFT_ROUND, character);
-      case ')':
-        return this.done(Token.Type.RIGHT_ROUND, character);
-      case '{':
-        return this.done(Token.Type.LEFT_CURLY, character);
-      case '}':
-        return this.done(Token.Type.RIGHT_CURLY, character);
-      case '%':
-        return this.done(Token.Type.PERCENT, character);
-      case '*':
-        return this.done(Token.Type.STAR, character);
-      case '&':
-        return this.next(this.lexGroup1('&', Token.Type.AMPERSAND_AMPERSAND), character);
-      case '|':
-        return this.next(this.lexGroup1('|', Token.Type.VERTICAL_VERTICAL), character);
-      case '=':
-        return this.next(this.lexGroup2(Token.Type.EQUAL, Token.Type.EQUAL_EQUAL), character);
-      case '!':
-        return this.next(this.lexGroup2(Token.Type.BANG, Token.Type.BANG_EQUAL), character);
-      case '<':
-        return this.next(this.lexGroup2(Token.Type.LESS_THAN, Token.Type.LESS_THAN_EQUAL), character);
-      case '>':
-        return this.next(this.lexGroup2(Token.Type.GREATER_THAN_EQUAL, Token.Type.GREATER_THAN_EQUAL), character);
-      case '+':
-        return this.next(this.lexGroup3('+', Token.Type.PLUS, Token.Type.PLUS_EQUAL, Token.Type.PLUS_PLUS), character);
-      case '-':
-        return this.next(this.lexGroup3('-', Token.Type.MINUS, Token.Type.MINUS_EQUAL, Token.Type.MINUS_MINUS), character);
-      case '0':
-        return this.next(this::lexZero, character);
-      case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-        return this.next(this::lexDecimal, character);
-      case '\'':
-        return this.next(this::lexCharacter, character);
-      case '\"':
-        return this.next(this::lexString, character);
-      case '/':
-        return this.next(this::lexSlash, character);
-      case 'b':
-        return this.next(this::lexB, character);
-      case 'c':
-        return this.next(this.lexKeyword("continue", Token.Type.CONTINUE), character);
-      case 'e':
-        return this.next(this.lexKeyword("else", Token.Type.ELSE), character);
-      case 'f':
-        return this.next(this::lexF, character);
-      case 'i':
-        return this.next(this::lexI, character);
-      case 'l':
-        return this.next(this.lexKeyword("len", Token.Type.LEN), character);
-      case 'r':
-        return this.next(this.lexKeyword("return", Token.Type.RETURN), character);
-      case 't':
-        return this.next(this.lexKeyword("true", Token.Type.TRUE), character);
-      case 'v':
-        return this.next(this.lexKeyword("void", Token.Type.VOID), character);
-      case 'w':
-        return this.next(this.lexKeyword("while", Token.Type.WHILE), character);
-      case 'a': case 'd': case 'g': case 'h': case 'j': case 'k': case 'm': case 'n': case 'o': case 'p': case 'q': 
-      case 's': case 'u': case 'x': case 'y': case 'z': case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': 
-      case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': 
-      case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z': case '_':
-        return this.next(this::lexIdentifier, character);
-      case ' ': case '\t': case '\n':
-        return this.next(this::lexWhitespace, character);
+  private LexFunction lexZeroX(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (isHexadecimal(character.get())) {
+      consume(character);
+      return next(this::lexHexadecimal);
+    } else {
+      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
     }
+  }
 
-    throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+  private LexFunction lexDecimal(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      produce(Token.Type.DECIMAL);
+      return accept();
+    } else if (isDecimal(character.get())) {
+      consume(character);
+      return next(this::lexDecimal);
+    } else {
+      produce(Token.Type.DECIMAL);
+      return redo(character);
+    }
+  }
+
+  private LexFunction lexHexadecimal(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      produce(Token.Type.HEXADECIMAL);
+      return accept();
+    } else if (isHexadecimal(character.get())) {
+      consume(character);
+      return next(this::lexHexadecimal);
+    } else {
+      produce(Token.Type.HEXADECIMAL);
+      return redo(character);
+    }
+  }
+
+  private LexFunction lexCharacter(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (character.get() == '\\') {
+      consume(character);
+      return next(this::lexCharacterEscape);
+    } else if (isUnescaped(character.get())) {
+      consume(character);
+      return next(this::lexCharacterClose);
+    } else {
+      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+    }
+  }
+
+  private LexFunction lexCharacterEscape(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (isEscaped(character.get())) {
+      consume(character);
+      return next(this::lexCharacterClose);
+    } else {
+      throw new LexerException(LexerException.Type.INVALID_ESCAPE);
+    }
+  }
+
+  private LexFunction lexCharacterClose(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (character.get() == '\'') {
+      consume(character);
+      produce(Token.Type.CHARACTER);
+      return reset();
+    } else {
+      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+    }
+  }
+
+  private LexFunction lexString(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (character.get() == '\\') {
+      consume(character);
+      return next(this::lexStringEscape);
+    } else if (character.get() == '\"') {
+      consume(character);
+      produce(Token.Type.STRING);
+      return reset();
+    } else if (isUnescaped(character.get())) {
+      consume(character);
+      return next(this::lexString);
+    } else {
+      throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+    }
+  }
+
+  private LexFunction lexStringEscape(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (isEscaped(character.get())) {
+      consume(character);
+      return next(this::lexString);
+    } else {
+      throw new LexerException(LexerException.Type.INVALID_ESCAPE);
+    }
+  }
+
+  private LexFunction lexSlash(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      produce(Token.Type.SLASH);
+      return accept();
+    } else if (character.get() == '/') {
+      return next(this::lexSingleLineComment);
+    } else if (character.get() == '*') {
+      return next(this::lexMultiLineComment);
+    } else {
+      produce(Token.Type.SLASH);
+      return redo(character);
+    }
+  }
+
+  private LexFunction lexSingleLineComment(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      return accept();
+    } else if (character.get() == '\n') {
+      return reset();
+    } else {
+      return next(this::lexSingleLineComment);
+    }
+  }
+
+  private LexFunction lexMultiLineComment(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (character.get() == '*') {
+      return next(this::lexMultiLineCommentClose);
+    } else {
+      return next(this::lexMultiLineComment);
+    }
+  }
+
+  private LexFunction lexMultiLineCommentClose(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+    } else if (character.get() == '/') {
+      return reset();
+    } else {
+      return next(this::lexMultiLineComment);
+    }
+  }
+
+  private LexFunction lexKeyword(String keyword, Token.Type type) {
+    return (Optional<Character> character) -> {
+      if (!character.isPresent()) {
+        produce(Token.Type.IDENTIFIER);
+        return accept();
+      } else if (keyword.charAt(text.length()) == character.get()) {
+        if (text.length() + 1 == keyword.length()) {
+          consume(character);
+          return next(lexKeywordClose(type));
+        } else {
+          consume(character);
+          return next(lexKeyword(keyword, type));
+        }
+      } else if (isIdentifierTail(character.get())) {
+        consume(character);
+        return next(this::lexIdentifier);
+      } else {
+        produce(Token.Type.IDENTIFIER);
+        return redo(character);
+      }
+    };
+  }
+
+  private LexFunction lexKeywordClose(Token.Type type) {
+    return (Optional<Character> character) -> {
+      if (!character.isPresent()) {
+        produce(type);
+        return accept();
+      } else if (isIdentifierTail(character.get())) {
+        consume(character);
+        return next(this::lexIdentifier);
+      } else {
+        produce(type);
+        return redo(character);
+      }
+    };
+  }
+
+  private LexFunction lexB(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      produce(Token.Type.IDENTIFIER);
+      return accept();
+    } else if (character.get() == 'o') {
+      consume(character);
+      return next(lexKeyword("bool", Token.Type.BOOL));
+    } else if (character.get() == 'r') {
+      consume(character);
+      return next(lexKeyword("break", Token.Type.BREAK));
+    } else if (isIdentifierTail(character.get())) {
+      consume(character);
+      return next(this::lexIdentifier);
+    } else {
+      produce(Token.Type.IDENTIFIER);
+      return redo(character);
+    }
+  }
+
+  private LexFunction lexF(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      produce(Token.Type.IDENTIFIER);
+      return accept();
+    } else if (character.get() == 'a') {
+      consume(character);
+      return next(lexKeyword("false", Token.Type.FALSE));
+    } else if (character.get() == 'o') {
+      consume(character);
+      return next(lexKeyword("for", Token.Type.FOR));
+    } else if (isIdentifierTail(character.get())) {
+      consume(character);
+      return next(this::lexIdentifier);
+    } else {
+      produce(Token.Type.IDENTIFIER);
+      return redo(character);
+    }
+  }
+
+  private LexFunction lexI(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      produce(Token.Type.IDENTIFIER);
+      return accept();
+    } else if (character.get() == 'f') {
+      consume(character);
+      return next(lexKeywordClose(Token.Type.IF));
+    } else if (character.get() == 'm') {
+      consume(character);
+      return next(lexKeyword("import", Token.Type.IMPORT));
+    } else if (character.get() == 'n') {
+      consume(character);
+      return next(lexKeyword("int", Token.Type.INT));
+    } else if (isIdentifierTail(character.get())) {
+      consume(character);
+      return next(this::lexIdentifier);
+    } else {
+      produce(Token.Type.IDENTIFIER);
+      return redo(character);
+    }
+  }
+
+  private LexFunction lexIdentifier(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      produce(Token.Type.IDENTIFIER);
+      return accept();
+    } else if (isIdentifierTail(character.get())) {
+      consume(character);
+      return next(this::lexIdentifier);
+    } else {
+      produce(Token.Type.IDENTIFIER);
+      return redo(character);
+    }
+  }
+
+  private LexFunction lexWhitespace(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      return accept();
+    } else if (isWhitespace(character.get())) {
+      return next(this::lexWhitespace);
+    } else {
+      return redo(character);
+    }
   }
 
   private LexFunction lexEOF(Optional<Character> character) throws LexerException {
     throw new LexerException(LexerException.Type.EOF);
   }
 
-  private LexFunction lexGroup1(char expected, Token.Type tokenType) {
-    return (Optional<Character> character) -> {
-      if (!character.isPresent()) {
-        throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
-      }
-      
-      if (character.get() == expected) {
-        return this.done(tokenType, character);
-      }
-
+  private LexFunction lexEmpty(Optional<Character> character) throws LexerException {
+    if (!character.isPresent()) {
+      return this::lexEOF;
+    } else if (character.get() == ';') {
+      consume(character);
+      produce(Token.Type.SEMICOLON);
+      return reset();
+    } else if (character.get() == '[') {
+      consume(character);
+      produce(Token.Type.LEFT_SQUARE);
+      return reset();
+    } else if (character.get() == ']') {
+      consume(character);
+      produce(Token.Type.RIGHT_SQUARE);
+      return reset();
+    } else if (character.get() == ',') {
+      consume(character);
+      produce(Token.Type.COMMA);
+      return reset();
+    } else if (character.get() == '(') {
+      consume(character);
+      produce(Token.Type.LEFT_ROUND);
+      return reset();
+    } else if (character.get() == ')') {
+      consume(character);
+      produce(Token.Type.RIGHT_ROUND);
+      return reset();
+    } else if (character.get() == '{') {
+      consume(character);
+      produce(Token.Type.LEFT_CURLY);
+      return reset();
+    } else if (character.get() == '}') {
+      consume(character);
+      produce(Token.Type.RIGHT_CURLY);
+      return reset();
+    } else if (character.get() == '%') {
+      consume(character);
+      produce(Token.Type.PERCENT);
+      return reset();
+    } else if (character.get() == '*') {
+      consume(character);
+      produce(Token.Type.STAR);
+      return reset();
+    } else if (character.get() == '&') {
+      consume(character);
+      return next(lexLogical('&', Token.Type.AMPERSAND_AMPERSAND));
+    } else if (character.get() == '|') {
+      consume(character);
+      return next(lexLogical('|', Token.Type.VERTICAL_VERTICAL));
+    } else if (character.get() == '=') {
+      consume(character);
+      return next(lexComparison(Token.Type.EQUAL, Token.Type.EQUAL_EQUAL));
+    } else if (character.get() == '!') {
+      consume(character);
+      return next(lexComparison(Token.Type.BANG, Token.Type.BANG_EQUAL));
+    } else if (character.get() == '<') {
+      consume(character);
+      return next(lexComparison(Token.Type.LESS, Token.Type.LESS_EQUAL));
+    } else if (character.get() == '>') {
+      consume(character);
+      return next(lexComparison(Token.Type.GREATER, Token.Type.GREATER_EQUAL));
+    } else if (character.get() == '+') {
+      consume(character);
+      return next(lexPlusMinus('+', Token.Type.PLUS, Token.Type.PLUS_EQUAL, Token.Type.PLUS_PLUS));
+    } else if (character.get() == '-') {
+      consume(character);
+      return next(lexPlusMinus('-', Token.Type.MINUS, Token.Type.MINUS_EQUAL, Token.Type.MINUS_MINUS));
+    } else if (character.get() == '0') {
+      consume(character);
+      return next(this::lexZero);
+    } else if (isDecimal(character.get())) {
+      consume(character);
+      return next(this::lexDecimal);
+    } else if (character.get() == '\'') {
+      consume(character);
+      return next(this::lexCharacter);
+    } else if (character.get() == '\"') {
+      consume(character);
+      return next(this::lexString);
+    } else if (character.get() == '/') {
+      consume(character);
+      return next(this::lexSlash);
+    } else if (character.get() == 'b') {
+      consume(character);
+      return next(this::lexB);
+    } else if (character.get() == 'c') {
+      consume(character);
+      return next(lexKeyword("continue", Token.Type.CONTINUE));
+    } else if (character.get() == 'e') {
+      consume(character);
+      return next(lexKeyword("else", Token.Type.ELSE));
+    } else if (character.get() == 'f') {
+      consume(character);
+      return next(this::lexF);
+    } else if (character.get() == 'i') {
+      consume(character);
+      return next(this::lexI);
+    } else if (character.get() == 'l') {
+      consume(character);
+      return next(lexKeyword("len", Token.Type.LEN));
+    } else if (character.get() == 'r') {
+      consume(character);
+      return next(lexKeyword("return", Token.Type.RETURN));
+    } else if (character.get() == 't') {
+      consume(character);
+      return next(lexKeyword("true", Token.Type.TRUE));
+    } else if (character.get() == 'v') {
+      consume(character);
+      return next(lexKeyword("void", Token.Type.VOID));
+    } else if (character.get() == 'w') {
+      consume(character);
+      return next(lexKeyword("while", Token.Type.WHILE));
+    } else if (isIdentifierHead(character.get())) {
+      consume(character);
+      return next(this::lexIdentifier);
+    } else if (isWhitespace(character.get())) {
+      consume(character);
+      return next(this::lexWhitespace);
+    } else {
       throw new LexerException(LexerException.Type.INVALID_CHARACTER);
-    };
+    }
   }
 
-  private LexFunction lexGroup2(Token.Type base, Token.Type baseEqual) {
-    return (Optional<Character> character) -> {
-      if (!character.isPresent()) {
-        return this.eof(base);
-      }
-      
-      switch (character.get()) {
-        case '=':
-          return this.done(baseEqual, character);
-      }
-
-      return this.forward(base, character);
-    };
+  private interface LexFunction {
+    public LexFunction apply(Optional<Character> character) throws LexerException;
   }
 
-  private LexFunction lexGroup3(char expected, Token.Type base, Token.Type baseEqual, Token.Type baseDouble) {
-    return (Optional<Character> character) -> {
-      if (!character.isPresent()) {
-        return this.eof(base);
-      }
-      
-      if (character.get() == '=') {
-        return this.done(baseEqual, character);
-      } else if (character.get() == expected) {
-        return this.done(baseDouble, character);
-      }
-
-      return this.forward(base, character);
-    };
+  private void consume(Optional<Character> character) {
+    text.append(character.get());
   }
 
-  private LexFunction lexZero(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.DECIMAL);
-    }
-
-    switch (character.get()) {
-      case 'x':
-        return this.next(this::lexZeroX, character);
-      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': 
-        return this.next(this::lexDecimal, character);
-    }
-
-    return this.forward(Token.Type.DECIMAL, character);
+  private void produce(Token.Type tokenType) {
+    tokens.add(new Token(tokenType, text.toString()));
   }
 
-  private LexFunction lexZeroX(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
-    }
-
-    switch (character.get()) {
-      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'A': case 'B': case 'C': case 'D': case 'E': 
-      case 'F': case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': 
-        return this.next(this::lexHexadecimal, character);
-    }
-
-    throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+  private LexFunction reset() {
+    text.setLength(0);
+    return this::lexEmpty;
   }
 
-  private LexFunction lexDecimal(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.DECIMAL);
-    }
-
-    switch (character.get()) {
-      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': 
-        return this.next(this::lexDecimal, character);
-    }
-
-    return this.forward(Token.Type.DECIMAL, character);
+  private LexFunction redo(Optional<Character> character) throws LexerException {
+    text.setLength(0);
+    return lexEmpty(character);
   }
 
-  private LexFunction lexHexadecimal(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.HEXADECIMAL);
-    }
-
-    switch (character.get()) {
-      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'A': case 'B': case 'C': case 'D': case 'E': 
-      case 'F': case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': 
-        return this.next(this::lexHexadecimal, character);
-    }
-
-    return this.forward(Token.Type.HEXADECIMAL, character);
+  private LexFunction next(LexFunction lexFunction) {
+    return lexFunction;
   }
 
-  private LexFunction lexCharacter(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
-    }
-
-    switch (character.get()) {
-      case '\\':
-        return this.next(this::lexCharacterEscape, character);
-      case ' ': case '!': case '#': case '$': case '%': case '&': case '(': case ')': case '*': case '+': case ',': 
-      case '-': case '.': case '/': case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': 
-      case '8': case '9': case ':': case ';': case '<': case '=': case '>': case '?': case '@': case 'A': case 'B': 
-      case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': 
-      case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': 
-      case 'Y': case 'Z': case '[': case ']': case '^': case '_': case '`': case 'a': case 'b': case 'c': case 'd': 
-      case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': 
-      case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z': 
-      case '{': case '|': case '}': case '~':
-        return this.next(this::lexCharacterClose, character);
-    }
-
-    throw new LexerException(LexerException.Type.INVALID_CHARACTER);
+  private LexFunction accept() {
+    return this::lexEOF;
   }
 
-  private LexFunction lexCharacterEscape(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+  private boolean isDecimal(char c) {
+    switch (c) {
+      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+        return true;
+      default:
+        return false;
     }
-
-    switch (character.get()) {
-      case '\"': case '\'': case '\\': case 't': case 'n':
-        return this.next(this::lexCharacterClose, character);
-    }
-
-    throw new LexerException(LexerException.Type.INVALID_ESCAPE);
   }
 
-  private LexFunction lexCharacterClose(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+  private boolean isHexadecimal(char c) {
+    switch (c) {
+      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case 'A': 
+      case 'B': case 'C': case 'D': case 'E': case 'F': case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+        return true;
+      default:
+        return false;
     }
-
-    switch (character.get()) {
-      case '\'':
-        return this.done(Token.Type.CHARACTER, character);
-    }
-
-    throw new LexerException(LexerException.Type.INVALID_CHARACTER);
   }
 
-  private LexFunction lexString(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
+  private boolean isIdentifierHead(char c) {
+    switch (c) {
+      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': 
+      case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': 
+      case 'W': case 'X': case 'Y': case 'Z': case '_': case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': 
+      case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': 
+      case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
+        return true;
+      default:
+        return false;
     }
-
-    switch (character.get()) {
-      case '\\':
-        return this.next(this::lexStringEscape, character);
-      case '\"':
-        return this.done(Token.Type.STRING, character);
-      case ' ': case '!': case '#': case '$': case '%': case '&': case '(': case ')': case '*': case '+': case ',': 
-      case '-': case '.': case '/': case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': 
-      case '8': case '9': case ':': case ';': case '<': case '=': case '>': case '?': case '@': case 'A': case 'B': 
-      case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': 
-      case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': 
-      case 'Y': case 'Z': case '[': case ']': case '^': case '_': case '`': case 'a': case 'b': case 'c': case 'd': 
-      case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': 
-      case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z': 
-      case '{': case '|': case '}': case '~':
-        return this.next(this::lexString, character);
-    }
-
-    throw new LexerException(LexerException.Type.INVALID_CHARACTER);
   }
 
-  private LexFunction lexStringEscape(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
-    }
-
-    switch (character.get()) {
-      case '\"': case '\'': case '\\': case 't': case 'n':
-        return this.next(this::lexString, character);
-    }
-
-    throw new LexerException(LexerException.Type.INVALID_ESCAPE);
-  }
-
-  private LexFunction lexSlash(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.SLASH);
-    }
-
-    switch (character.get()) {
-      case '/':
-        return this.next(this::lexSingleLineComment, character);
-      case '*':
-        return this.next(this::lexMultiLineComment, character);
-    }
-
-    return this.forward(Token.Type.SLASH, character);
-  }
-
-  private LexFunction lexSingleLineComment(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this::lexEOF;
-    }
-
-    switch (character.get()) {
-      case '\n':
-        return this::lexEmpty;
-    }
-
-    return this::lexSingleLineComment;
-  }
-
-  private LexFunction lexMultiLineComment(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
-    }
-
-    switch (character.get()) {
-      case '*':
-        return this::lexMultiLineCommentClose;
-    }
-
-    return this::lexMultiLineComment;
-  }
-
-  private LexFunction lexMultiLineCommentClose(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      throw new LexerException(LexerException.Type.UNEXPECTED_EOF);
-    }
-
-    switch (character.get()) {
-      case '/':
-        return this::lexEmpty;
-    }
-
-    return this::lexMultiLineComment;
-  }
-
-  private LexFunction lexKeyword(String keyword, Token.Type tokenType) {
-    return (Optional<Character> character) -> {
-      if (!character.isPresent()) {
-        return this.eof(Token.Type.IDENTIFIER);
-      }
-
-      if (keyword.charAt(this.text.length()) == character.get()) {
-        this.text.append(character.get());
-        if (this.text.length() == keyword.length()) {
-          return this.lexKeywordClose(tokenType);
-        } else {
-          return this.lexKeyword(keyword, tokenType);
-        }
-      }
-
-      switch (character.get()) {
-        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case 'A': 
-        case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': 
-        case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': 
-        case 'X': case 'Y': case 'Z': case '_': case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': 
-        case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':
-        case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-          return this.next(this::lexIdentifier, character);
-      }
-
-      return this.forward(Token.Type.IDENTIFIER, character);
-    };
-  }
-
-  private LexFunction lexKeywordClose(Token.Type tokenType) {
-    return (Optional<Character> character) -> {
-      if (!character.isPresent()) {
-        return this.eof(tokenType);
-      }
-
-      switch (character.get()) {
-        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case 'A': 
-        case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': 
-        case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': 
-        case 'X': case 'Y': case 'Z': case '_': case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': 
-        case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':
-        case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-          return this.next(this::lexIdentifier, character);
-      }
-
-      return this.forward(tokenType, character);
-    };
-  }
-
-  private LexFunction lexB(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.IDENTIFIER);
-    }
-
-    switch (character.get()) {
-      case 'o':
-        return this.next(this.lexKeyword("bool", Token.Type.BOOL), character);
-      case 'r':
-        return this.next(this.lexKeyword("break", Token.Type.BREAK), character);
+  private boolean isIdentifierTail(char c) {
+    switch (c) {
       case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case 'A': 
       case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': 
       case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': 
       case 'X': case 'Y': case 'Z': case '_': case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': 
-      case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'p': case 'q': case 's': case 't': 
-      case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-        return this.next(this::lexIdentifier, character);
-    }
-
-    return this.forward(Token.Type.IDENTIFIER, character);
-  }
-
-
-  private LexFunction lexF(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.IDENTIFIER);
-    }
-
-    switch (character.get()) {
-      case 'a':
-        return this.next(this.lexKeyword("false", Token.Type.FALSE), character);
-      case 'o':
-        return this.next(this.lexKeyword("for", Token.Type.FOR), character);
-      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case 'A': 
-      case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': 
-      case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': 
-      case 'X': case 'Y': case 'Z': case '_': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': 
-      case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'p': case 'q': case 'r': case 's': case 't': 
-      case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-        return this.next(this::lexIdentifier, character);
-    }
-
-    return this.forward(Token.Type.IDENTIFIER, character);
-  }
-
-  private LexFunction lexI(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.IDENTIFIER);
-    }
-
-    switch (character.get()) {
-      case 'f':
-        return this.next(this.lexKeywordClose(Token.Type.IF), character);
-      case 'm':
-        return this.next(this.lexKeyword("import", Token.Type.IMPORT), character);
-      case 'n':
-        return this.next(this.lexKeyword("int", Token.Type.INT), character);
-      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case 'A': 
-      case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': 
-      case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': 
-      case 'X': case 'Y': case 'Z': case '_': case 'a': case 'b': case 'c': case 'd': case 'e': case 'g': case 'h': 
-      case 'i': case 'j': case 'k': case 'l': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': 
-      case 'v': case 'w': case 'x': case 'y': case 'z':
-        return this.next(this::lexIdentifier, character);
-    }
-
-    return this.forward(Token.Type.IDENTIFIER, character);
-  }
-
-  private LexFunction lexIdentifier(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this.eof(Token.Type.IDENTIFIER);
-    }
-
-    switch (character.get()) {
-      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case 'A': 
-      case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': 
-      case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': 
-      case 'X': case 'Y': case 'Z': case '_': case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': 
-      case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':
+      case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': 
       case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-        return this.next(this::lexIdentifier, character);
+        return true;
+      default:
+      return false;
     }
-
-    return this.forward(Token.Type.IDENTIFIER, character);
+  }
+  
+  private boolean isWhitespace(char c) {
+    switch (c) {
+      case ' ': case '\t': case '\n':
+        return true;
+      default:
+        return false;
+    }
   }
 
-  private LexFunction lexWhitespace(Optional<Character> character) throws LexerException {
-    if (!character.isPresent()) {
-      return this::lexEOF;
+  private boolean isUnescaped(char c) {
+    switch (c) {
+      case ' ': case '!': case '"': case '#': case '$': case '%':  case '&': case '\'': case '(': case ')': case '*': 
+      case '+': case ',': case '-': case '.': case '/': case '0':  case '1': case '2':  case '3': case '4': case '5': 
+      case '6': case '7': case '8': case '9': case ':': case ';':  case '<': case '=':  case '>': case '?': case '@': 
+      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':  case 'G': case 'H':  case 'I': case 'J': case 'K': 
+      case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q':  case 'R': case 'S':  case 'T': case 'U': case 'V': 
+      case 'W': case 'X': case 'Y': case 'Z': case '[': case '\\': case ']': case '^':  case '_': case '`': case 'a': 
+      case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':  case 'h': case 'i':  case 'j': case 'k': case 'l': 
+      case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':  case 's': case 't':  case 'u': case 'v': case 'w': 
+      case 'x': case 'y': case 'z': case '{': case '|': case '}':  case '~':
+        return true;
+      default:
+        return false;
     }
+  }
 
-    switch (character.get()) {
-      case ' ': case '\t': case '\n':
-        return this.next(this::lexWhitespace, character);
+  private boolean isEscaped(char c) {
+    switch (c) {
+      case '\"': case '\'': case '\\': case 't': case 'n':
+        return true;
+      default:
+        return false;
     }
-
-    return this.lexEmpty(character);
   }
 
 }
