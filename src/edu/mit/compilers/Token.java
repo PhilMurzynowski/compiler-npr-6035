@@ -51,7 +51,8 @@ class Token {
     TRUE,                // true
     VOID,                // void
     WHILE,               // while
-    IDENTIFIER;          // [a-zA-Z_][a-zA-Z0-9_]*
+    IDENTIFIER,          // [a-zA-Z_][a-zA-Z0-9_]*
+    EOF;                 // 
 
   }
 
@@ -81,6 +82,19 @@ class Token {
 
   public String getText() {
     return text;
+  }
+
+  public boolean is(Type type) {
+    return this.type == type;
+  }
+
+  public boolean in(Type ...types) {
+    for (Type type : types) {
+      if (this.type == type) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

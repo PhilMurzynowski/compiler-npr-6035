@@ -7,9 +7,11 @@ class LexerException extends Exception {
   static final long serialVersionUID = 6239426216427407915L;
 
   public enum Type {
+
     INVALID_CHARACTER,
     INVALID_ESCAPE,
     UNEXPECTED_EOF,
+
   }
 
   private final int line;
@@ -18,7 +20,7 @@ class LexerException extends Exception {
   private final String message;
 
   public LexerException(int line, int column, Type type, String message) {
-    super(line + ":" + column + ": " + type.toString() + ": " + message);
+    super(line + ":" + column + ": " + type + ": " + message);
     this.line = line;
     this.column = column;
     this.type = type;

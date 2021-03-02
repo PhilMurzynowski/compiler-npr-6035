@@ -63,6 +63,22 @@ class Main {
     }
   }
 
+  private static void parse(String filename, String input, PrintStream outputStream) {
+    Lexer lexer = new Lexer();
+    Parser parser = new Parser();
+    try {
+      List<Token> tokens = lexer.lex(input);
+      PTNode parseTree = parser.parse(tokens);
+      outputStream.print(parseTree); // TODO(rbd)
+    } catch (LexerException lexerException) {
+      System.err.println(lexerExceptionString(filename, input, lexerException));
+      System.exit(1);
+    } catch (ParserException parserException) {
+      System.err.println(parserException); // TODO(rbd)
+      System.exit(2);
+    }
+  }
+
   // https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
   private static String streamToString(InputStream inputStream) throws IOException {
     ByteArrayOutputStream result = new ByteArrayOutputStream();
@@ -84,6 +100,7 @@ class Main {
           break;
         case PARSE:
         case DEFAULT:
+          parse(CLI.infile == null ? "STDIN" : CLI.infile, input, outputStream);
           break;
         default:
           break;

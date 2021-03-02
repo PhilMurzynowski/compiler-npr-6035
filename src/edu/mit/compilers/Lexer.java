@@ -26,6 +26,7 @@ class Lexer {
       lexFunction = lexFunction.apply(Optional.of(c));
     }
     lexFunction.apply(Optional.empty());
+    lexFunction.apply(Optional.empty());
 
     return tokens;
   }
@@ -377,7 +378,7 @@ class Lexer {
   }
 
   private LexFunction lexEOF(Optional<Character> character) throws LexerException {
-    assert(false);
+    produce(Token.Type.EOF);
     return accept();
   }
 
