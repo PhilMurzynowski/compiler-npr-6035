@@ -69,7 +69,7 @@ class Main {
     try {
       List<Token> tokens = lexer.lex(input);
       PTNode parseTree = parser.parse(tokens);
-      outputStream.print(parseTree); // TODO(rbd)
+      outputStream.println(parseTree); // TODO(rbd)
     } catch (LexerException lexerException) {
       System.err.println(lexerExceptionString(filename, input, lexerException));
       System.exit(1);

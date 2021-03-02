@@ -26,7 +26,8 @@ class Lexer {
       lexFunction = lexFunction.apply(Optional.of(c));
     }
     lexFunction.apply(Optional.empty());
-    lexFunction.apply(Optional.empty());
+
+    produce(Token.Type.EOF);
 
     return tokens;
   }
@@ -378,8 +379,7 @@ class Lexer {
   }
 
   private LexFunction lexEOF(Optional<Character> character) throws LexerException {
-    produce(Token.Type.EOF);
-    return accept();
+    throw new RuntimeException("unreachable");
   }
 
   private LexFunction lexEmpty(Optional<Character> character) throws LexerException {

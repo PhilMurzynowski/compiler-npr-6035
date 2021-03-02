@@ -8,9 +8,8 @@ class ParserException extends Exception {
 
   public enum Type {
 
-    NOT_IMPLEMENTED,
+    INVALID_TOKEN,
     INCOMPLETE_PARSE,
-    UNEXPECTED_TOKEN,
 
   }
 
