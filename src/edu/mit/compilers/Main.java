@@ -55,7 +55,9 @@ class Main {
     try {
       List<Token> tokens = lexer.lex(input);
       for (Token token : tokens) {
-        outputStream.println(tokenString(token));
+        if (!token.is(Token.Type.EOF)) {
+          outputStream.println(tokenString(token));
+        }
       }
     } catch (LexerException lexerException) {
       System.err.println(lexerExceptionString(filename, input, lexerException));

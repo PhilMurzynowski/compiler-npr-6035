@@ -46,7 +46,7 @@ class Parser {
     expect(Token.Type.IDENTIFIER);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    expect(Token.Type.IDENTIFIER);
+    expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
 
     return builder.build();
@@ -518,11 +518,11 @@ class Parser {
     return builder.build();
   }
 
-  // NotExpression -> BANG? NegationExpression
+  // NotExpression -> BANG* NegationExpression
   private PTNode parseNotExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.NOT_EXPRESSION);
 
-    if (tokens.peek().is(Token.Type.BANG)) {
+    while (tokens.peek().is(Token.Type.BANG)) {
       builder.addChild(new PTTerminal(tokens.next()));
     }
 
@@ -531,11 +531,11 @@ class Parser {
     return builder.build();
   }
 
-  // NegationExpression -> MINUS? UnitExpression
+  // NegationExpression -> MINUS* UnitExpression
   private PTNode parseNegationExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.NEGATION_EXPRESSION);
 
-    if (tokens.peek().is(Token.Type.MINUS)) {
+    while (tokens.peek().is(Token.Type.MINUS)) {
       builder.addChild(new PTTerminal(tokens.next()));
     }
 

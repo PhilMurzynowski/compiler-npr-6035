@@ -32,8 +32,8 @@ class PTNonterminal implements PTNode {
     RELATIONAL_EXPRESSION,           // AdditiveExpression ((LESS | LESS_EQUAL | GREATER | GREATER_EQUAL) AdditiveExpression)*
     ADDITIVE_EXPRESSION,             // MultiplicativeExpression ((PLUS | MINUS) MultiplicativeExpression)*
     MULTIPLICATIVE_EXPRESSION,       // NotExpression ((STAR | SLASH | PERCENT) NotExpression)*
-    NOT_EXPRESSION,                  // BANG? NegationExpression
-    NEGATION_EXPRESSION,             // MINUS? UnitExpression
+    NOT_EXPRESSION,                  // BANG* NegationExpression
+    NEGATION_EXPRESSION,             // MINUS* UnitExpression
     UNIT_EXPRESSION,                 // LocationMethodCallExpression | LengthExpression | Literal | LEFT_ROUND Expression RIGHT_ROUND
     LOCATION_METHOD_CALL_EXPRESSION, // IDENTIFIER (LocationExpression? | MethodCallExpression)
     LOCATION_EXPRESSION,             // LEFT_SQUARE Expression RIGHT_SQUARE
