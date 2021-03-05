@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 import java.util.Objects;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class LexerException extends Exception {
 
   static final long serialVersionUID = 6239426216427407915L;
@@ -43,14 +45,20 @@ class LexerException extends Exception {
     return message;
   }
 
+  public String debugString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("LexerException {\n");
+    s.append(indent(depth + 1) + "line: " + line + ",\n");
+    s.append(indent(depth + 1) + "column: " + column + ",\n");
+    s.append(indent(depth + 1) + "type: " + type + ",\n");
+    s.append(indent(depth + 1) + "message: \"" + message + "\",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
+  }
+
   @Override
   public String toString() {
-    return "LexerException {"
-      + " line: " + line + ","
-      + " column: " + column + ","
-      + " type: " + type + ","
-      + " message: '" + message + "',"
-      + " }";
+    return debugString(0);
   }
 
   public boolean equals(LexerException that) {

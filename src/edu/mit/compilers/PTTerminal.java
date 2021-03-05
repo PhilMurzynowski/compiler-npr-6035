@@ -3,6 +3,8 @@ package edu.mit.compilers;
 import java.util.Objects;
 import java.util.List;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class PTTerminal implements PTNode {
 
   private final Token token;
@@ -17,10 +19,17 @@ class PTTerminal implements PTNode {
   }
 
   @Override
+  public String debugString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("PTTerminal {\n");
+    s.append(indent(depth + 1) + "token: " + token.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
+  }
+
+  @Override
   public String toString() {
-    return "PTTerminal {"
-      + " token: " + token + ","
-      + " }";
+    return debugString(0);
   }
 
   public boolean equals(PTTerminal that) {

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.ArrayList;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class PTNonterminal implements PTNode {
 
   public enum Type {
@@ -85,11 +87,22 @@ class PTNonterminal implements PTNode {
   }
 
   @Override
+  public String debugString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("PTNonterminal {\n");
+    s.append(indent(depth + 1) + "type: " + type + ",\n");
+    s.append(indent(depth + 1) + "children: [\n");
+    for (PTNode child : children) {
+      s.append(indent(depth + 2) + child.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
+  }
+
+  @Override
   public String toString() {
-    return "PTNonterminal {"
-      + " type: " + type + ","
-      + " children: " + children + ","
-      + " }";
+    return debugString(0);
   }
 
   public boolean equals(PTNonterminal that) {

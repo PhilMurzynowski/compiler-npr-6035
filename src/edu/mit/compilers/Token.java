@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 import java.util.Objects;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class Token {
 
   public enum Type {
@@ -97,14 +99,20 @@ class Token {
     return false;
   }
 
+  public String debugString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("Token {\n");
+    s.append(indent(depth + 1) + "line: " + line + ",\n");
+    s.append(indent(depth + 1) + "column: " + column + ",\n");
+    s.append(indent(depth + 1) + "type: " + type + ",\n");
+    s.append(indent(depth + 1) + "text: \"" + text + "\",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
+  }
+
   @Override
   public String toString() {
-    return "Token {"
-      + " line: " + line + "," 
-      + " column: " + column + ","
-      + " type: " + type + ","
-      + " text: '" + text + "',"
-      + " }";
+    return debugString(0);
   }
 
   public boolean equals(Token that) {

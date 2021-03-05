@@ -65,18 +65,29 @@ class Main {
     }
   }
 
+  private static String parserExceptionString(String filename, String input, ParserException parserException) {
+    StringBuilder output = new StringBuilder();
+    output.append(filename);
+    output.append(":" + parserException.getLine());
+    output.append(":" + parserException.getColumn());
+    output.append(": " + parserException.getType());
+    output.append(": " + parserException.getMessage() + ":\n\n");
+    output.append(input.split("\n", -1)[parserException.getLine() - 1] + "\n");
+    output.append(" ".repeat(parserException.getColumn() - 1) + "^");
+    return output.toString();
+  }
+
   private static void parse(String filename, String input, PrintStream outputStream) {
     Lexer lexer = new Lexer();
     Parser parser = new Parser();
     try {
       List<Token> tokens = lexer.lex(input);
-      PTNode parseTree = parser.parse(tokens);
-      outputStream.println(parseTree); // TODO(rbd)
+      parser.parse(tokens);
     } catch (LexerException lexerException) {
       System.err.println(lexerExceptionString(filename, input, lexerException));
       System.exit(1);
     } catch (ParserException parserException) {
-      System.err.println(parserException); // TODO(rbd)
+      System.err.println(parserExceptionString(filename, input, parserException));
       System.exit(2);
     }
   }

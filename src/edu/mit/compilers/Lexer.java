@@ -538,6 +538,7 @@ class Lexer {
   }
 
   private LexFunction accept() {
+    text.setLength(0);
     return this::lexEOF;
   }
 

@@ -14,8 +14,8 @@ class Parser {
 
     PTNode parseTree = parseProgram();
 
-    if (!this.tokens.next().is(Token.Type.EOF)) {
-      throw new ParserException(ParserException.Type.INCOMPLETE_PARSE);
+    if (!this.tokens.peek().is(Token.Type.EOF)) {
+      throw new ParserException(this.tokens.peek(), ParserException.Type.INCOMPLETE_PARSE, "incomplete parse");
     }
 
     return parseTree;
@@ -80,7 +80,7 @@ class Parser {
           builder.addChild(parseMethodDeclaration());
         }
       } else {
-        throw new ParserException(ParserException.Type.INVALID_TOKEN);
+        throw exception(Token.Type.LEFT_SQUARE, Token.Type.COMMA, Token.Type.SEMICOLON, Token.Type.LEFT_ROUND);
       }
     } else if (tokens.peek().is(Token.Type.VOID)) {
       builder.addChild(new PTTerminal(tokens.next()));
@@ -99,7 +99,7 @@ class Parser {
         builder.addChild(parseMethodDeclaration());
       }
     } else {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID);
     }
 
     return builder.build();
@@ -219,7 +219,7 @@ class Parser {
     } else if (tokens.peek().is(Token.Type.CONTINUE)) {
       builder.addChild(parseContinueStatement());
     } else {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(Token.Type.IDENTIFIER, Token.Type.IF, Token.Type.FOR, Token.Type.WHILE, Token.Type.RETURN, Token.Type.BREAK, Token.Type.CONTINUE);
     }
 
     return builder.build();
@@ -237,7 +237,7 @@ class Parser {
     } else if (tokens.peek().is(Token.Type.LEFT_ROUND)) {
       builder.addChild(parseMethodCallStatement());
     } else {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(Token.Type.LEFT_SQUARE, Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS, Token.Type.LEFT_ROUND);
     }
 
     return builder.build();
@@ -258,7 +258,7 @@ class Parser {
     } else if (tokens.peek().in(Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
       builder.addChild(new PTTerminal(tokens.next()));
     } else {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
     }
 
     expect(Token.Type.SEMICOLON);
@@ -345,7 +345,7 @@ class Parser {
     } else if (tokens.peek().in(Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
       builder.addChild(new PTTerminal(tokens.next()));
     } else {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
     }
 
     expect(Token.Type.RIGHT_ROUND);
@@ -562,7 +562,7 @@ class Parser {
       expect(Token.Type.RIGHT_ROUND);
       builder.addChild(new PTTerminal(tokens.next()));
     } else {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND);
     }
 
     return builder.build();
@@ -660,7 +660,7 @@ class Parser {
     } else if (tokens.peek().in(Token.Type.TRUE, Token.Type.FALSE)) {
       builder.addChild(parseBooleanLiteral());
     } else {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE);
     }
 
     return builder.build();
@@ -696,9 +696,27 @@ class Parser {
     return builder.build();
   }
 
+  private String message(Token.Type ...tokenTypes) {
+    StringBuilder message = new StringBuilder();
+    message.append("expected { ");
+    for (Token.Type tokenType : tokenTypes) {
+      message.append(tokenType + ", ");
+    }
+    message.append("}");
+    return message.toString();
+  }
+
   private void expect(Token.Type ...tokenTypes) throws ParserException {
     if (!tokens.peek().in(tokenTypes)) {
-      throw new ParserException(ParserException.Type.INVALID_TOKEN);
+      throw exception(tokenTypes);
+    }
+  }
+
+  private ParserException exception(Token.Type ...tokenTypes) {
+    if (tokens.peek().is(Token.Type.EOF)) {
+      return new ParserException(tokens.peek(), ParserException.Type.UNEXPECTED_EOF, message(tokenTypes));
+    } else {
+      return new ParserException(tokens.peek(), ParserException.Type.INVALID_TOKEN, message(tokenTypes));
     }
   }
 
