@@ -9,7 +9,6 @@ import static edu.mit.compilers.Utilities.indent;
 class PTNonterminal implements PTNode {
 
   public enum Type {
-
     START,                           // Program
     PROGRAM,                         // ImportDeclaration* FieldMethodDeclaration?
     IMPORT_DECLARATION,              // IMPORT IDENTIFIER SEMICOLON
@@ -45,7 +44,6 @@ class PTNonterminal implements PTNode {
     INTEGER_LITERAL,                 // DECIMAL | HEXADECIMAL
     CHARACTER_LITERAL,               // CHARACTER
     BOOLEAN_LITERAL,                 // TRUE | FALSE
-
   }
 
   private final Type type;

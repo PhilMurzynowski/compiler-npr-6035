@@ -9,11 +9,9 @@ class LexerException extends Exception {
   static final long serialVersionUID = 6239426216427407915L;
 
   public enum Type {
-
     INVALID_CHARACTER,
     INVALID_ESCAPE,
     UNEXPECTED_EOF,
-
   }
 
   private final int line;

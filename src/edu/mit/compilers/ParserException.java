@@ -9,11 +9,9 @@ class ParserException extends Exception {
   static final long serialVersionUID = 602699916434554042L;
 
   public enum Type {
-
     INVALID_TOKEN,
     INCOMPLETE_PARSE,
     UNEXPECTED_EOF,
-
   }
 
   private final int line;
