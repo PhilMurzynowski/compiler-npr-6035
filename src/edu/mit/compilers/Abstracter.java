@@ -158,6 +158,36 @@ class Abstracter {
 
   // Block -> LEFT_CURLY ((INT | BOOL) IDENTIFIER FieldDeclaration)* Statement* RIGHT_CURLY
   private ASTBlock abstractBlock(PTNode block) {
+    final ASTBlock.Builder builder = new ASTBlock.Builder();
+
+    final List<PTNode> children = block.getChildren();
+
+    int i;
+
+    for (i = 1; children.get(i).in(Token.Type.INT, Token.Type.BOOL); i += 3) {
+      final ASTFieldDeclaration.Builder fieldBuilder = new ASTFieldDeclaration.Builder();
+
+      if (children.get(i).is(Token.Type.INT)) {
+        fieldBuilder.withType(ASTFieldDeclaration.Type.INTEGER);
+      } else /* if (children.get(i).is(Token.Type.BOOL)) */ {
+        fieldBuilder.withType(ASTFieldDeclaration.Type.BOOLEAN);
+      }
+
+      final ASTFieldDeclaration.Identifier.Builder identifierBuilder = new ASTFieldDeclaration.Identifier.Builder();
+
+      identifierBuilder.withIdentifier(children.get(i + 1).getText());
+
+      builder.addFieldDeclaration(abstractFieldDeclaration(fieldBuilder, identifierBuilder, children.get(i + 2)));
+    }
+
+    for (; !children.get(i).is(Token.Type.RIGHT_CURLY); ++i) {
+      builder.addStatement(abstractStatement(children.get(i)));
+    }
+
+    return builder.build();
+  }
+
+  private ASTStatement abstractStatement(PTNode statement) {
     throw new RuntimeException("not implemented");
   }
 

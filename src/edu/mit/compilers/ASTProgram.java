@@ -43,7 +43,7 @@ class ASTProgram implements ASTNode {
     }
 
     public ASTProgram build() {
-      return new ASTProgram(importDeclarations, fieldDeclarations, methodDeclarations);
+      return new ASTProgram(List.copyOf(importDeclarations), List.copyOf(fieldDeclarations), List.copyOf(methodDeclarations));
     }
   }
 

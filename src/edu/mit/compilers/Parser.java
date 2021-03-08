@@ -105,15 +105,14 @@ class Parser {
     return builder.build();
   }
 
-  // FieldDeclaration -> (LEFT_SQUARE (DECIMAL | HEXADECIMAL) RIGHT_SQUARE)? (COMMA IDENTIFIER (LEFT_SQUARE (DECIMAL | HEXADECIMAL) RIGHT_SQUARE)?)* SEMICOLON
+  // FieldDeclaration -> (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)? (COMMA IDENTIFIER (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)?)* SEMICOLON
   private PTNonterminal parseFieldDeclaration() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FIELD_DECLARATION);
 
     if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
       builder.addChild(new PTTerminal(tokens.next()));
 
-      expect(Token.Type.DECIMAL, Token.Type.HEXADECIMAL);
-      builder.addChild(new PTTerminal(tokens.next()));
+      builder.addChild(parseIntegerLiteral());
 
       expect(Token.Type.RIGHT_SQUARE);
       builder.addChild(new PTTerminal(tokens.next()));
@@ -128,8 +127,7 @@ class Parser {
       if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
         builder.addChild(new PTTerminal(tokens.next()));
 
-        expect(Token.Type.DECIMAL, Token.Type.HEXADECIMAL);
-        builder.addChild(new PTTerminal(tokens.next()));
+        builder.addChild(parseIntegerLiteral());
 
         expect(Token.Type.RIGHT_SQUARE);
         builder.addChild(new PTTerminal(tokens.next()));

@@ -95,7 +95,7 @@ class ASTMethodDeclaration implements ASTNode {
     }
 
     public ASTMethodDeclaration build() {
-      return new ASTMethodDeclaration(type, identifier, arguments, block);
+      return new ASTMethodDeclaration(type, identifier, List.copyOf(arguments), block);
     }
 
   }

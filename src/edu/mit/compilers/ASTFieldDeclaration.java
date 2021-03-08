@@ -76,7 +76,7 @@ class ASTFieldDeclaration implements ASTNode {
     }
 
     public ASTFieldDeclaration build() {
-      return new ASTFieldDeclaration(type, identifiers);
+      return new ASTFieldDeclaration(type, List.copyOf(identifiers));
     }
 
   }

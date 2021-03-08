@@ -13,7 +13,7 @@ class PTNonterminal implements PTNode {
     PROGRAM,                         // ImportDeclaration* FieldMethodDeclaration?
     IMPORT_DECLARATION,              // IMPORT IDENTIFIER SEMICOLON
     FIELD_METHOD_DECLARATION,        // (INT | BOOL) IDENTIFIER (FieldDeclaration FieldMethodDeclaration? | MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*) | VOID IDENTIFIER MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*
-    FIELD_DECLARATION,               // (LEFT_SQUARE (DECIMAL | HEXADECIMAL) RIGHT_SQUARE)? (COMMA IDENTIFIER (LEFT_SQUARE (DECIMAL | HEXADECIMAL) RIGHT_SQUARE)?)* SEMICOLON
+    FIELD_DECLARATION,               // (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)? (COMMA IDENTIFIER (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)?)* SEMICOLON
     METHOD_DECLARATION,              // LEFT_ROUND ((INT | BOOL) IDENTIFIER (COMMA (INT | BOOL) IDENTIFIER)*)? RIGHT_ROUND Block
     BLOCK,                           // LEFT_CURLY ((INT | BOOL) IDENTIFIER FieldDeclaration)* Statement* RIGHT_CURLY
     STATEMENT,                       // AssignMethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
@@ -70,7 +70,7 @@ class PTNonterminal implements PTNode {
     }
 
     public PTNonterminal build() {
-      return new PTNonterminal(type, children);
+      return new PTNonterminal(type, List.copyOf(children));
     }
 
   }
