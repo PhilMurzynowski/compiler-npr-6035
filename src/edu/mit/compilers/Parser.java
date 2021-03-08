@@ -1,6 +1,7 @@
 package edu.mit.compilers;
 
 import java.util.List;
+import java.util.Optional;
 
 class Parser {
 
@@ -21,7 +22,7 @@ class Parser {
     return parseTree;
   }
 
-  // Program -> ImportDeclaration* FieldMethodDeclaration?
+  // Program -> ImportDeclaration* FieldDeclaration* MethodDeclaration*
   private PTNonterminal parseProgram() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.PROGRAM);
 
@@ -29,8 +30,12 @@ class Parser {
       builder.addChild(parseImportDeclaration());
     }
 
-    if (tokens.peek().in(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID)) {
-      builder.addChild(parseFieldMethodDeclaration());
+    while (tokens.peek(2).is(Token.Type.LEFT_SQUARE, Token.Type.COMMA, Token.Type.SEMICOLON)) {
+      builder.addChild(parseFieldDeclaration());
+    }
+
+    while (tokens.peek(2).is(Token.Type.LEFT_ROUND)) {
+      builder.addChild(parseMethodDeclaration());
     }
 
     return builder.build();
@@ -52,86 +57,19 @@ class Parser {
     return builder.build();
   }
 
-  // FieldMethodDeclaration -> (INT | BOOL) IDENTIFIER (FieldDeclaration FieldMethodDeclaration? | MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*) | VOID IDENTIFIER MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*
-  private PTNonterminal parseFieldMethodDeclaration() throws ParserException {
-    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FIELD_METHOD_DECLARATION);
-
-    if (tokens.peek().in(Token.Type.INT, Token.Type.BOOL)) {
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      expect(Token.Type.IDENTIFIER);
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      if (tokens.peek().in(Token.Type.LEFT_SQUARE, Token.Type.COMMA, Token.Type.SEMICOLON)) {
-        builder.addChild(parseFieldDeclaration());
-
-        if (tokens.peek().in(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID)) {
-          builder.addChild(parseFieldMethodDeclaration());
-        }
-      } else if (tokens.peek().in(Token.Type.LEFT_ROUND)) {
-        builder.addChild(parseMethodDeclaration());
-
-        while (tokens.peek().in(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID)) {
-          builder.addChild(new PTTerminal(tokens.next()));
-
-          expect(Token.Type.IDENTIFIER);
-          builder.addChild(new PTTerminal(tokens.next()));
-
-          builder.addChild(parseMethodDeclaration());
-        }
-      } else {
-        throw exception(Token.Type.LEFT_SQUARE, Token.Type.COMMA, Token.Type.SEMICOLON, Token.Type.LEFT_ROUND);
-      }
-    } else if (tokens.peek().is(Token.Type.VOID)) {
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      expect(Token.Type.IDENTIFIER);
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      builder.addChild(parseMethodDeclaration());
-
-      while (tokens.peek().in(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID)) {
-        builder.addChild(new PTTerminal(tokens.next()));
-
-        expect(Token.Type.IDENTIFIER);
-        builder.addChild(new PTTerminal(tokens.next()));
-
-        builder.addChild(parseMethodDeclaration());
-      }
-    } else {
-      throw exception(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID);
-    }
-
-    return builder.build();
-  }
-
-  // FieldDeclaration -> (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)? (COMMA IDENTIFIER (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)?)* SEMICOLON
+  // FieldDeclaration -> (INT | BOOL) FieldIdentifierDeclaration (COMMA FieldIdentifierDeclaration)* SEMICOLON
   private PTNonterminal parseFieldDeclaration() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FIELD_DECLARATION);
 
-    if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
-      builder.addChild(new PTTerminal(tokens.next()));
+    expect(Token.Type.INT, Token.Type.BOOL);
+    builder.addChild(new PTTerminal(tokens.next()));
 
-      builder.addChild(parseIntegerLiteral());
-
-      expect(Token.Type.RIGHT_SQUARE);
-      builder.addChild(new PTTerminal(tokens.next()));
-    } 
+    builder.addChild(parseFieldIdentifierDeclaration());
 
     while (tokens.peek().is(Token.Type.COMMA)) {
       builder.addChild(new PTTerminal(tokens.next()));
 
-      expect(Token.Type.IDENTIFIER);
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
-        builder.addChild(new PTTerminal(tokens.next()));
-
-        builder.addChild(parseIntegerLiteral());
-
-        expect(Token.Type.RIGHT_SQUARE);
-        builder.addChild(new PTTerminal(tokens.next()));
-      } 
+      builder.addChild(parseFieldIdentifierDeclaration());
     }
 
     expect(Token.Type.SEMICOLON);
@@ -140,27 +78,26 @@ class Parser {
     return builder.build();
   }
 
-  // MethodDeclaration -> LEFT_ROUND ((INT | BOOL) IDENTIFIER (COMMA (INT | BOOL) IDENTIFIER)*)? RIGHT_ROUND Block
+  // MethodDeclaration -> (INT | BOOL | VOID) IDENTIFIER LEFT_ROUND (ArgumentDeclaration (COMMA ArgumentDeclaration)*)? RIGHT_ROUND Block
   private PTNonterminal parseMethodDeclaration() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.METHOD_DECLARATION);
+
+    expect(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    expect(Token.Type.IDENTIFIER);
+    builder.addChild(new PTTerminal(tokens.next()));
 
     expect(Token.Type.LEFT_ROUND);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    if (tokens.peek().in(Token.Type.INT, Token.Type.BOOL)) {
-      builder.addChild(new PTTerminal(tokens.next()));
+    if (tokens.peek().is(Token.Type.INT, Token.Type.BOOL)) {
+      builder.addChild(parseArgumentDeclaration());
 
-      expect(Token.Type.IDENTIFIER);
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      while (tokens.peek().in(Token.Type.COMMA)) {
+      while (tokens.peek().is(Token.Type.COMMA)) {
         builder.addChild(new PTTerminal(tokens.next()));
 
-        expect(Token.Type.INT, Token.Type.BOOL);
-        builder.addChild(new PTTerminal(tokens.next()));
-
-        expect(Token.Type.IDENTIFIER);
-        builder.addChild(new PTTerminal(tokens.next()));
+        builder.addChild(parseArgumentDeclaration());
       }
     }
 
@@ -172,23 +109,50 @@ class Parser {
     return builder.build();
   }
 
-  // Block -> LEFT_CURLY ((INT | BOOL) IDENTIFIER FieldDeclaration)* Statement* RIGHT_CURLY
+  // FieldIdentifierDeclaration -> IDENTIFIER (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)?
+  private PTNonterminal parseFieldIdentifierDeclaration() throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FIELD_IDENTIFIER_DECLARATION);
+
+    expect(Token.Type.IDENTIFIER);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
+      builder.addChild(new PTTerminal(tokens.next()));
+
+      builder.addChild(parseIntegerLiteral());
+
+      expect(Token.Type.RIGHT_SQUARE);
+      builder.addChild(new PTTerminal(tokens.next()));
+    } 
+
+    return builder.build();
+  }
+
+  // ArgumentDeclaration -> (INT | BOOL) IDENTIFIER
+  private PTNonterminal parseArgumentDeclaration() throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ARGUMENT_DECLARATION);
+    
+    expect(Token.Type.INT, Token.Type.BOOL);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    expect(Token.Type.IDENTIFIER);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    return builder.build();
+  }
+
+  // Block -> LEFT_CURLY FieldDeclaration* Statement* RIGHT_CURLY
   private PTNonterminal parseBlock() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.BLOCK);
 
     expect(Token.Type.LEFT_CURLY);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    while (tokens.peek().in(Token.Type.INT, Token.Type.BOOL)) {
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      expect(Token.Type.IDENTIFIER);
-      builder.addChild(new PTTerminal(tokens.next()));
-
+    while (tokens.peek().is(Token.Type.INT, Token.Type.BOOL)) {
       builder.addChild(parseFieldDeclaration());
     }
 
-    while (tokens.peek().in(Token.Type.IDENTIFIER, Token.Type.IF, Token.Type.FOR, Token.Type.WHILE, Token.Type.RETURN, Token.Type.BREAK, Token.Type.CONTINUE)) {
+    while (tokens.peek().is(Token.Type.IDENTIFIER, Token.Type.IF, Token.Type.FOR, Token.Type.WHILE, Token.Type.RETURN, Token.Type.BREAK, Token.Type.CONTINUE)) {
       builder.addChild(parseStatement());
     }
 
@@ -198,12 +162,34 @@ class Parser {
     return builder.build();
   }
 
-  // Statement -> AssignMethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
+  // Statement -> AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
   private PTNonterminal parseStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.STATEMENT);
 
     if (tokens.peek().is(Token.Type.IDENTIFIER)) {
-      builder.addChild(parseAssignMethodCallStatement());
+      if (tokens.peek(1).is(Token.Type.LEFT_SQUARE)) {
+        // NOTE(rbd): This is an unfortunate hack because of unknown lookahead to choose between AssignStatement and
+        // CompoundAssignStatement where the location expression involves an offset. I prefer keeping this distinction
+        // between assign statements to make the ForStatement easier, but maybe there is a better way.
+
+        PTNonterminal locationExpression = parseLocationExpression();
+
+        if (tokens.peek().is(Token.Type.EQUAL)) {
+          builder.addChild(parseAssignStatement(Optional.of(locationExpression)));
+        } else if (tokens.peek().is(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
+          builder.addChild(parseCompoundAssignStatement(Optional.of(locationExpression)));
+        } else {
+          throw exception(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
+        }
+      } else if (tokens.peek(1).is(Token.Type.EQUAL)) {
+        builder.addChild(parseAssignStatement(Optional.empty()));
+      } else if (tokens.peek(1).is(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
+        builder.addChild(parseCompoundAssignStatement(Optional.empty()));
+      } else if (tokens.peek(1).is(Token.Type.LEFT_ROUND)) {
+        builder.addChild(parseMethodCallStatement());
+      } else {
+        throw exception(1, Token.Type.LEFT_SQUARE, Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS, Token.Type.LEFT_ROUND);
+      }
     } else if (tokens.peek().is(Token.Type.IF)) {
       builder.addChild(parseIfStatement());
     } else if (tokens.peek().is(Token.Type.FOR)) {
@@ -223,41 +209,23 @@ class Parser {
     return builder.build();
   }
 
-  // AssignMethodCallStatement -> IDENTIFIER (AssignStatement | MethodCallStatement)
-  private PTNonterminal parseAssignMethodCallStatement() throws ParserException {
-    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_METHOD_CALL_STATEMENT);
+  // AssignStatement -> AssignExpression SEMICOLON
+  private PTNonterminal parseAssignStatement(Optional<PTNonterminal> locationExpression) throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_STATEMENT);
 
-    expect(Token.Type.IDENTIFIER);
+    builder.addChild(parseAssignExpression(locationExpression));
+
+    expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
-
-    if (tokens.peek().in(Token.Type.LEFT_SQUARE, Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
-      builder.addChild(parseAssignStatement());
-    } else if (tokens.peek().is(Token.Type.LEFT_ROUND)) {
-      builder.addChild(parseMethodCallStatement());
-    } else {
-      throw exception(Token.Type.LEFT_SQUARE, Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS, Token.Type.LEFT_ROUND);
-    }
 
     return builder.build();
   }
 
-  // AssignStatement -> LocationExpression? ((EQUAL | PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS)) SEMICOLON
-  private PTNonterminal parseAssignStatement() throws ParserException {
-    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_STATEMENT);
+  // CompoundAssignStatement -> CompoundAssignExpression SEMICOLON
+  private PTNonterminal parseCompoundAssignStatement(Optional<PTNonterminal> locationExpression) throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.COMPOUND_ASSIGN_STATEMENT);
 
-    if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
-      builder.addChild(parseLocationExpression());
-    }
-
-    if (tokens.peek().in(Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL)) {
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      builder.addChild(parseExpression());
-    } else if (tokens.peek().in(Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
-      builder.addChild(new PTTerminal(tokens.next()));
-    } else {
-      throw exception(Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
-    }
+    builder.addChild(parseCompoundAssignExpression(locationExpression));
 
     expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
@@ -303,7 +271,7 @@ class Parser {
     return builder.build();
   }
 
-  // ForStatement -> FOR LEFT_ROUND IDENTIFIER EQUAL Expression SEMICOLON Expression SEMICOLON IDENTIFIER LocationExpression? ((PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS)) RIGHT_ROUND Block
+  // ForStatement -> FOR LEFT_ROUND AssignExpression SEMICOLON Expression SEMICOLON CompoundAssignExpression RIGHT_ROUND Block
   private PTNonterminal parseForStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FOR_STATEMENT);
 
@@ -313,13 +281,7 @@ class Parser {
     expect(Token.Type.LEFT_ROUND);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    expect(Token.Type.IDENTIFIER);
-    builder.addChild(new PTTerminal(tokens.next()));
-
-    expect(Token.Type.EQUAL);
-    builder.addChild(new PTTerminal(tokens.next()));
-
-    builder.addChild(parseExpression());
+    builder.addChild(parseAssignExpression(Optional.empty()));
 
     expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
@@ -329,22 +291,7 @@ class Parser {
     expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    expect(Token.Type.IDENTIFIER);
-    builder.addChild(new PTTerminal(tokens.next()));
-
-    if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
-      builder.addChild(parseLocationExpression());
-    }
-
-    if (tokens.peek().in(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL)) {
-      builder.addChild(new PTTerminal(tokens.next()));
-
-      builder.addChild(parseExpression());
-    } else if (tokens.peek().in(Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
-      builder.addChild(new PTTerminal(tokens.next()));
-    } else {
-      throw exception(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
-    }
+    builder.addChild(parseCompoundAssignExpression(Optional.empty()));
 
     expect(Token.Type.RIGHT_ROUND);
     builder.addChild(new PTTerminal(tokens.next()));
@@ -381,7 +328,7 @@ class Parser {
     expect(Token.Type.RETURN);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    if (tokens.peek().in(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND)) {
+    if (tokens.peek().is(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND)) {
       builder.addChild(parseExpression());
     }
 
@@ -413,6 +360,47 @@ class Parser {
 
     expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
+
+    return builder.build();
+  }
+
+  // AssignExpression -> LocationExpression EQUAL Expression
+  private PTNonterminal parseAssignExpression(Optional<PTNonterminal> locationExpression) throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_EXPRESSION);
+
+    if (locationExpression.isPresent()) {
+      builder.addChild(locationExpression.get());
+    } else {
+      builder.addChild(parseLocationExpression());
+    }
+
+    expect(Token.Type.EQUAL);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    builder.addChild(parseExpression());
+
+    return builder.build();
+  }
+
+  // CompoundAssignExpression -> LocationExpression ((PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS))
+  private PTNonterminal parseCompoundAssignExpression(Optional<PTNonterminal> locationExpression) throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.COMPOUND_ASSIGN_EXPRESSION);
+
+    if (locationExpression.isPresent()) {
+      builder.addChild(locationExpression.get());
+    } else {
+      builder.addChild(parseLocationExpression());
+    }
+
+    if (tokens.peek().is(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL)) {
+      builder.addChild(new PTTerminal(tokens.next()));
+
+      builder.addChild(parseExpression());
+    } else if (tokens.peek().is(Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
+      builder.addChild(new PTTerminal(tokens.next()));
+    } else {
+      throw exception(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
+    }
 
     return builder.build();
   }
@@ -462,7 +450,7 @@ class Parser {
 
     builder.addChild(parseRelationalExpression());
 
-    while (tokens.peek().in(Token.Type.EQUAL_EQUAL, Token.Type.BANG_EQUAL)) {
+    while (tokens.peek().is(Token.Type.EQUAL_EQUAL, Token.Type.BANG_EQUAL)) {
       builder.addChild(new PTTerminal(tokens.next()));
 
       builder.addChild(parseRelationalExpression());
@@ -477,7 +465,7 @@ class Parser {
 
     builder.addChild(parseAdditiveExpression());
 
-    while (tokens.peek().in(Token.Type.LESS, Token.Type.LESS_EQUAL, Token.Type.GREATER, Token.Type.GREATER_EQUAL)) {
+    while (tokens.peek().is(Token.Type.LESS, Token.Type.LESS_EQUAL, Token.Type.GREATER, Token.Type.GREATER_EQUAL)) {
       builder.addChild(new PTTerminal(tokens.next()));
 
       builder.addChild(parseAdditiveExpression());
@@ -492,7 +480,7 @@ class Parser {
 
     builder.addChild(parseMultiplicativeExpression());
 
-    while (tokens.peek().in(Token.Type.PLUS, Token.Type.MINUS)) {
+    while (tokens.peek().is(Token.Type.PLUS, Token.Type.MINUS)) {
       builder.addChild(new PTTerminal(tokens.next()));
 
       builder.addChild(parseMultiplicativeExpression());
@@ -507,7 +495,7 @@ class Parser {
 
     builder.addChild(parseNotExpression());
 
-    while (tokens.peek().in(Token.Type.STAR, Token.Type.SLASH, Token.Type.PERCENT)) {
+    while (tokens.peek().is(Token.Type.STAR, Token.Type.SLASH, Token.Type.PERCENT)) {
       builder.addChild(new PTTerminal(tokens.next()));
 
       builder.addChild(parseNotExpression());
@@ -542,15 +530,19 @@ class Parser {
     return builder.build();
   }
 
-  // UnitExpression -> LocationMethodCallExpression | LengthExpression | Literal | LEFT_ROUND Expression RIGHT_ROUND
+  // UnitExpression -> LocationExpression | MethodCallExpression | LengthExpression | Literal | LEFT_ROUND Expression RIGHT_ROUND
   private PTNonterminal parseUnitExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.UNIT_EXPRESSION);
 
     if (tokens.peek().is(Token.Type.IDENTIFIER)) {
-      builder.addChild(parseLocationMethodCallExpression());
+      if (tokens.peek(1).is(Token.Type.LEFT_ROUND)) {
+        builder.addChild(parseMethodCallExpression());
+      } else {
+        builder.addChild(parseLocationExpression());
+      }
     } else if (tokens.peek().is(Token.Type.LEN)) {
       builder.addChild(parseLengthExpression());
-    } else if (tokens.peek().in(Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE)) {
+    } else if (tokens.peek().is(Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE)) {
       builder.addChild(parseLiteral());
     } else if (tokens.peek().is(Token.Type.LEFT_ROUND)) {
       builder.addChild(new PTTerminal(tokens.next()));
@@ -566,59 +558,43 @@ class Parser {
     return builder.build();
   }
 
-  // LocationMethodCallExpression -> IDENTIFIER (LocationExpression? | MethodCallExpression)
-  private PTNonterminal parseLocationMethodCallExpression() throws ParserException {
-    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LOCATION_METHOD_CALL_EXPRESSION);
+  // LocationExpression -> IDENTIFIER (LEFT_SQUARE Expression RIGHT_SQUARE)?
+  private PTNonterminal parseLocationExpression() throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LOCATION_EXPRESSION);
 
     expect(Token.Type.IDENTIFIER);
     builder.addChild(new PTTerminal(tokens.next()));
 
     if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
-      builder.addChild(parseLocationExpression());
-    } else if (tokens.peek().is(Token.Type.LEFT_ROUND)) {
-      builder.addChild(parseMethodCallExpression());
+      expect(Token.Type.LEFT_SQUARE);
+      builder.addChild(new PTTerminal(tokens.next()));
+
+      builder.addChild(parseExpression());
+
+      expect(Token.Type.RIGHT_SQUARE);
+      builder.addChild(new PTTerminal(tokens.next()));
     }
 
     return builder.build();
   }
 
-  // LocationExpression -> LEFT_SQUARE Expression RIGHT_SQUARE
-  private PTNonterminal parseLocationExpression() throws ParserException {
-    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LOCATION_EXPRESSION);
-
-    expect(Token.Type.LEFT_SQUARE);
-    builder.addChild(new PTTerminal(tokens.next()));
-
-    builder.addChild(parseExpression());
-
-    expect(Token.Type.RIGHT_SQUARE);
-    builder.addChild(new PTTerminal(tokens.next()));
-
-    return builder.build();
-  }
-
-  // MethodCallExpression -> LEFT_ROUND ((Expression | STRING) (COMMA (Expression | STRING))*)? RIGHT_ROUND 
+  // MethodCallExpression -> IDENTIFIER LEFT_ROUND (Argument (COMMA Argument)*)? RIGHT_ROUND 
   private PTNonterminal parseMethodCallExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.METHOD_CALL_EXPRESSION);
+
+    expect(Token.Type.IDENTIFIER);
+    builder.addChild(new PTTerminal(tokens.next()));
 
     expect(Token.Type.LEFT_ROUND);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    if (tokens.peek().in(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND, Token.Type.STRING)) {
-      if (tokens.peek().in(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND)) {
-        builder.addChild(parseExpression());
-      } else if (tokens.peek().is(Token.Type.STRING)) {
-        builder.addChild(new PTTerminal(tokens.next()));
-      }
+    if (tokens.peek().is(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND, Token.Type.STRING)) {
+      builder.addChild(parseArgument());
 
       while (tokens.peek().is(Token.Type.COMMA)) {
         builder.addChild(new PTTerminal(tokens.next()));
 
-        if (tokens.peek().in(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND)) {
-          builder.addChild(parseExpression());
-        } else if (tokens.peek().is(Token.Type.STRING)) {
-          builder.addChild(new PTTerminal(tokens.next()));
-        }
+        builder.addChild(parseArgument());
       }
     }
 
@@ -647,15 +623,30 @@ class Parser {
     return builder.build();
   }
 
+  // Argument -> Expression | StringLiteral
+  private PTNonterminal parseArgument() throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ARGUMENT);
+
+    if (tokens.peek().is(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND)) {
+      builder.addChild(parseExpression());
+    } else if (tokens.peek().is(Token.Type.STRING)) {
+      builder.addChild(parseStringLiteral());
+    } else {
+      throw exception(Token.Type.BANG, Token.Type.MINUS, Token.Type.IDENTIFIER, Token.Type.LEN, Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE, Token.Type.LEFT_ROUND, Token.Type.STRING);
+    }
+
+    return builder.build();
+  }
+
   // Literal -> IntegerLiteral | CharacterLiteral | BooleanLiteral
   private PTNonterminal parseLiteral() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LITERAL);
 
-    if (tokens.peek().in(Token.Type.DECIMAL, Token.Type.HEXADECIMAL)) {
+    if (tokens.peek().is(Token.Type.DECIMAL, Token.Type.HEXADECIMAL)) {
       builder.addChild(parseIntegerLiteral());
     } else if (tokens.peek().is(Token.Type.CHARACTER)) {
       builder.addChild(parseCharacterLiteral());
-    } else if (tokens.peek().in(Token.Type.TRUE, Token.Type.FALSE)) {
+    } else if (tokens.peek().is(Token.Type.TRUE, Token.Type.FALSE)) {
       builder.addChild(parseBooleanLiteral());
     } else {
       throw exception(Token.Type.DECIMAL, Token.Type.HEXADECIMAL, Token.Type.CHARACTER, Token.Type.TRUE, Token.Type.FALSE);
@@ -694,6 +685,16 @@ class Parser {
     return builder.build();
   }
 
+  // StringLiteral -> STRING
+  private PTNonterminal parseStringLiteral() throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.STRING_LITERAL);
+
+    expect(Token.Type.STRING);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    return builder.build();
+  }
+
   private String message(Token.Type ...tokenTypes) {
     StringBuilder message = new StringBuilder();
     message.append("expected { ");
@@ -705,17 +706,21 @@ class Parser {
   }
 
   private void expect(Token.Type ...tokenTypes) throws ParserException {
-    if (!tokens.peek().in(tokenTypes)) {
+    if (!tokens.peek().is(tokenTypes)) {
       throw exception(tokenTypes);
     }
   }
 
-  private ParserException exception(Token.Type ...tokenTypes) {
-    if (tokens.peek().is(Token.Type.EOF)) {
-      return new ParserException(tokens.peek(), ParserException.Type.UNEXPECTED_EOF, message(tokenTypes));
+  private ParserException exception(int lookahead, Token.Type ...tokenTypes) {
+    if (tokens.peek(lookahead).is(Token.Type.EOF)) {
+      return new ParserException(tokens.peek(lookahead), ParserException.Type.UNEXPECTED_EOF, message(tokenTypes));
     } else {
-      return new ParserException(tokens.peek(), ParserException.Type.INVALID_TOKEN, message(tokenTypes));
+      return new ParserException(tokens.peek(lookahead), ParserException.Type.INVALID_TOKEN, message(tokenTypes));
     }
+  }
+
+  private ParserException exception(Token.Type ...tokenTypes) {
+    return exception(0, tokenTypes);
   }
 
 }

@@ -4,11 +4,9 @@ import java.util.List;
 
 interface PTNode {
 
-  public boolean is(Token.Type tokenType);
+  public boolean is(Token.Type ...tokenTypes);
 
-  public boolean in(Token.Type ...tokenTypes);
-
-  public boolean is(PTNonterminal.Type nonterminalType);
+  public boolean is(PTNonterminal.Type ...nonterminalTypes);
 
   public String getText();
 

@@ -14,17 +14,12 @@ class PTTerminal implements PTNode {
   }
 
   @Override
-  public boolean is(Token.Type tokenType) {
-    return token.is(tokenType);
+  public boolean is(Token.Type ...tokenTypes) {
+    return token.is(tokenTypes);
   }
 
   @Override
-  public boolean in(Token.Type ...tokenTypes) {
-    return token.in(tokenTypes);
-  }
-
-  @Override
-  public boolean is(PTNonterminal.Type type) {
+  public boolean is(PTNonterminal.Type ...types) {
     return false;
   }
 

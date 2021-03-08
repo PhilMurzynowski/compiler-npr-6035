@@ -9,41 +9,55 @@ import static edu.mit.compilers.Utilities.indent;
 class PTNonterminal implements PTNode {
 
   public enum Type {
-    START,                           // Program
-    PROGRAM,                         // ImportDeclaration* FieldMethodDeclaration?
-    IMPORT_DECLARATION,              // IMPORT IDENTIFIER SEMICOLON
-    FIELD_METHOD_DECLARATION,        // (INT | BOOL) IDENTIFIER (FieldDeclaration FieldMethodDeclaration? | MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*) | VOID IDENTIFIER MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*
-    FIELD_DECLARATION,               // (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)? (COMMA IDENTIFIER (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)?)* SEMICOLON
-    METHOD_DECLARATION,              // LEFT_ROUND ((INT | BOOL) IDENTIFIER (COMMA (INT | BOOL) IDENTIFIER)*)? RIGHT_ROUND Block
-    BLOCK,                           // LEFT_CURLY ((INT | BOOL) IDENTIFIER FieldDeclaration)* Statement* RIGHT_CURLY
-    STATEMENT,                       // AssignMethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
-    ASSIGN_METHOD_CALL_STATEMENT,    // IDENTIFIER (AssignStatement | MethodCallStatement)
-    ASSIGN_STATEMENT,                // LocationExpression? ((EQUAL | PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS)) SEMICOLON
-    METHOD_CALL_STATEMENT,           // MethodCallExpression SEMICOLON
-    IF_STATEMENT,                    // IF LEFT_ROUND Expression RIGHT_ROUND Block (ELSE Block)?
-    FOR_STATEMENT,                   // FOR LEFT_ROUND IDENTIFIER EQUAL Expression SEMICOLON Expression SEMICOLON IDENTIFIER LocationExpression? ((PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS)) RIGHT_ROUND Block
-    WHILE_STATEMENT,                 // WHILE LEFT_ROUND Expression RIGHT_ROUND Block
-    RETURN_STATEMENT,                // RETURN (Expression)? SEMICOLON
-    BREAK_STATEMENT,                 // BREAK SEMICOLON
-    CONTINUE_STATEMENT,              // CONTINUE SEMICOLON
-    EXPRESSION,                      // OrExpression
-    OR_EXPRESSION,                   // AndExpression (VERTICAL_VERTICAL AndExpression)*
-    AND_EXPRESSION,                  // EqualityExpression (AMPERSAND_AMPERSAND EqualityExpression)*
-    EQUALITY_EXPRESSION,             // RelationalExpression ((EQUAL_EQUAL | BANG_EQUAL) RelationalExpression)*
-    RELATIONAL_EXPRESSION,           // AdditiveExpression ((LESS | LESS_EQUAL | GREATER | GREATER_EQUAL) AdditiveExpression)*
-    ADDITIVE_EXPRESSION,             // MultiplicativeExpression ((PLUS | MINUS) MultiplicativeExpression)*
-    MULTIPLICATIVE_EXPRESSION,       // NotExpression ((STAR | SLASH | PERCENT) NotExpression)*
-    NOT_EXPRESSION,                  // BANG* NegationExpression
-    NEGATION_EXPRESSION,             // MINUS* UnitExpression
-    UNIT_EXPRESSION,                 // LocationMethodCallExpression | LengthExpression | Literal | LEFT_ROUND Expression RIGHT_ROUND
-    LOCATION_METHOD_CALL_EXPRESSION, // IDENTIFIER (LocationExpression? | MethodCallExpression)
-    LOCATION_EXPRESSION,             // LEFT_SQUARE Expression RIGHT_SQUARE
-    METHOD_CALL_EXPRESSION,          // LEFT_ROUND ((Expression | STRING) (COMMA (Expression | STRING))*)? RIGHT_ROUND 
-    LENGTH_EXPRESSION,               // LEN LEFT_ROUND IDENTIFIER RIGHT_ROUND
-    LITERAL,                         // IntegerLiteral | CharacterLiteral | BooleanLiteral
-    INTEGER_LITERAL,                 // DECIMAL | HEXADECIMAL
-    CHARACTER_LITERAL,               // CHARACTER
-    BOOLEAN_LITERAL,                 // TRUE | FALSE
+    START,                        // Program
+
+    PROGRAM,                      // ImportDeclaration* FieldDeclaration* MethodDeclaration*
+
+    IMPORT_DECLARATION,           // IMPORT IDENTIFIER SEMICOLON
+    FIELD_DECLARATION,            // (INT | BOOL) FieldIdentifierDeclaration (COMMA FieldIdentifierDeclaration)* SEMICOLON
+    METHOD_DECLARATION,           // (INT | BOOL | VOID) IDENTIFIER LEFT_ROUND (ArgumentDeclaration (COMMA ArgumentDeclaration)*)? RIGHT_ROUND Block
+
+    FIELD_IDENTIFIER_DECLARATION, // IDENTIFIER (LEFT_SQUARE IntegerLiteral RIGHT_SQUARE)?
+    ARGUMENT_DECLARATION,         // (INT | BOOL) IDENTIFIER
+
+    BLOCK,                        // LEFT_CURLY FieldDeclaration* Statement* RIGHT_CURLY
+
+    STATEMENT,                    // AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
+    ASSIGN_STATEMENT,             // AssignExpression SEMICOLON
+    COMPOUND_ASSIGN_STATEMENT,    // CompoundAssignExpression SEMICOLON
+    METHOD_CALL_STATEMENT,        // MethodCallExpression SEMICOLON
+    IF_STATEMENT,                 // IF LEFT_ROUND Expression RIGHT_ROUND Block (ELSE Block)?
+    FOR_STATEMENT,                // FOR LEFT_ROUND AssignExpression SEMICOLON Expression SEMICOLON CompoundAssignExpression RIGHT_ROUND Block
+    WHILE_STATEMENT,              // WHILE LEFT_ROUND Expression RIGHT_ROUND Block
+    RETURN_STATEMENT,             // RETURN (Expression)? SEMICOLON
+    BREAK_STATEMENT,              // BREAK SEMICOLON
+    CONTINUE_STATEMENT,           // CONTINUE SEMICOLON
+
+    ASSIGN_EXPRESSION,            // LocationExpression EQUAL Expression
+    COMPOUND_ASSIGN_EXPRESSION,   // LocationExpression ((PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS))
+
+    EXPRESSION,                   // OrExpression
+    OR_EXPRESSION,                // AndExpression (VERTICAL_VERTICAL AndExpression)*
+    AND_EXPRESSION,               // EqualityExpression (AMPERSAND_AMPERSAND EqualityExpression)*
+    EQUALITY_EXPRESSION,          // RelationalExpression ((EQUAL_EQUAL | BANG_EQUAL) RelationalExpression)*
+    RELATIONAL_EXPRESSION,        // AdditiveExpression ((LESS | LESS_EQUAL | GREATER | GREATER_EQUAL) AdditiveExpression)*
+    ADDITIVE_EXPRESSION,          // MultiplicativeExpression ((PLUS | MINUS) MultiplicativeExpression)*
+    MULTIPLICATIVE_EXPRESSION,    // NotExpression ((STAR | SLASH | PERCENT) NotExpression)*
+    NOT_EXPRESSION,               // BANG* NegationExpression
+    NEGATION_EXPRESSION,          // MINUS* UnitExpression
+    UNIT_EXPRESSION,              // LocationExpression | MethodCallExpression | LengthExpression | Literal | LEFT_ROUND Expression RIGHT_ROUND
+    LOCATION_EXPRESSION,          // IDENTIFIER (LEFT_SQUARE Expression RIGHT_SQUARE)?
+    METHOD_CALL_EXPRESSION,       // IDENTIFIER LEFT_ROUND (Argument (COMMA Argument)*)? RIGHT_ROUND 
+    LENGTH_EXPRESSION,            // LEN LEFT_ROUND IDENTIFIER RIGHT_ROUND
+
+    ARGUMENT,                     // Expression | StringLiteral
+
+    LITERAL,                      // IntegerLiteral | CharacterLiteral | BooleanLiteral
+    INTEGER_LITERAL,              // DECIMAL | HEXADECIMAL
+    CHARACTER_LITERAL,            // CHARACTER
+    BOOLEAN_LITERAL,              // TRUE | FALSE
+
+    STRING_LITERAL,               // STRING
   }
 
   private final Type type;
@@ -56,12 +70,21 @@ class PTNonterminal implements PTNode {
 
   public static class Builder {
 
-    private final Type type;
+    private Type type;
     private final List<PTNode> children;
 
+    public Builder() {
+      this.children = new ArrayList<>();
+    }
+
     public Builder(Type type) {
+      this();
       this.type = type;
-      this.children = new ArrayList<PTNode>();
+    }
+
+    public Builder withType(Type type) {
+      this.type = type;
+      return this;
     }
 
     public Builder addChild(PTNode child) {
@@ -76,18 +99,18 @@ class PTNonterminal implements PTNode {
   }
 
   @Override
-  public boolean is(Token.Type tokenType) {
+  public boolean is(Token.Type ...tokenTypes) {
     return false;
   }
 
   @Override
-  public boolean in(Token.Type ...tokenTypes) {
+  public boolean is(Type ...types) {
+    for (Type type : types) {
+      if (this.type == type) {
+        return true;
+      }
+    }
     return false;
-  }
-
-  @Override
-  public boolean is(Type type) {
-    return this.type == type;
   }
 
   @Override

@@ -1,7 +1,6 @@
 package edu.mit.compilers;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 class Peekable<E> {
 
@@ -17,22 +16,24 @@ class Peekable<E> {
     this.index = index;
   }
 
-  public boolean hasNext() {
-    return index < list.size();
+  public E peek(int offset) {
+    if (index + offset >= list.size()) {
+      return list.get(list.size() - 1);
+    } else {
+      return list.get(index + offset);
+    }
   }
 
   public E peek() {
-    if (index >= list.size()) {
-      throw new NoSuchElementException();
-    }
-    return list.get(index);
+    return peek(0);
   }
 
   public E next() {
     if (index >= list.size()) {
-      throw new NoSuchElementException();
+      return list.get(list.size() - 1);
+    } else {
+      return list.get(index++);
     }
-    return list.get(index++);
   }
 
 }

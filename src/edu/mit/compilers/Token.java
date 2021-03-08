@@ -86,11 +86,7 @@ class Token {
     return text;
   }
 
-  public boolean is(Type type) {
-    return this.type == type;
-  }
-
-  public boolean in(Type ...types) {
+  public boolean is(Type ...types) {
     for (Type type : types) {
       if (this.type == type) {
         return true;
