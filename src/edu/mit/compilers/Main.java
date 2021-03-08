@@ -53,7 +53,7 @@ class Main {
   private static void lex(String filename, String input, PrintStream outputStream) {
     Lexer lexer = new Lexer();
     try {
-      List<Token> tokens = lexer.lex(input);
+      List<Token> tokens = lexer.lexAll(input);
       for (Token token : tokens) {
         if (!token.is(Token.Type.EOF)) {
           outputStream.println(tokenString(token));
@@ -81,8 +81,8 @@ class Main {
     Lexer lexer = new Lexer();
     Parser parser = new Parser();
     try {
-      List<Token> tokens = lexer.lex(input);
-      parser.parse(tokens);
+      List<Token> tokens = lexer.lexAll(input);
+      parser.parseAll(tokens);
     } catch (LexerException lexerException) {
       System.err.println(lexerExceptionString(filename, input, lexerException));
       System.exit(1);

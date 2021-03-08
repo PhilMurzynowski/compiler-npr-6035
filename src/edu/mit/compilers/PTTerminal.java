@@ -14,8 +14,28 @@ class PTTerminal implements PTNode {
   }
 
   @Override
-  public List<Token> getTokens() {
-    return List.of(token);
+  public boolean is(Token.Type tokenType) {
+    return token.is(tokenType);
+  }
+
+  @Override
+  public boolean in(Token.Type ...tokenTypes) {
+    return token.in(tokenTypes);
+  }
+
+  @Override
+  public boolean is(PTNonterminal.Type type) {
+    return false;
+  }
+
+  @Override
+  public String getText() {
+    return this.token.getText();
+  }
+
+  @Override
+  public List<PTNode> getChildren() {
+    return List.of();
   }
 
   @Override

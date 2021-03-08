@@ -2,10 +2,10 @@ package edu.mit.compilers;
 
 class ASTMethodCallStatement implements ASTStatement {
 
-  private final ASTMethodCallExpression expression;
+  private final ASTMethodCallExpression call;
 
-  public ASTMethodCallStatement(ASTMethodCallExpression expression) {
-    this.expression = expression;
+  public ASTMethodCallStatement(ASTMethodCallExpression call) {
+    this.call = call;
   }
 
   public String debugString(int depth) {

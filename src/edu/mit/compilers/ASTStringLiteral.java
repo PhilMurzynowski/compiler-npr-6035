@@ -1,6 +1,6 @@
 package edu.mit.compilers;
 
-class ASTStringLiteral implements ASTExpression {
+class ASTStringLiteral implements ASTArgument {
 
   private final String value;
 

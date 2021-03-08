@@ -76,12 +76,32 @@ class PTNonterminal implements PTNode {
   }
 
   @Override
-  public List<Token> getTokens() {
-    final List<Token> tokens = new ArrayList<Token>();
+  public boolean is(Token.Type tokenType) {
+    return false;
+  }
+
+  @Override
+  public boolean in(Token.Type ...tokenTypes) {
+    return false;
+  }
+
+  @Override
+  public boolean is(Type type) {
+    return this.type == type;
+  }
+
+  @Override
+  public String getText() {
+    StringBuilder s = new StringBuilder();
     for (PTNode child : children) {
-      tokens.addAll(child.getTokens());
+      s.append(child.getText());
     }
-    return tokens;
+    return s.toString();
+  }
+
+  @Override
+  public List<PTNode> getChildren() {
+    return children;
   }
 
   @Override

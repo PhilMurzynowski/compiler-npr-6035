@@ -4,10 +4,10 @@ class ASTForStatement implements ASTStatement {
 
   private final ASTAssignStatement initial;
   private final ASTExpression condition;
-  private final ASTAssignStatement update;
+  private final ASTCompoundAssignStatement update;
   private final ASTBlock body;
 
-  public ASTForStatement(ASTAssignStatement initial, ASTExpression condition, ASTAssignStatement update, ASTBlock body) {
+  public ASTForStatement(ASTAssignStatement initial, ASTExpression condition, ASTCompoundAssignStatement update, ASTBlock body) {
     this.initial = initial;
     this.condition = condition;
     this.update = update;

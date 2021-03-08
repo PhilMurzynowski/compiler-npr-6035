@@ -15,7 +15,7 @@ class Lexer {
     text = new StringBuilder();
   }
 
-  public List<Token> lex(String input) throws LexerException {
+  public List<Token> lexAll(String input) throws LexerException {
     tokens = new ArrayList<Token>();
     text.setLength(0);
     line = 1;

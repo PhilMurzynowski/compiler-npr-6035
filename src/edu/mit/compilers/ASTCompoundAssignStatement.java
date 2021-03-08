@@ -1,12 +1,23 @@
 package edu.mit.compilers;
 
-class ASTAssignStatement implements ASTStatement {
+import java.util.Optional;
+
+class ASTCompoundAssignStatement implements ASTStatement {
+
+  public enum Type {
+    ADD,
+    SUBTRACT,
+    INCREMENT,
+    DECREMENT,
+  }
 
   private final ASTLocationExpression location;
-  private final ASTExpression expression;
+  private final Type type;
+  private final Optional<ASTExpression> expression;
 
-  public ASTAssignStatement(ASTLocationExpression location, ASTExpression expression) {
+  public ASTCompoundAssignStatement(ASTLocationExpression location, Type type, Optional<ASTExpression> expression) {
     this.location = location;
+    this.type = type;
     this.expression = expression;
   }
 

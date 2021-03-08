@@ -1,3 +1,3 @@
 package edu.mit.compilers;
 
-interface ASTExpression extends ASTNode { }
+interface ASTExpression extends ASTArgument { }

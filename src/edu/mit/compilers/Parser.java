@@ -9,10 +9,10 @@ class Parser {
   public Parser() { }
 
   // Start -> Program
-  public PTNode parse(List<Token> tokens) throws ParserException {
+  public PTNonterminal parseAll(List<Token> tokens) throws ParserException {
     this.tokens = Peekable.from(tokens);
 
-    PTNode parseTree = parseProgram();
+    PTNonterminal parseTree = parseProgram();
 
     if (!this.tokens.peek().is(Token.Type.EOF)) {
       throw new ParserException(this.tokens.peek(), ParserException.Type.INCOMPLETE_PARSE, "incomplete parse");
@@ -22,7 +22,7 @@ class Parser {
   }
 
   // Program -> ImportDeclaration* FieldMethodDeclaration?
-  private PTNode parseProgram() throws ParserException {
+  private PTNonterminal parseProgram() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.PROGRAM);
 
     while (tokens.peek().is(Token.Type.IMPORT)) {
@@ -37,7 +37,7 @@ class Parser {
   }
 
   // ImportDeclaration -> IMPORT IDENTIFIER SEMICOLON
-  private PTNode parseImportDeclaration() throws ParserException {
+  private PTNonterminal parseImportDeclaration() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.IMPORT_DECLARATION);
 
     expect(Token.Type.IMPORT);
@@ -53,7 +53,7 @@ class Parser {
   }
 
   // FieldMethodDeclaration -> (INT | BOOL) IDENTIFIER (FieldDeclaration FieldMethodDeclaration? | MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*) | VOID IDENTIFIER MethodDeclaration ((INT | BOOL | VOID) IDENTIFIER MethodDeclaration)*
-  private PTNode parseFieldMethodDeclaration() throws ParserException {
+  private PTNonterminal parseFieldMethodDeclaration() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FIELD_METHOD_DECLARATION);
 
     if (tokens.peek().in(Token.Type.INT, Token.Type.BOOL)) {
@@ -106,7 +106,7 @@ class Parser {
   }
 
   // FieldDeclaration -> (LEFT_SQUARE (DECIMAL | HEXADECIMAL) RIGHT_SQUARE)? (COMMA IDENTIFIER (LEFT_SQUARE (DECIMAL | HEXADECIMAL) RIGHT_SQUARE)?)* SEMICOLON
-  private PTNode parseFieldDeclaration() throws ParserException {
+  private PTNonterminal parseFieldDeclaration() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FIELD_DECLARATION);
 
     if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
@@ -143,7 +143,7 @@ class Parser {
   }
 
   // MethodDeclaration -> LEFT_ROUND ((INT | BOOL) IDENTIFIER (COMMA (INT | BOOL) IDENTIFIER)*)? RIGHT_ROUND Block
-  private PTNode parseMethodDeclaration() throws ParserException {
+  private PTNonterminal parseMethodDeclaration() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.METHOD_DECLARATION);
 
     expect(Token.Type.LEFT_ROUND);
@@ -175,7 +175,7 @@ class Parser {
   }
 
   // Block -> LEFT_CURLY ((INT | BOOL) IDENTIFIER FieldDeclaration)* Statement* RIGHT_CURLY
-  private PTNode parseBlock() throws ParserException {
+  private PTNonterminal parseBlock() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.BLOCK);
 
     expect(Token.Type.LEFT_CURLY);
@@ -201,7 +201,7 @@ class Parser {
   }
 
   // Statement -> AssignMethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
-  private PTNode parseStatement() throws ParserException {
+  private PTNonterminal parseStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.STATEMENT);
 
     if (tokens.peek().is(Token.Type.IDENTIFIER)) {
@@ -226,7 +226,7 @@ class Parser {
   }
 
   // AssignMethodCallStatement -> IDENTIFIER (AssignStatement | MethodCallStatement)
-  private PTNode parseAssignMethodCallStatement() throws ParserException {
+  private PTNonterminal parseAssignMethodCallStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_METHOD_CALL_STATEMENT);
 
     expect(Token.Type.IDENTIFIER);
@@ -244,7 +244,7 @@ class Parser {
   }
 
   // AssignStatement -> LocationExpression? ((EQUAL | PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS)) SEMICOLON
-  private PTNode parseAssignStatement() throws ParserException {
+  private PTNonterminal parseAssignStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_STATEMENT);
 
     if (tokens.peek().is(Token.Type.LEFT_SQUARE)) {
@@ -268,7 +268,7 @@ class Parser {
   }
 
   // MethodCallStatement -> MethodCallExpression SEMICOLON
-  private PTNode parseMethodCallStatement() throws ParserException {
+  private PTNonterminal parseMethodCallStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.METHOD_CALL_STATEMENT);
 
     builder.addChild(parseMethodCallExpression());
@@ -280,7 +280,7 @@ class Parser {
   }
 
   // IfStatement -> IF LEFT_ROUND Expression RIGHT_ROUND Block (ELSE Block)?
-  private PTNode parseIfStatement() throws ParserException {
+  private PTNonterminal parseIfStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.IF_STATEMENT);
 
     expect(Token.Type.IF);
@@ -306,7 +306,7 @@ class Parser {
   }
 
   // ForStatement -> FOR LEFT_ROUND IDENTIFIER EQUAL Expression SEMICOLON Expression SEMICOLON IDENTIFIER LocationExpression? ((PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS)) RIGHT_ROUND Block
-  private PTNode parseForStatement() throws ParserException {
+  private PTNonterminal parseForStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FOR_STATEMENT);
 
     expect(Token.Type.FOR);
@@ -357,7 +357,7 @@ class Parser {
   }
 
   // WhileStatement -> WHILE LEFT_ROUND Expression RIGHT_ROUND Block
-  private PTNode parseWhileStatement() throws ParserException {
+  private PTNonterminal parseWhileStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.WHILE_STATEMENT);
 
     expect(Token.Type.WHILE);
@@ -377,7 +377,7 @@ class Parser {
   }
 
   // ReturnStatement -> RETURN (Expression)? SEMICOLON
-  private PTNode parseReturnStatement() throws ParserException {
+  private PTNonterminal parseReturnStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.RETURN_STATEMENT);
 
     expect(Token.Type.RETURN);
@@ -394,7 +394,7 @@ class Parser {
   }
 
   // BreakStatement -> BREAK SEMICOLON
-  private PTNode parseBreakStatement() throws ParserException {
+  private PTNonterminal parseBreakStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.BREAK_STATEMENT);
 
     expect(Token.Type.BREAK);
@@ -407,7 +407,7 @@ class Parser {
   }
 
   // ContinueStatement -> CONTINUE SEMICOLON
-  private PTNode parseContinueStatement() throws ParserException {
+  private PTNonterminal parseContinueStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.CONTINUE_STATEMENT);
 
     expect(Token.Type.CONTINUE);
@@ -420,7 +420,7 @@ class Parser {
   }
 
   // Expression -> OrExpression
-  private PTNode parseExpression() throws ParserException {
+  private PTNonterminal parseExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.EXPRESSION);
 
     builder.addChild(parseOrExpression());
@@ -429,7 +429,7 @@ class Parser {
   }
 
   // OrExpression -> AndExpression (VERTICAL_VERTICAL AndExpression)*
-  private PTNode parseOrExpression() throws ParserException {
+  private PTNonterminal parseOrExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.OR_EXPRESSION);
 
     builder.addChild(parseAndExpression());
@@ -444,7 +444,7 @@ class Parser {
   }
 
   // AndExpression -> EqualityExpression (AMPERSAND_AMPERSAND EqualityExpression)*
-  private PTNode parseAndExpression() throws ParserException {
+  private PTNonterminal parseAndExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.AND_EXPRESSION);
 
     builder.addChild(parseEqualityExpression());
@@ -459,7 +459,7 @@ class Parser {
   }
 
   // EqualityExpression -> RelationalExpression ((EQUAL_EQUAL | BANG_EQUAL) RelationalExpression)*
-  private PTNode parseEqualityExpression() throws ParserException {
+  private PTNonterminal parseEqualityExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.EQUALITY_EXPRESSION);
 
     builder.addChild(parseRelationalExpression());
@@ -474,7 +474,7 @@ class Parser {
   }
 
   // RelationalExpression -> AdditiveExpression ((LESS | LESS_EQUAL | GREATER | GREATER_EQUAL) AdditiveExpression)*
-  private PTNode parseRelationalExpression() throws ParserException {
+  private PTNonterminal parseRelationalExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.RELATIONAL_EXPRESSION);
 
     builder.addChild(parseAdditiveExpression());
@@ -489,7 +489,7 @@ class Parser {
   }
 
   // AdditiveExpression -> MultiplicativeExpression ((PLUS | MINUS) MultiplicativeExpression)*
-  private PTNode parseAdditiveExpression() throws ParserException {
+  private PTNonterminal parseAdditiveExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ADDITIVE_EXPRESSION);
 
     builder.addChild(parseMultiplicativeExpression());
@@ -504,7 +504,7 @@ class Parser {
   }
 
   // MultiplicativeExpression -> NotExpression ((STAR | SLASH | PERCENT) NotExpression)*
-  private PTNode parseMultiplicativeExpression() throws ParserException {
+  private PTNonterminal parseMultiplicativeExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.MULTIPLICATIVE_EXPRESSION);
 
     builder.addChild(parseNotExpression());
@@ -519,7 +519,7 @@ class Parser {
   }
 
   // NotExpression -> BANG* NegationExpression
-  private PTNode parseNotExpression() throws ParserException {
+  private PTNonterminal parseNotExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.NOT_EXPRESSION);
 
     while (tokens.peek().is(Token.Type.BANG)) {
@@ -532,7 +532,7 @@ class Parser {
   }
 
   // NegationExpression -> MINUS* UnitExpression
-  private PTNode parseNegationExpression() throws ParserException {
+  private PTNonterminal parseNegationExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.NEGATION_EXPRESSION);
 
     while (tokens.peek().is(Token.Type.MINUS)) {
@@ -545,7 +545,7 @@ class Parser {
   }
 
   // UnitExpression -> LocationMethodCallExpression | LengthExpression | Literal | LEFT_ROUND Expression RIGHT_ROUND
-  private PTNode parseUnitExpression() throws ParserException {
+  private PTNonterminal parseUnitExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.UNIT_EXPRESSION);
 
     if (tokens.peek().is(Token.Type.IDENTIFIER)) {
@@ -569,7 +569,7 @@ class Parser {
   }
 
   // LocationMethodCallExpression -> IDENTIFIER (LocationExpression? | MethodCallExpression)
-  private PTNode parseLocationMethodCallExpression() throws ParserException {
+  private PTNonterminal parseLocationMethodCallExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LOCATION_METHOD_CALL_EXPRESSION);
 
     expect(Token.Type.IDENTIFIER);
@@ -585,7 +585,7 @@ class Parser {
   }
 
   // LocationExpression -> LEFT_SQUARE Expression RIGHT_SQUARE
-  private PTNode parseLocationExpression() throws ParserException {
+  private PTNonterminal parseLocationExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LOCATION_EXPRESSION);
 
     expect(Token.Type.LEFT_SQUARE);
@@ -600,7 +600,7 @@ class Parser {
   }
 
   // MethodCallExpression -> LEFT_ROUND ((Expression | STRING) (COMMA (Expression | STRING))*)? RIGHT_ROUND 
-  private PTNode parseMethodCallExpression() throws ParserException {
+  private PTNonterminal parseMethodCallExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.METHOD_CALL_EXPRESSION);
 
     expect(Token.Type.LEFT_ROUND);
@@ -631,7 +631,7 @@ class Parser {
   }
 
   // LengthExpression -> LEN LEFT_ROUND IDENTIFIER RIGHT_ROUND
-  private PTNode parseLengthExpression() throws ParserException {
+  private PTNonterminal parseLengthExpression() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LENGTH_EXPRESSION);
 
     expect(Token.Type.LEN);
@@ -650,7 +650,7 @@ class Parser {
   }
 
   // Literal -> IntegerLiteral | CharacterLiteral | BooleanLiteral
-  private PTNode parseLiteral() throws ParserException {
+  private PTNonterminal parseLiteral() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.LITERAL);
 
     if (tokens.peek().in(Token.Type.DECIMAL, Token.Type.HEXADECIMAL)) {
@@ -667,7 +667,7 @@ class Parser {
   }
 
   // IntegerLiteral -> DECIMAL | HEXADECIMAL
-  private PTNode parseIntegerLiteral() throws ParserException {
+  private PTNonterminal parseIntegerLiteral() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.INTEGER_LITERAL);
 
     expect(Token.Type.DECIMAL, Token.Type.HEXADECIMAL);
@@ -677,7 +677,7 @@ class Parser {
   }
 
   // CharacterLiteral -> CHARACTER
-  private PTNode parseCharacterLiteral() throws ParserException {
+  private PTNonterminal parseCharacterLiteral() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.CHARACTER_LITERAL);
 
     expect(Token.Type.CHARACTER);
@@ -687,7 +687,7 @@ class Parser {
   }
 
   // BooleanLiteral -> TRUE | FALSE
-  private PTNode parseBooleanLiteral() throws ParserException {
+  private PTNonterminal parseBooleanLiteral() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.BOOLEAN_LITERAL);
 
     expect(Token.Type.TRUE, Token.Type.FALSE);

@@ -5,9 +5,9 @@ import java.util.List;
 class ASTMethodCallExpression implements ASTExpression {
 
   private final String identifier;
-  private final List<ASTExpression> arguments;
+  private final List<ASTArgument> arguments;
 
-  public ASTMethodCallExpression(String identifier, List<ASTExpression> arguments) {
+  public ASTMethodCallExpression(String identifier, List<ASTArgument> arguments) {
     this.identifier = identifier;
     this.arguments = arguments;
   }
