@@ -5,13 +5,13 @@ import java.util.Optional;
 
 class Parser {
 
-  private Peekable<Token> tokens;
+  private Peekable tokens;
 
   public Parser() { }
 
   // Start -> Program
   public PTNonterminal parseAll(List<Token> tokens) throws ParserException {
-    this.tokens = Peekable.from(tokens);
+    this.tokens = Peekable.of(tokens);
 
     PTNonterminal parseTree = parseProgram();
 
@@ -721,6 +721,42 @@ class Parser {
 
   private ParserException exception(Token.Type ...tokenTypes) {
     return exception(0, tokenTypes);
+  }
+
+  private static class Peekable {
+
+    private final List<Token> tokens;
+    private int index;
+
+    public static Peekable of(List<Token> tokens) {
+      return new Peekable(tokens, 0);
+    }
+
+    private Peekable(List<Token> tokens, int index) {
+      this.tokens = tokens;
+      this.index = index;
+    }
+
+    public Token peek(int offset) {
+      if (index + offset >= tokens.size()) {
+        return tokens.get(tokens.size() - 1);
+      } else {
+        return tokens.get(index + offset);
+      }
+    }
+
+    public Token peek() {
+      return peek(0);
+    }
+
+    public Token next() {
+      if (index >= tokens.size()) {
+        return tokens.get(tokens.size() - 1);
+      } else {
+        return tokens.get(index++);
+      }
+    }
+
   }
 
 }

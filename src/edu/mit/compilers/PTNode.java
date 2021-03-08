@@ -4,6 +4,10 @@ import java.util.List;
 
 interface PTNode {
 
+  public static PTNode eos() {
+    return new PTNonterminal.Builder(PTNonterminal.Type.EOS).build();
+  }
+
   public boolean is(Token.Type ...tokenTypes);
 
   public boolean is(PTNonterminal.Type ...nonterminalTypes);

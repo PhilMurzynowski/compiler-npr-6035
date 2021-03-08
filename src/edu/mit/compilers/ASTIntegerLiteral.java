@@ -2,9 +2,9 @@ package edu.mit.compilers;
 
 class ASTIntegerLiteral implements ASTExpression {
 
-  private final int value;
+  private final long value;
 
-  public ASTIntegerLiteral(int value) {
+  public ASTIntegerLiteral(long value) {
     this.value = value;
   }
 

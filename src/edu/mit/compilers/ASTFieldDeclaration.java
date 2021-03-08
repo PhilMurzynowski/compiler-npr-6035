@@ -17,9 +17,9 @@ class ASTFieldDeclaration implements ASTNode {
   public static class Identifier {
 
     private final String identifier;
-    private final Optional<Integer> length;
+    private final Optional<ASTIntegerLiteral> length;
 
-    private Identifier(String identifier, Optional<Integer> length) {
+    private Identifier(String identifier, Optional<ASTIntegerLiteral> length) {
       this.identifier = identifier;
       this.length = length;
     }
@@ -27,9 +27,10 @@ class ASTFieldDeclaration implements ASTNode {
     public static class Builder {
 
       private String identifier;
-      private Optional<Integer> length;
+      private Optional<ASTIntegerLiteral> length;
 
       public Builder() {
+        identifier = null;
         length = Optional.empty();
       }
 
@@ -38,12 +39,14 @@ class ASTFieldDeclaration implements ASTNode {
         return this;
       }
 
-      public Builder withLength(int length) {
+      public Builder withLength(ASTIntegerLiteral length) {
         this.length = Optional.of(length);
         return this;
       }
 
       public Identifier build() {
+        assert identifier != null;
+
         return new Identifier(identifier, length);
       }
 
@@ -62,6 +65,7 @@ class ASTFieldDeclaration implements ASTNode {
     private List<Identifier> identifiers;
 
     public Builder() {
+      type = null;
       identifiers = new ArrayList<>();
     }
 
@@ -76,6 +80,9 @@ class ASTFieldDeclaration implements ASTNode {
     }
 
     public ASTFieldDeclaration build() {
+      assert type != null;
+      assert identifiers.size() > 0;
+
       return new ASTFieldDeclaration(type, List.copyOf(identifiers));
     }
 

@@ -58,6 +58,8 @@ class PTNonterminal implements PTNode {
     BOOLEAN_LITERAL,              // TRUE | FALSE
 
     STRING_LITERAL,               // STRING
+
+    EOS,                          // NOTE(rbd): Special end-of-stream sentinel type used by Abstracter.Peekable
   }
 
   private final Type type;

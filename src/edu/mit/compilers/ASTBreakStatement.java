@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 class ASTBreakStatement implements ASTStatement {
 
+  public ASTBreakStatement() { }
+
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");
   }

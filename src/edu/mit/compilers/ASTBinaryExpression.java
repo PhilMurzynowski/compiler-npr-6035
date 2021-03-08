@@ -22,10 +22,37 @@ class ASTBinaryExpression implements ASTExpression {
   private final Type type;
   private final ASTExpression right;
 
-  public ASTBinaryExpression(ASTExpression left, Type type, ASTExpression right) {
+  private ASTBinaryExpression(ASTExpression left, Type type, ASTExpression right) {
     this.left = left;
     this.type = type;
     this.right = right;
+  }
+
+  public static class Builder {
+
+    private ASTExpression expression;
+
+    public Builder() {
+      expression = null;
+    }
+
+    public Builder withExpression(ASTExpression expression) {
+      this.expression = expression;
+      return this;
+    }
+
+    public Builder withExpression(Type type, ASTExpression expression) {
+      assert this.expression != null;
+
+      this.expression = new ASTBinaryExpression(this.expression, type, expression);
+      return this;
+    }
+
+    public ASTExpression build() {
+      assert expression != null;
+
+      return expression;
+    }
   }
 
   public String debugString(int depth) {

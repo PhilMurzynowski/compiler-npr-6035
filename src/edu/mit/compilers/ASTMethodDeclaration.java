@@ -36,7 +36,10 @@ class ASTMethodDeclaration implements ASTNode {
       private Type type;
       private String identifier;
 
-      public Builder() { }
+      public Builder() {
+        type = null;
+        identifier = null;
+      }
 
       public Builder withType(Type type) {
         this.type = type;
@@ -49,6 +52,9 @@ class ASTMethodDeclaration implements ASTNode {
       }
 
       public Argument build() {
+        assert type != null;
+        assert identifier != null;
+
         return new Argument(type, identifier);
       }
 
@@ -71,7 +77,10 @@ class ASTMethodDeclaration implements ASTNode {
     private ASTBlock block;
 
     public Builder() {
+      type = null;
+      identifier = null;
       arguments = new ArrayList<>();
+      block = null;
     }
 
     public Builder withType(Type type) {
@@ -95,6 +104,10 @@ class ASTMethodDeclaration implements ASTNode {
     }
 
     public ASTMethodDeclaration build() {
+      assert type != null;
+      assert identifier != null;
+      assert block != null;
+
       return new ASTMethodDeclaration(type, identifier, List.copyOf(arguments), block);
     }
 

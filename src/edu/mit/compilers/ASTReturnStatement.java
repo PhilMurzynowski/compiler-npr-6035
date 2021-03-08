@@ -6,8 +6,26 @@ class ASTReturnStatement implements ASTStatement {
 
   private final Optional<ASTExpression> expression;
 
-  public ASTReturnStatement(Optional<ASTExpression> expression) {
+  private ASTReturnStatement(Optional<ASTExpression> expression) {
     this.expression = expression;
+  }
+
+  public static class Builder {
+
+    private Optional<ASTExpression> expression;
+
+    public Builder() {
+      expression = Optional.empty();
+    }
+
+    public Builder withExpression(ASTExpression expression) {
+      this.expression = Optional.of(expression);
+      return this;
+    }
+
+    public ASTReturnStatement build() {
+      return new ASTReturnStatement(expression);
+    }
   }
 
   public String debugString(int depth) {

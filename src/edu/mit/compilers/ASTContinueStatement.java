@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 class ASTContinueStatement implements ASTStatement {
 
+  public ASTContinueStatement() { }
+
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");
   }

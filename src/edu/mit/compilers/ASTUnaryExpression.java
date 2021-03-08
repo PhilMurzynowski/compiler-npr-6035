@@ -1,5 +1,7 @@
 package edu.mit.compilers;
 
+import java.util.Stack;
+
 class ASTUnaryExpression implements ASTExpression {
 
   public enum Type {
@@ -10,9 +12,41 @@ class ASTUnaryExpression implements ASTExpression {
   private final Type type;
   private final ASTExpression expression;
 
-  public ASTUnaryExpression(Type type, ASTExpression expression) {
+  private ASTUnaryExpression(Type type, ASTExpression expression) {
     this.type = type;
     this.expression = expression;
+  }
+
+  public static class Builder {
+
+    private final Stack<Type> types;
+    private ASTExpression expression;
+
+    public Builder() {
+      types = new Stack<>();
+      expression = null;
+    }
+
+    public Builder pushType(Type type) {
+      types.push(type);
+      return this;
+    }
+
+    public Builder withExpression(ASTExpression expression) {
+      this.expression = expression;
+      return this;
+    }
+
+    public ASTExpression build() {
+      assert expression != null;
+
+      while (!types.isEmpty()) {
+        expression = new ASTUnaryExpression(types.pop(), expression);
+      }
+
+      return expression;
+    }
+
   }
 
   public String debugString(int depth) {

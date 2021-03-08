@@ -5,9 +5,37 @@ class ASTWhileStatement implements ASTStatement {
   private final ASTExpression condition;
   private final ASTBlock body;
 
-  public ASTWhileStatement(ASTExpression condition, ASTBlock body) {
+  private ASTWhileStatement(ASTExpression condition, ASTBlock body) {
     this.condition = condition;
     this.body = body;
+  }
+
+  public static class Builder {
+
+    private ASTExpression condition;
+    private ASTBlock body;
+
+    public Builder() {
+      condition = null;
+      body = null;
+    }
+
+    public Builder withCondition(ASTExpression condition) {
+      this.condition = condition;
+      return this;
+    }
+
+    public Builder withBody(ASTBlock body) {
+      this.body = body;
+      return this;
+    }
+
+    public ASTWhileStatement build() {
+      assert condition != null;
+      assert body != null;
+
+      return new ASTWhileStatement(condition, body);
+    }
   }
 
   public String debugString(int depth) {
