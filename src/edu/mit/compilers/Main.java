@@ -80,12 +80,12 @@ class Main {
   private static void parse(String filename, String input, PrintStream outputStream) {
     Lexer lexer = new Lexer();
     Parser parser = new Parser();
-    Abstracter abstracter = new Abstracter();
+    // Abstracter abstracter = new Abstracter();
     try {
       List<Token> tokens = lexer.lexAll(input);
-      PTNode ptProgram = parser.parseAll(tokens);
-      ASTProgram program = abstracter.abstractProgram(ptProgram);
-      outputStream.println(program.debugString(0));
+      /* PTNode ptProgram = */ parser.parseAll(tokens);
+      // ASTProgram program = abstracter.abstractProgram(ptProgram);
+      // outputStream.print(program.prettyString(0));
     } catch (LexerException lexerException) {
       System.err.println(lexerExceptionString(filename, input, lexerException));
       System.exit(1);
