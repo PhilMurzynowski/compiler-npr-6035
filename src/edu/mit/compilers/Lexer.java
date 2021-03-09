@@ -384,7 +384,7 @@ class Lexer {
 
   private LexFunction lexEmpty(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      return this::lexEOF;
+      return accept();
     } else if (character.get() == ';') {
       consume(character);
       produce(Token.Type.SEMICOLON);
@@ -584,7 +584,7 @@ class Lexer {
       case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
         return true;
       default:
-      return false;
+        return false;
     }
   }
   
