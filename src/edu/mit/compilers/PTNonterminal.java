@@ -72,21 +72,12 @@ class PTNonterminal implements PTNode {
 
   public static class Builder {
 
-    private Type type;
+    private final Type type;
     private final List<PTNode> children;
 
-    public Builder() {
-      this.children = new ArrayList<>();
-    }
-
     public Builder(Type type) {
-      this();
       this.type = type;
-    }
-
-    public Builder withType(Type type) {
-      this.type = type;
-      return this;
+      this.children = new ArrayList<>();
     }
 
     public Builder addChild(PTNode child) {
