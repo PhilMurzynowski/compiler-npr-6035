@@ -12,14 +12,14 @@ class ASTStringLiteral implements ASTArgument {
 
   @Override
   public String prettyString(int depth) {
-    return '"' + value + '"';
+    return '"' + value + '"'; // FIXME(rbd): Handle un/escape characters.
   }
 
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTStringLiteral {\n");
-    s.append(indent(depth + 1) + "value: \"" + value + "\",\n");
+    s.append(indent(depth + 1) + "value: \"" + value + "\",\n"); // FIXME(rbd): Handle un/escape characters.
     s.append(indent(depth) + "}");
     return s.toString();
   }
