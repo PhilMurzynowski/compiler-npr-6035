@@ -948,16 +948,12 @@ class Abstracter {
       this.index = index;
     }
 
-    public PTNode peek(int offset) {
-      if (index + offset >= nodes.size()) {
+    public PTNode peek() {
+      if (index >= nodes.size()) {
         return PTNode.eos();
       } else {
-        return nodes.get(index + offset);
+        return nodes.get(index);
       }
-    }
-
-    public PTNode peek() {
-      return peek(0);
     }
 
     public PTNode next() {
