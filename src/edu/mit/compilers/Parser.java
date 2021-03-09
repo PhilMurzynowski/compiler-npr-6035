@@ -179,7 +179,7 @@ class Parser {
         } else if (tokens.peek().is(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
           builder.addChild(parseCompoundAssignStatement(Optional.of(locationExpression)));
         } else {
-          throw exception(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
+          throw exception(Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
         }
       } else if (tokens.peek(1).is(Token.Type.EQUAL)) {
         builder.addChild(parseAssignStatement(Optional.empty()));
