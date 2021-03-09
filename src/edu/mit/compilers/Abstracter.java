@@ -927,11 +927,11 @@ class Abstracter {
   }
 
   char parseCharacter(String character) {
-    return character.charAt(1);
+    return character.charAt(1); // FIXME(rbd): Handle un/escape characters.
   }
 
   String parseString(String string) {
-    return string.substring(1, string.length() - 1);
+    return string.substring(1, string.length() - 1); // FIXME(rbd): Handle un/escape characters.
   }
 
   private static class Peekable {
