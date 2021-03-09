@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 import java.util.Optional;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class ASTCompoundAssignStatement implements ASTStatement {
 
   public enum Type {
@@ -56,13 +58,42 @@ class ASTCompoundAssignStatement implements ASTStatement {
     }
   }
 
+  @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append(location.prettyString(depth));
+    if (type.equals(Type.ADD)) {
+      s.append(" += ");
+    } else if (type.equals(Type.SUBTRACT)) {
+      s.append(" -= ");
+    } else if (type.equals(Type.INCREMENT)) {
+      s.append("++");
+    } else /* if (type.equals(Type.DECREMENT)) */ {
+      s.append("--");
+    }
+    if (expression.isPresent()) {
+      s.append(expression.get().prettyString(depth));
+    }
+    s.append(";");
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("ASTCompoundAssignStatement {\n");
+    s.append(indent(depth + 1) + "location: " + location.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "type: " + type + ",\n");
+    if (expression.isPresent()) {
+      s.append(indent(depth + 1) + "expression: " + expression.get().debugString(depth + 1) + ",\n");
+    }
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override

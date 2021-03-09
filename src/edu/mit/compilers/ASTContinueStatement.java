@@ -4,13 +4,19 @@ class ASTContinueStatement implements ASTStatement {
 
   public ASTContinueStatement() { }
 
+  @Override
+  public String prettyString(int depth) {
+    return "continue;";
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    return "ASTContinueStatement { }";
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override

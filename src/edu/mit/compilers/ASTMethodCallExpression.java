@@ -3,6 +3,8 @@ package edu.mit.compilers;
 import java.util.List;
 import java.util.ArrayList;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class ASTMethodCallExpression implements ASTExpression {
 
   private final String identifier;
@@ -40,13 +42,38 @@ class ASTMethodCallExpression implements ASTExpression {
     }
   }
 
+  @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append(identifier);
+    s.append("(");
+    if (arguments.size() > 0) {
+      s.append(arguments.get(0).prettyString(depth));
+      for (int i = 1; i < arguments.size(); ++i) {
+        s.append(", " + arguments.get(i).prettyString(depth));
+      }
+    }
+    s.append(")");
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("ASTMethodCallExpression {\n");
+    s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
+    s.append(indent(depth + 1) + "arguments: [\n");
+    for (ASTArgument argument : arguments) {
+      s.append(indent(depth + 2) + argument.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override

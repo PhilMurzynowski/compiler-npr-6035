@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 import java.util.Optional;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class ASTIfStatement implements ASTStatement {
 
   private final ASTExpression condition;
@@ -49,13 +51,36 @@ class ASTIfStatement implements ASTStatement {
     }
   }
 
+  @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("if (");
+    s.append(condition.prettyString(depth));
+    s.append(") ");
+    s.append(body.prettyString(depth));
+    if (other.isPresent()) {
+      s.append(" else ");
+      s.append(other.get().prettyString(depth));
+    }
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("ASTIfStatement {\n");
+    s.append(indent(depth + 1) + "condition: " + condition.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "body: " + body.debugString(depth + 1) + ",\n");
+    if (other.isPresent()) {
+      s.append(indent(depth + 1) + "other: " + other.get().debugString(depth + 1) + ",\n");
+    }
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override

@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 interface ASTNode {
 
+  public String prettyString(int depth);
+
   public String debugString(int depth);
 
   @Override

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class ASTFieldDeclaration implements ASTNode {
 
   public enum Type {
@@ -52,6 +54,25 @@ class ASTFieldDeclaration implements ASTNode {
 
     }
 
+    public String prettyString(int depth) {
+      if (length.isPresent()) {
+        return identifier + "[" + length.get().prettyString(depth) + "]";
+      } else {
+        return identifier;
+      }
+    }
+
+    public String debugString(int depth) {
+      StringBuilder s = new StringBuilder();
+      s.append("Identifier {\n");
+      s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
+      if (length.isPresent()) {
+        s.append(indent(depth + 1) + "length: " + length.get().debugString(depth + 1) + ",\n");
+      }
+      s.append(indent(depth) + "}");
+      return s.toString();
+    }
+
   }
 
   private ASTFieldDeclaration(Type type, List<Identifier> identifiers) {
@@ -88,13 +109,39 @@ class ASTFieldDeclaration implements ASTNode {
 
   }
 
+  @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    if (type.equals(Type.INTEGER)) {
+      s.append("int ");
+    } else /* if (type.equals(Type.BOOLEAN)) */ {
+      s.append("bool ");
+    }
+    s.append(identifiers.get(0).prettyString(depth));
+    for (int i = 1; i < identifiers.size(); ++i) {
+      s.append(", " + identifiers.get(i).prettyString(depth));
+    }
+    s.append(";");
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("ASTFieldDeclaration {\n");
+    s.append(indent(depth + 1) + "type: " + type + ",\n");
+    s.append(indent(depth + 1) + "identifiers: [\n");
+    for (Identifier identifier : identifiers) {
+      s.append(indent(depth + 2) + identifier.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override

@@ -2,6 +2,8 @@ package edu.mit.compilers;
 
 import java.util.Optional;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class ASTLocationExpression implements ASTExpression {
 
   private final String identifier;
@@ -39,13 +41,33 @@ class ASTLocationExpression implements ASTExpression {
     }
   }
 
+  @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append(identifier);
+    if (offset.isPresent()) {
+      s.append("[");
+      s.append(offset.get().prettyString(depth));
+      s.append("]");
+    }
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("ASTLocationExpression {\n");
+    s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
+    if (offset.isPresent()) {
+      s.append(indent(depth + 1) + "offset: " + offset.get().debugString(depth + 1) + ",\n");
+    }
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override

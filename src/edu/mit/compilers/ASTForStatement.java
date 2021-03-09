@@ -1,5 +1,7 @@
 package edu.mit.compilers;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class ASTForStatement implements ASTStatement {
 
   private final ASTAssignStatement initial;
@@ -58,13 +60,36 @@ class ASTForStatement implements ASTStatement {
     }
   }
 
+  @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("for (");
+    s.append(initial.prettyString(depth));
+    s.append(" ");
+    s.append(condition.prettyString(depth));
+    s.append("; ");
+    String update = this.update.prettyString(depth);
+    s.append(update.substring(0, update.length() - 1));
+    s.append(") ");
+    s.append(body.prettyString(depth));
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("ASTForStatement {\n");
+    s.append(indent(depth + 1) + "initial: " + initial.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "condition: " + condition.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "update: " + update.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "body: " + body.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override

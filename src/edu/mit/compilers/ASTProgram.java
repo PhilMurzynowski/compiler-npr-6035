@@ -3,6 +3,8 @@ package edu.mit.compilers;
 import java.util.List;
 import java.util.ArrayList;
 
+import static edu.mit.compilers.Utilities.indent;
+
 class ASTProgram implements ASTNode {
 
   private final List<ASTImportDeclaration> importDeclarations;
@@ -47,13 +49,47 @@ class ASTProgram implements ASTNode {
     }
   }
 
+  @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    for (ASTImportDeclaration importDeclaration : importDeclarations) {
+      s.append(indent(depth) + importDeclaration.prettyString(depth) + "\n");
+    }
+    for (ASTFieldDeclaration fieldDeclaration : fieldDeclarations) {
+      s.append(indent(depth) + fieldDeclaration.prettyString(depth) + "\n");
+    }
+    for (ASTMethodDeclaration methodDeclaration : methodDeclarations) {
+      s.append(indent(depth) + methodDeclaration.prettyString(depth) + "\n");
+    }
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("ASTProgram {\n");
+    s.append(indent(depth + 1) + "importDeclarations: [\n");
+    for (ASTImportDeclaration importDeclaration : importDeclarations) {
+      s.append(indent(depth + 2) + importDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth + 1) + "fieldDeclarations: [\n");
+    for (ASTFieldDeclaration fieldDeclaration : fieldDeclarations) {
+      s.append(indent(depth + 2) + fieldDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth + 1) + "methodDeclarations: [\n");
+    for (ASTMethodDeclaration methodDeclaration : methodDeclarations) {
+      s.append(indent(depth + 2) + methodDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
   public String toString() {
-    throw new RuntimeException("not implemented");
+    return debugString(0);
   }
 
   @Override
