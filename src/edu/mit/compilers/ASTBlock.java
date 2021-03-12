@@ -42,6 +42,11 @@ class ASTBlock implements ASTNode {
   }
 
   @Override
+  public void accept(ASTNode.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("{\n");

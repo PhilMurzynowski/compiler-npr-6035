@@ -11,6 +11,11 @@ class ASTImportDeclaration implements ASTNode {
   }
 
   @Override
+  public void accept(ASTNode.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "import " + identifier + ";";
   }

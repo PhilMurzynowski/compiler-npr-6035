@@ -110,6 +110,11 @@ class ASTFieldDeclaration implements ASTNode {
   }
 
   @Override
+  public void accept(ASTNode.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
     if (type.equals(Type.INTEGER)) {

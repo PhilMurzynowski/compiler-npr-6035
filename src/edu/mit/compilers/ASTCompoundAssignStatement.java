@@ -59,6 +59,16 @@ class ASTCompoundAssignStatement implements ASTStatement {
   }
 
   @Override
+  public void accept(ASTNode.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
+  public void accept(ASTStatement.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append(location.prettyString(depth));

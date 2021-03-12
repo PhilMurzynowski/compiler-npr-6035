@@ -11,6 +11,16 @@ class ASTStringLiteral implements ASTArgument {
   }
 
   @Override
+  public void accept(ASTNode.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
+  public void accept(ASTArgument.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
   public String prettyString(int depth) {
     return '"' + value + '"'; // FIXME(rbd): Handle un/escape characters.
   }

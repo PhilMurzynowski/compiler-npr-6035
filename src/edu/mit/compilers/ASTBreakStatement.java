@@ -5,6 +5,16 @@ class ASTBreakStatement implements ASTStatement {
   public ASTBreakStatement() { }
 
   @Override
+  public void accept(ASTNode.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
+  public void accept(ASTStatement.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "break;";
   }

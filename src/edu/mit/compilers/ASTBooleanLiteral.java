@@ -11,6 +11,21 @@ class ASTBooleanLiteral implements ASTExpression {
   }
 
   @Override
+  public void accept(ASTNode.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
+  public void accept(ASTArgument.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
+  public void accept(ASTExpression.Visitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
   public String prettyString(int depth) {
     return value + "";
   }
