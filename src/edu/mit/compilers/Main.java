@@ -8,6 +8,10 @@ import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 
+import edu.mit.compilers.tk.*;
+import edu.mit.compilers.pt.*;
+// import edu.mit.compilers.ast.*;
+
 class Main {
 
   private static String tokenString(Token token) {
