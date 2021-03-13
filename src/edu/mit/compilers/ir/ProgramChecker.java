@@ -120,7 +120,18 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     exceptions.addAll(forStatement.getInitial().accept(new ProgramChecker(symbolTable, inLoop)));
 
-    exceptions.addAll(forStatement.getCondition().accept(new ProgramChecker(symbolTable, inLoop)));
+    final ASTExpression condition = forStatement.getCondition();
+
+    final List<SemanticException> conditionExceptions = condition.accept(new ProgramChecker(symbolTable, inLoop));
+    exceptions.addAll(conditionExceptions);
+
+    if (conditionExceptions.isEmpty()) {
+      final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
+
+      if (!conditionType.equals(VariableType.BOOLEAN)) {
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "for loop condition expression requires a boolean"));
+      }
+    }
 
     exceptions.addAll(forStatement.getUpdate().accept(new ProgramChecker(symbolTable, inLoop)));
 
