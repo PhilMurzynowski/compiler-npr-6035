@@ -164,7 +164,7 @@ public class Parser {
     return builder.build();
   }
 
-  // Statement -> AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
+  // Statement -> IDAssignStatement | AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
   private PTNonterminal parseStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.STATEMENT);
 
@@ -184,7 +184,7 @@ public class Parser {
           throw exception(Token.Type.EQUAL, Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS);
         }
       } else if (tokens.peek(1).is(Token.Type.EQUAL)) {
-        builder.addChild(parseAssignStatement(Optional.empty()));
+        builder.addChild(parseIDAssignStatement());
       } else if (tokens.peek(1).is(Token.Type.PLUS_EQUAL, Token.Type.MINUS_EQUAL, Token.Type.PLUS_PLUS, Token.Type.MINUS_MINUS)) {
         builder.addChild(parseCompoundAssignStatement(Optional.empty()));
       } else if (tokens.peek(1).is(Token.Type.LEFT_ROUND)) {
@@ -211,11 +211,32 @@ public class Parser {
     return builder.build();
   }
 
-  // AssignStatement -> AssignExpression SEMICOLON
+  // IDAssignStatement -> IDAssignExpression SEMICOLON
+  private PTNonterminal parseIDAssignStatement() throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ID_ASSIGN_STATEMENT);
+
+    builder.addChild(parseIDAssignExpression());
+
+    expect(Token.Type.SEMICOLON);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    return builder.build();
+  }
+
+  // AssignStatement -> LocationExpression EQUAL Expression SEMICOLON
   private PTNonterminal parseAssignStatement(Optional<PTNonterminal> locationExpression) throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_STATEMENT);
 
-    builder.addChild(parseAssignExpression(locationExpression));
+    if (locationExpression.isPresent()) {
+      builder.addChild(locationExpression.get());
+    } else {
+      builder.addChild(parseLocationExpression());
+    }
+
+    expect(Token.Type.EQUAL);
+    builder.addChild(new PTTerminal(tokens.next()));
+
+    builder.addChild(parseExpression());
 
     expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
@@ -273,7 +294,7 @@ public class Parser {
     return builder.build();
   }
 
-  // ForStatement -> FOR LEFT_ROUND AssignExpression SEMICOLON Expression SEMICOLON CompoundAssignExpression RIGHT_ROUND Block
+  // ForStatement -> FOR LEFT_ROUND IDAssignExpression SEMICOLON Expression SEMICOLON CompoundAssignExpression RIGHT_ROUND Block
   private PTNonterminal parseForStatement() throws ParserException {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.FOR_STATEMENT);
 
@@ -283,7 +304,7 @@ public class Parser {
     expect(Token.Type.LEFT_ROUND);
     builder.addChild(new PTTerminal(tokens.next()));
 
-    builder.addChild(parseAssignExpression(Optional.empty()));
+    builder.addChild(parseIDAssignExpression());
 
     expect(Token.Type.SEMICOLON);
     builder.addChild(new PTTerminal(tokens.next()));
@@ -366,15 +387,12 @@ public class Parser {
     return builder.build();
   }
 
-  // AssignExpression -> LocationExpression EQUAL Expression
-  private PTNonterminal parseAssignExpression(Optional<PTNonterminal> locationExpression) throws ParserException {
-    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ASSIGN_EXPRESSION);
+  // IDAssignExpression -> IDENTIFIER EQUAL Expression
+  private PTNonterminal parseIDAssignExpression() throws ParserException {
+    PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.ID_ASSIGN_EXPRESSION);
 
-    if (locationExpression.isPresent()) {
-      builder.addChild(locationExpression.get());
-    } else {
-      builder.addChild(parseLocationExpression());
-    }
+    expect(Token.Type.IDENTIFIER);
+    builder.addChild(new PTTerminal(tokens.next()));
 
     expect(Token.Type.EQUAL);
     builder.addChild(new PTTerminal(tokens.next()));

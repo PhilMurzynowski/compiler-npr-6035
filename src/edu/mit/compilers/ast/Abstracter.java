@@ -202,14 +202,16 @@ public class Abstracter {
     return builder.build();
   }
 
-  // Statement -> AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
+  // Statement -> IDAssignStatement | AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
   private ASTStatement abstractStatement(PTNode ptStatement) {
     assert ptStatement.is(PTNonterminal.Type.STATEMENT);
 
     ASTStatement statement;
     final Peekable nodes = Peekable.of(ptStatement.getChildren());
 
-    if (nodes.peek().is(PTNonterminal.Type.ASSIGN_STATEMENT)) {
+    if (nodes.peek().is(PTNonterminal.Type.ID_ASSIGN_STATEMENT)) {
+      statement = abstractIDAssignStatement(nodes.next());
+    } else if (nodes.peek().is(PTNonterminal.Type.ASSIGN_STATEMENT)) {
       statement = abstractAssignStatement(nodes.next());
     } else if (nodes.peek().is(PTNonterminal.Type.COMPOUND_ASSIGN_STATEMENT)) {
       statement = abstractCompoundAssignStatement(nodes.next());
@@ -236,21 +238,43 @@ public class Abstracter {
     return statement;
   }
 
-  // AssignStatement -> AssignExpression SEMICOLON
-  private ASTAssignStatement abstractAssignStatement(PTNode ptAssignStatement) {
-    assert ptAssignStatement.is(PTNonterminal.Type.ASSIGN_STATEMENT);
+  // IDAssignStatement -> IDAssignExpression SEMICOLON
+  private ASTIDAssignStatement abstractIDAssignStatement(PTNode ptIDAssignStatement) {
+    assert ptIDAssignStatement.is(PTNonterminal.Type.ID_ASSIGN_STATEMENT);
 
-    ASTAssignStatement assignStatement;
-    final Peekable nodes = Peekable.of(ptAssignStatement.getChildren());
+    ASTIDAssignStatement idAssignStatement;
+    final Peekable nodes = Peekable.of(ptIDAssignStatement.getChildren());
 
-    assignStatement = abstractAssignExpression(nodes.next());
+    idAssignStatement = abstractIDAssignExpression(nodes.next());
 
     assert nodes.peek().is(Token.Type.SEMICOLON);
     nodes.next();
 
     assert !nodes.hasNext();
 
-    return assignStatement;
+    return idAssignStatement;
+  }
+
+  // AssignStatement -> LocationExpression EQUAL Expression SEMICOLON
+  private ASTAssignStatement abstractAssignStatement(PTNode ptAssignStatement) {
+    assert ptAssignStatement.is(PTNonterminal.Type.ASSIGN_STATEMENT);
+
+    final ASTAssignStatement.Builder builder = new ASTAssignStatement.Builder();
+    final Peekable nodes = Peekable.of(ptAssignStatement.getChildren());
+
+    builder.withLocation(abstractLocationExpression(nodes.next()));
+
+    assert nodes.peek().is(Token.Type.EQUAL);
+    nodes.next();
+
+    builder.withExpression(abstractExpression(nodes.next()));
+
+    assert nodes.peek().is(Token.Type.SEMICOLON);
+    nodes.next();
+
+    assert !nodes.hasNext();
+
+    return builder.build();
   }
 
   // CompoundAssignStatement -> CompoundAssignExpression SEMICOLON
@@ -331,7 +355,7 @@ public class Abstracter {
     assert nodes.peek().is(Token.Type.LEFT_ROUND);
     nodes.next();
 
-    builder.withInitial(abstractAssignExpression(nodes.next()));
+    builder.withInitial(abstractIDAssignExpression(nodes.next()));
 
     assert nodes.peek().is(Token.Type.SEMICOLON);
     nodes.next();
@@ -434,14 +458,15 @@ public class Abstracter {
     return new ASTContinueStatement();
   }
 
-  // AssignExpression -> LocationExpression EQUAL Expression
-  private ASTAssignStatement abstractAssignExpression(PTNode ptAssignExpression) {
-    assert ptAssignExpression.is(PTNonterminal.Type.ASSIGN_EXPRESSION);
+  // IDAssignExpression -> IDENTIFIER EQUAL Expression
+  private ASTIDAssignStatement abstractIDAssignExpression(PTNode ptIDAssignExpression) {
+    assert ptIDAssignExpression.is(PTNonterminal.Type.ID_ASSIGN_EXPRESSION);
 
-    final ASTAssignStatement.Builder builder = new ASTAssignStatement.Builder();
-    final Peekable nodes = Peekable.of(ptAssignExpression.getChildren());
+    final ASTIDAssignStatement.Builder builder = new ASTIDAssignStatement.Builder();
+    final Peekable nodes = Peekable.of(ptIDAssignExpression.getChildren());
 
-    builder.withLocation(abstractLocationExpression(nodes.next()));
+    assert nodes.peek().is(Token.Type.IDENTIFIER);
+    builder.withIdentifier(nodes.next().getText());
 
     assert nodes.peek().is(Token.Type.EQUAL);
     nodes.next();

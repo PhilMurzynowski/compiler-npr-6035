@@ -48,6 +48,11 @@ Block <- <Node> {
 ```
 <Statement> <- <Node>
 
+IDAssignStatement <- <Statement> {
+  identifier: String,
+  expression: <Expression>,
+}
+
 AssignStatement <- <Statement> {
   location: LocationExpression,
   expression: <Expression>,
@@ -70,7 +75,7 @@ IfStatement <- <Statement> {
 }
 
 ForStatement <- <Statement> {
-  initial: AssignStatement,
+  initial: IDAssignStatement,
   condition: <Expression>,
   update: CompoundAssignStatement,
   body: Block,
@@ -109,7 +114,7 @@ UnaryExpression <- <Expression> {
 
 LocationExpression <- <Expression> {
   identifier: String,
-  offset: <Expression>?
+  offset: <Expression>?,
 }
 
 MethodCallExpression <- <Expression> {

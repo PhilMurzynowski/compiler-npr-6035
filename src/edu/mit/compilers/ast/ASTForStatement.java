@@ -4,12 +4,12 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTForStatement implements ASTStatement {
 
-  private final ASTAssignStatement initial;
+  private final ASTIDAssignStatement initial;
   private final ASTExpression condition;
   private final ASTCompoundAssignStatement update;
   private final ASTBlock body;
 
-  private ASTForStatement(ASTAssignStatement initial, ASTExpression condition, ASTCompoundAssignStatement update, ASTBlock body) {
+  private ASTForStatement(ASTIDAssignStatement initial, ASTExpression condition, ASTCompoundAssignStatement update, ASTBlock body) {
     this.initial = initial;
     this.condition = condition;
     this.update = update;
@@ -18,7 +18,7 @@ public class ASTForStatement implements ASTStatement {
 
   public static class Builder {
 
-    private ASTAssignStatement initial;
+    private ASTIDAssignStatement initial;
     private ASTExpression condition;
     private ASTCompoundAssignStatement update;
     private ASTBlock body;
@@ -30,7 +30,7 @@ public class ASTForStatement implements ASTStatement {
       body = null;
     }
 
-    public Builder withInitial(ASTAssignStatement initial) {
+    public Builder withInitial(ASTIDAssignStatement initial) {
       this.initial = initial;
       return this;
     }

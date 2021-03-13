@@ -14,6 +14,8 @@ public interface ASTNode {
 
     void visit(ASTBlock block);
 
+    void visit(ASTIDAssignStatement idAssignStatement);
+
     void visit(ASTAssignStatement assignStatement);
 
     void visit(ASTCompoundAssignStatement compoundAssignStatement);

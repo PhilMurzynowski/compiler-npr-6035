@@ -24,18 +24,19 @@ public class PTNonterminal implements PTNode {
 
     BLOCK,                        // LEFT_CURLY FieldDeclaration* Statement* RIGHT_CURLY
 
-    STATEMENT,                    // AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
-    ASSIGN_STATEMENT,             // AssignExpression SEMICOLON
+    STATEMENT,                    // IDAssignStatement | AssignStatement | CompoundAssignStatement | MethodCallStatement | IfStatement | ForStatement | WhileStatement | ReturnStatement | BreakStatement | ContinueStatement
+    ID_ASSIGN_STATEMENT,          // IDAssignExpression SEMICOLON
+    ASSIGN_STATEMENT,             // LocationExpression EQUAL Expression SEMICOLON
     COMPOUND_ASSIGN_STATEMENT,    // CompoundAssignExpression SEMICOLON
     METHOD_CALL_STATEMENT,        // MethodCallExpression SEMICOLON
     IF_STATEMENT,                 // IF LEFT_ROUND Expression RIGHT_ROUND Block (ELSE Block)?
-    FOR_STATEMENT,                // FOR LEFT_ROUND AssignExpression SEMICOLON Expression SEMICOLON CompoundAssignExpression RIGHT_ROUND Block
+    FOR_STATEMENT,                // FOR LEFT_ROUND IDAssignExpression SEMICOLON Expression SEMICOLON CompoundAssignExpression RIGHT_ROUND Block
     WHILE_STATEMENT,              // WHILE LEFT_ROUND Expression RIGHT_ROUND Block
     RETURN_STATEMENT,             // RETURN (Expression)? SEMICOLON
     BREAK_STATEMENT,              // BREAK SEMICOLON
     CONTINUE_STATEMENT,           // CONTINUE SEMICOLON
 
-    ASSIGN_EXPRESSION,            // LocationExpression EQUAL Expression
+    ID_ASSIGN_EXPRESSION,         // IDENTIFIER EQUAL Expression
     COMPOUND_ASSIGN_EXPRESSION,   // LocationExpression ((PLUS_EQUAL | MINUS_EQUAL) Expression | (PLUS_PLUS | MINUS_MINUS))
 
     EXPRESSION,                   // OrExpression
