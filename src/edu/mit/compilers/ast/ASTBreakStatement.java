@@ -5,13 +5,13 @@ public class ASTBreakStatement implements ASTStatement {
   public ASTBreakStatement() { }
 
   @Override
-  public void accept(ASTNode.Visitor visitor) {
-    visitor.visit(this);
+  public <T> T accept(ASTNode.Visitor<T> visitor) {
+    return visitor.visit(this);
   }
 
   @Override
-  public void accept(ASTStatement.Visitor visitor) {
-    visitor.visit(this);
+  public <T> T accept(ASTStatement.Visitor<T> visitor) {
+    return visitor.visit(this);
   }
 
   @Override

@@ -2,30 +2,30 @@ package edu.mit.compilers.ast;
 
 public interface ASTStatement extends ASTNode {
 
-  public static interface Visitor {
+  public static interface Visitor<T> {
 
-    void visit(ASTIDAssignStatement idAssignStatement);
+    T visit(ASTIDAssignStatement idAssignStatement);
 
-    void visit(ASTAssignStatement assignStatement);
+    T visit(ASTAssignStatement assignStatement);
 
-    void visit(ASTCompoundAssignStatement compoundAssignStatement);
+    T visit(ASTCompoundAssignStatement compoundAssignStatement);
 
-    void visit(ASTMethodCallStatement methodCallStatement);
+    T visit(ASTMethodCallStatement methodCallStatement);
 
-    void visit(ASTIfStatement ifStatement);
+    T visit(ASTIfStatement ifStatement);
 
-    void visit(ASTForStatement forStatement);
+    T visit(ASTForStatement forStatement);
 
-    void visit(ASTWhileStatement whileStatement);
+    T visit(ASTWhileStatement whileStatement);
 
-    void visit(ASTReturnStatement returnStatement);
+    T visit(ASTReturnStatement returnStatement);
 
-    void visit(ASTBreakStatement breakStatement);
+    T visit(ASTBreakStatement breakStatement);
 
-    void visit(ASTContinueStatement continueStatement);
+    T visit(ASTContinueStatement continueStatement);
 
   }
 
-  public void accept(ASTStatement.Visitor visitor);
+  public <T> T accept(ASTStatement.Visitor<T> visitor);
 
 }

@@ -2,28 +2,28 @@ package edu.mit.compilers.ast;
 
 public interface ASTArgument extends ASTNode {
 
-  public static interface Visitor {
+  public static interface Visitor<T> {
 
-    void visit(ASTBinaryExpression binaryExpression);
+    T visit(ASTBinaryExpression binaryExpression);
 
-    void visit(ASTUnaryExpression unaryExpression);
+    T visit(ASTUnaryExpression unaryExpression);
 
-    void visit(ASTLocationExpression locationExpression);
+    T visit(ASTLocationExpression locationExpression);
 
-    void visit(ASTMethodCallExpression methodCallExpression);
+    T visit(ASTMethodCallExpression methodCallExpression);
 
-    void visit(ASTLengthExpression lengthExpression);
+    T visit(ASTLengthExpression lengthExpression);
 
-    void visit(ASTIntegerLiteral integerLiteral);
+    T visit(ASTIntegerLiteral integerLiteral);
 
-    void visit(ASTCharacterLiteral characterLiteral);
+    T visit(ASTCharacterLiteral characterLiteral);
 
-    void visit(ASTBooleanLiteral booleanLiteral);
+    T visit(ASTBooleanLiteral booleanLiteral);
 
-    void visit(ASTStringLiteral stringLiteral);
+    T visit(ASTStringLiteral stringLiteral);
 
   }
 
-  public void accept(ASTArgument.Visitor visitor);
+  public <T> T accept(ASTArgument.Visitor<T> visitor);
 
 }

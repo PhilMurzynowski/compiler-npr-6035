@@ -110,8 +110,8 @@ public class ASTFieldDeclaration implements ASTNode {
   }
 
   @Override
-  public void accept(ASTNode.Visitor visitor) {
-    visitor.visit(this);
+  public <T> T accept(ASTNode.Visitor<T> visitor) {
+    return visitor.visit(this);
   }
 
   @Override

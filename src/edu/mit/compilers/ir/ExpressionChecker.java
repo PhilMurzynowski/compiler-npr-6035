@@ -1,43 +1,55 @@
 package edu.mit.compilers.ir;
 
 import edu.mit.compilers.ast.*;
+import edu.mit.compilers.common.*;
 
-class ExpressionChecker implements ASTExpression.Visitor {
+class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
-  // TODO(rbd): Add representation.
+  private final SymbolTable symbolTable;
 
-  public void visit(ASTBinaryExpression binaryExpression) {
+  // Noah
+  public ExpressionChecker(SymbolTable symbolTable) {
     throw new RuntimeException("not implemented");
   }
 
-  public void visit(ASTUnaryExpression unaryExpression) {
+  // Phil
+  public VariableType visit(ASTBinaryExpression binaryExpression) {
     throw new RuntimeException("not implemented");
   }
 
-  public void visit(ASTLocationExpression locationExpression) {
+  // Robert
+  public VariableType visit(ASTUnaryExpression unaryExpression) {
     throw new RuntimeException("not implemented");
   }
 
-  public void visit(ASTMethodCallExpression methodCallExpression) {
+  // Noah
+  public VariableType visit(ASTLocationExpression locationExpression) {
     throw new RuntimeException("not implemented");
   }
 
-  public void visit(ASTLengthExpression lengthExpression) {
+  // Phil
+  public VariableType visit(ASTMethodCallExpression methodCallExpression) {
     throw new RuntimeException("not implemented");
   }
 
-  public void visit(ASTIntegerLiteral integerLiteral) {
+  // Robert
+  public VariableType visit(ASTLengthExpression lengthExpression) {
     throw new RuntimeException("not implemented");
   }
 
-  public void visit(ASTCharacterLiteral characterLiteral) {
+  // Noah
+  public VariableType visit(ASTIntegerLiteral integerLiteral) {
     throw new RuntimeException("not implemented");
   }
 
-  public void visit(ASTBooleanLiteral booleanLiteral) {
+  // Phil
+  public VariableType visit(ASTCharacterLiteral characterLiteral) {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO(rbd): Add result observers.
+  // Robert
+  public VariableType visit(ASTBooleanLiteral booleanLiteral) {
+    throw new RuntimeException("not implemented");
+  }
 
 }

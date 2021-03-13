@@ -52,18 +52,18 @@ public class ASTUnaryExpression implements ASTExpression {
   }
 
   @Override
-  public void accept(ASTNode.Visitor visitor) {
-    visitor.visit(this);
+  public <T> T accept(ASTNode.Visitor<T> visitor) {
+    return visitor.visit(this);
   }
 
   @Override
-  public void accept(ASTArgument.Visitor visitor) {
-    visitor.visit(this);
+  public <T> T accept(ASTArgument.Visitor<T> visitor) {
+    return visitor.visit(this);
   }
 
   @Override
-  public void accept(ASTExpression.Visitor visitor) {
-    visitor.visit(this);
+  public <T> T accept(ASTExpression.Visitor<T> visitor) {
+    return visitor.visit(this);
   }
 
   @Override

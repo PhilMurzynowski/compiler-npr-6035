@@ -2,59 +2,59 @@ package edu.mit.compilers.ast;
 
 public interface ASTNode {
 
-  public static interface Visitor {
+  public static interface Visitor<T> {
     
-    void visit(ASTProgram program);
-    
-    void visit(ASTImportDeclaration importDeclaration);
-    
-    void visit(ASTFieldDeclaration fieldDeclaration);
-    
-    void visit(ASTMethodDeclaration methodDeclaration);
+    T visit(ASTProgram program);
 
-    void visit(ASTBlock block);
+    T visit(ASTImportDeclaration importDeclaration);
 
-    void visit(ASTIDAssignStatement idAssignStatement);
+    T visit(ASTFieldDeclaration fieldDeclaration);
 
-    void visit(ASTAssignStatement assignStatement);
+    T visit(ASTMethodDeclaration methodDeclaration);
 
-    void visit(ASTCompoundAssignStatement compoundAssignStatement);
+    T visit(ASTBlock block);
 
-    void visit(ASTMethodCallStatement methodCallStatement);
+    T visit(ASTIDAssignStatement idAssignStatement);
 
-    void visit(ASTIfStatement ifStatement);
+    T visit(ASTAssignStatement assignStatement);
 
-    void visit(ASTForStatement forStatement);
+    T visit(ASTCompoundAssignStatement compoundAssignStatement);
 
-    void visit(ASTWhileStatement whileStatement);
+    T visit(ASTMethodCallStatement methodCallStatement);
 
-    void visit(ASTReturnStatement returnStatement);
+    T visit(ASTIfStatement ifStatement);
 
-    void visit(ASTBreakStatement breakStatement);
+    T visit(ASTForStatement forStatement);
 
-    void visit(ASTContinueStatement continueStatement);
+    T visit(ASTWhileStatement whileStatement);
 
-    void visit(ASTBinaryExpression binaryExpression);
+    T visit(ASTReturnStatement returnStatement);
 
-    void visit(ASTUnaryExpression unaryExpression);
+    T visit(ASTBreakStatement breakStatement);
 
-    void visit(ASTLocationExpression locationExpression);
+    T visit(ASTContinueStatement continueStatement);
 
-    void visit(ASTMethodCallExpression methodCallExpression);
+    T visit(ASTBinaryExpression binaryExpression);
 
-    void visit(ASTLengthExpression lengthExpression);
+    T visit(ASTUnaryExpression unaryExpression);
 
-    void visit(ASTIntegerLiteral integerLiteral);
+    T visit(ASTLocationExpression locationExpression);
 
-    void visit(ASTCharacterLiteral characterLiteral);
+    T visit(ASTMethodCallExpression methodCallExpression);
 
-    void visit(ASTBooleanLiteral booleanLiteral);
+    T visit(ASTLengthExpression lengthExpression);
 
-    void visit(ASTStringLiteral stringLiteral);
+    T visit(ASTIntegerLiteral integerLiteral);
+
+    T visit(ASTCharacterLiteral characterLiteral);
+
+    T visit(ASTBooleanLiteral booleanLiteral);
+
+    T visit(ASTStringLiteral stringLiteral);
 
   }
 
-  public void accept(ASTNode.Visitor visitor);
+  public <T> T accept(ASTNode.Visitor<T> visitor);
 
   public String prettyString(int depth);
 
