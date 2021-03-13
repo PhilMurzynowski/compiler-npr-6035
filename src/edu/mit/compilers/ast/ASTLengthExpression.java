@@ -10,6 +10,10 @@ public class ASTLengthExpression implements ASTExpression {
     this.identifier = identifier;
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
   @Override
   public <T> T accept(ASTArgument.Visitor<T> visitor) {
     return visitor.visit(this);

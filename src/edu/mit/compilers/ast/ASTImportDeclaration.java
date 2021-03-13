@@ -10,6 +10,10 @@ public class ASTImportDeclaration implements ASTNode {
     this.identifier = identifier;
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

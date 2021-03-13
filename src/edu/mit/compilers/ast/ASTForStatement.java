@@ -60,6 +60,22 @@ public class ASTForStatement implements ASTStatement {
     }
   }
 
+  public ASTIDAssignStatement getInitial() {
+    return initial;
+  }
+
+  public ASTExpression getCondition() {
+    return condition;
+  }
+
+  public ASTCompoundAssignStatement getUpdate() {
+    return update;
+  }
+
+  public ASTBlock getBody() {
+    return body;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

@@ -41,6 +41,14 @@ public class ASTBlock implements ASTNode {
 
   }
 
+  public List<ASTFieldDeclaration> getFieldDeclarations() {
+    return fieldDeclarations;
+  }
+
+  public List<ASTStatement> getStatements() {
+    return statements;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

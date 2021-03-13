@@ -58,6 +58,18 @@ public class ASTCompoundAssignStatement implements ASTStatement {
     }
   }
 
+  public ASTLocationExpression getLocation() {
+    return location;
+  }
+
+  public Type getType() {
+    return type;
+  }
+
+  public Optional<ASTExpression> getExpression() {
+    return expression;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);
