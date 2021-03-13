@@ -43,7 +43,6 @@ class SymbolTable {
 
   }
 
-  // Robert
   private static class ArrayDeclaration {
 
     private final VariableType type;
@@ -68,7 +67,6 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public boolean exists(String identifier) {
     return importDeclarations.contains(identifier)
       || methodDeclarations.containsKey(identifier) 
@@ -86,7 +84,6 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public boolean scalarExists(String identifier) {
     return scalarDeclarations.containsKey(identifier) 
       || (parent.isPresent() && parent.get().scalarExists(identifier));
@@ -102,7 +99,6 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public void addMethod(String identifier, MethodType returnType, List<VariableType> argumentTypes) {
     methodDeclarations.put(identifier, new MethodDeclaration(returnType, argumentTypes));
   }
@@ -117,7 +113,6 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public MethodType methodReturnType(String identifier) {
     return methodDeclarations.get(identifier).getReturnType();
   }
@@ -132,7 +127,6 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public VariableType arrayType(String identifier) {
     return arrayDeclarations.get(identifier).getType();
   }

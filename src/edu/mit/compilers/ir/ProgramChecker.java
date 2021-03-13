@@ -21,14 +21,13 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTImportDeclaration importDeclaration) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
     final String identifier = importDeclaration.getIdentifier();
 
     if (symbolTable.exists(identifier)) {
-      exceptions.add(new SemanticException());
+      exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
     } else {
       symbolTable.addImport(identifier);
     }
@@ -46,7 +45,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTBlock block) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -73,7 +71,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTCompoundAssignStatement compoundAssignStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -86,7 +83,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final VariableType locationType = location.accept(new ExpressionChecker(symbolTable));
 
       if (!locationType.equals(VariableType.INTEGER)) {
-        exceptions.add(new SemanticException());
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "left side of compound assign statment requires an integer"));
       }
     }
 
@@ -100,7 +97,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
         final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
 
         if (!expressionType.equals(VariableType.INTEGER)) {
-          exceptions.add(new SemanticException());
+          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "right side of compound assign statement requires an integer"));
         }
       }
     }
@@ -118,7 +115,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTForStatement forStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -143,12 +139,11 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTBreakStatement breakStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
     if (!inLoop) {
-      exceptions.add(new SemanticException());
+      exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "break keyword not allowed outside of a loop"));
     }
 
     return exceptions;
@@ -164,7 +159,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTUnaryExpression unaryExpression) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -180,13 +174,13 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
         final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
 
         if (!expressionType.equals(VariableType.BOOLEAN)) {
-          exceptions.add(new SemanticException());
+          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "unary operator ! requires a boolean"));
         }
       } else /* if (type.equals(ASTUnaryExpression.Type.NEGATE)) */ {
         final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
 
         if (!expressionType.equals(VariableType.INTEGER)) {
-          exceptions.add(new SemanticException());
+          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "unary operator - requires an integer"));
         }
       }
     }
@@ -204,12 +198,13 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTLengthExpression lengthExpression) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
-    if (!symbolTable.arrayExists(lengthExpression.getIdentifier())) {
-      exceptions.add(new SemanticException());
+    final String identifier = lengthExpression.getIdentifier();
+
+    if (!symbolTable.arrayExists(identifier)) {
+      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + identifier));
     }
 
     return exceptions;
@@ -225,9 +220,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Robert
   public List<SemanticException> visit(ASTBooleanLiteral booleanLiteral) {
     final List<SemanticException> exceptions = new ArrayList<>();
+    
+    // NOTE(rbd): Nothing to check.
 
     return exceptions;
   }

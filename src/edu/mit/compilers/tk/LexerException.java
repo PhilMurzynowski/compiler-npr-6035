@@ -6,7 +6,7 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class LexerException extends Exception {
 
-  static final long serialVersionUID = 6239426216427407915L;
+  static final long serialVersionUID = 0L;
 
   public enum Type {
     INVALID_CHARACTER,

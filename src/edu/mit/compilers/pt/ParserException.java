@@ -8,7 +8,7 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class ParserException extends Exception {
 
-  static final long serialVersionUID = 602699916434554042L;
+  static final long serialVersionUID = 0L;
 
   public enum Type {
     INVALID_TOKEN,
