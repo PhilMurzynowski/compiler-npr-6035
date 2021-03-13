@@ -2,6 +2,7 @@ package edu.mit.compilers.ast;
 
 import java.util.List;
 
+import edu.mit.compilers.common.*;
 import edu.mit.compilers.tk.*;
 import edu.mit.compilers.pt.*;
 
@@ -60,9 +61,9 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptFieldDeclaration.getChildren());
 
     if (nodes.peek().is(Token.Type.INT)) {
-      builder.withType(ASTFieldDeclaration.Type.INTEGER);
+      builder.withType(VariableType.INTEGER);
     } else if (nodes.peek().is(Token.Type.BOOL)) {
-      builder.withType(ASTFieldDeclaration.Type.BOOLEAN);
+      builder.withType(VariableType.BOOLEAN);
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -92,11 +93,11 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptMethodDeclaration.getChildren());
 
     if (nodes.peek().is(Token.Type.INT)) {
-      builder.withType(ASTMethodDeclaration.Type.INTEGER);
+      builder.withType(MethodType.INTEGER);
     } else if (nodes.peek().is(Token.Type.BOOL)) {
-      builder.withType(ASTMethodDeclaration.Type.BOOLEAN);
+      builder.withType(MethodType.BOOLEAN);
     } else if (nodes.peek().is(Token.Type.VOID)) {
-      builder.withType(ASTMethodDeclaration.Type.VOID);
+      builder.withType(MethodType.VOID);
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -160,9 +161,9 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptArgumentDeclaration.getChildren());
 
     if (nodes.peek().is(Token.Type.INT)) {
-      builder.withType(ASTMethodDeclaration.Argument.Type.INTEGER);
+      builder.withType(VariableType.INTEGER);
     } else if (nodes.peek().is(Token.Type.BOOL)) {
-      builder.withType(ASTMethodDeclaration.Argument.Type.BOOLEAN);
+      builder.withType(VariableType.BOOLEAN);
     } else {
       throw new RuntimeException("unreachable");
     }

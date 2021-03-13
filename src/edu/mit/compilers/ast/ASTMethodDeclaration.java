@@ -3,39 +3,30 @@ package edu.mit.compilers.ast;
 import java.util.List;
 import java.util.ArrayList;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTMethodDeclaration implements ASTNode {
 
-  public enum Type {
-    INTEGER,
-    BOOLEAN,
-    VOID,
-  }
-
-  private final Type type;
+  private final MethodType type;
   private final String identifier;
   private final List<Argument> arguments;
   private final ASTBlock block;
 
   public static class Argument {
 
-    public enum Type {
-      INTEGER,
-      BOOLEAN,
-    }
-
-    private final Type type;
+    private final VariableType type;
     private final String identifier;
 
-    public Argument(Type type, String identifier) {
+    public Argument(VariableType type, String identifier) {
       this.type = type;
       this.identifier = identifier;
     }
 
     public static class Builder {
 
-      private Type type;
+      private VariableType type;
       private String identifier;
 
       public Builder() {
@@ -43,7 +34,7 @@ public class ASTMethodDeclaration implements ASTNode {
         identifier = null;
       }
 
-      public Builder withType(Type type) {
+      public Builder withType(VariableType type) {
         this.type = type;
         return this;
       }
@@ -64,9 +55,9 @@ public class ASTMethodDeclaration implements ASTNode {
 
     public String prettyString(int depth) {
       StringBuilder s = new StringBuilder();
-      if (type.equals(Type.INTEGER)) {
+      if (type.equals(VariableType.INTEGER)) {
         s.append("int ");
-      } else /* if (type.equals(Type.BOOLEAN)) */ {
+      } else /* if (type.equals(VariableType.BOOLEAN)) */ {
         s.append("bool ");
       }
       s.append(identifier);
@@ -84,7 +75,7 @@ public class ASTMethodDeclaration implements ASTNode {
 
   }
 
-  private ASTMethodDeclaration(Type type, String identifier, List<Argument> arguments, ASTBlock block) {
+  private ASTMethodDeclaration(MethodType type, String identifier, List<Argument> arguments, ASTBlock block) {
     this.type = type;
     this.identifier = identifier;
     this.arguments = arguments;
@@ -93,7 +84,7 @@ public class ASTMethodDeclaration implements ASTNode {
 
   public static class Builder {
 
-    private Type type;
+    private MethodType type;
     private String identifier;
     private final List<Argument> arguments;
     private ASTBlock block;
@@ -105,7 +96,7 @@ public class ASTMethodDeclaration implements ASTNode {
       block = null;
     }
 
-    public Builder withType(Type type) {
+    public Builder withType(MethodType type) {
       this.type = type;
       return this;
     }
@@ -143,11 +134,11 @@ public class ASTMethodDeclaration implements ASTNode {
   @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
-    if (type.equals(Type.INTEGER)) {
+    if (type.equals(MethodType.INTEGER)) {
       s.append("int ");
-    } else if (type.equals(Type.BOOLEAN)) {
+    } else if (type.equals(MethodType.BOOLEAN)) {
       s.append("bool ");
-    } else /* if (type.equals(Type.VOID)) */ {
+    } else /* if (type.equals(MethodType.VOID)) */ {
       s.append("void ");
     }
     s.append(identifier + "(");

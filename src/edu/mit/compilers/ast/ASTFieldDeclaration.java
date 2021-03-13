@@ -4,16 +4,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTFieldDeclaration implements ASTNode {
 
-  public enum Type {
-    INTEGER,
-    BOOLEAN,
-  }
-
-  private final Type type;
+  private final VariableType type;
   private final List<Identifier> identifiers;
 
   public static class Identifier {
@@ -75,14 +72,14 @@ public class ASTFieldDeclaration implements ASTNode {
 
   }
 
-  private ASTFieldDeclaration(Type type, List<Identifier> identifiers) {
+  private ASTFieldDeclaration(VariableType type, List<Identifier> identifiers) {
     this.type = type;
     this.identifiers = identifiers;
   }
 
   public static class Builder {
 
-    private Type type;
+    private VariableType type;
     private List<Identifier> identifiers;
 
     public Builder() {
@@ -90,7 +87,7 @@ public class ASTFieldDeclaration implements ASTNode {
       identifiers = new ArrayList<>();
     }
 
-    public Builder withType(Type type) {
+    public Builder withType(VariableType type) {
       this.type = type;
       return this;
     }
@@ -117,9 +114,9 @@ public class ASTFieldDeclaration implements ASTNode {
   @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
-    if (type.equals(Type.INTEGER)) {
+    if (type.equals(VariableType.INTEGER)) {
       s.append("int ");
-    } else /* if (type.equals(Type.BOOLEAN)) */ {
+    } else /* if (type.equals(VariableType.BOOLEAN)) */ {
       s.append("bool ");
     }
     s.append(identifiers.get(0).prettyString(depth));
