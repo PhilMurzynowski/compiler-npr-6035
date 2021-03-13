@@ -19,7 +19,11 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
   // Robert
   public VariableType visit(ASTUnaryExpression unaryExpression) {
-    throw new RuntimeException("not implemented");
+    if (unaryExpression.getType().equals(ASTUnaryExpression.Type.NOT)) {
+      return VariableType.BOOLEAN;
+    } else /* if (unaryExpression.getType().equals(ASTUnaryExpression.Type.NEGATE)) */ {
+      return VariableType.INTEGER;
+    }
   }
 
   // Noah
@@ -34,7 +38,7 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
   // Robert
   public VariableType visit(ASTLengthExpression lengthExpression) {
-    throw new RuntimeException("not implemented");
+    return VariableType.INTEGER;
   }
 
   // Noah
@@ -49,7 +53,7 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
   // Robert
   public VariableType visit(ASTBooleanLiteral booleanLiteral) {
-    throw new RuntimeException("not implemented");
+    return VariableType.BOOLEAN;
   }
 
 }
