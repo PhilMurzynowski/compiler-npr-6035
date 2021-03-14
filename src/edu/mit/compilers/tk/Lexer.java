@@ -10,8 +10,8 @@ public class Lexer {
 
   private final List<Token> tokens;
   private final StringBuilder text;
-  private Location currentLocation;
-  private Location startLocation;
+  private TextLocation currentTextLocation;
+  private TextLocation startTextLocation;
   private final List<LexerException> exceptions;
 
   public Lexer() {
@@ -49,13 +49,13 @@ public class Lexer {
   private LexFunction lexLogical(char c, Token.Type type) {
     return (Optional<Character> character) -> {
       if (!character.isPresent()) {
-        throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "expected '" + c + "'");
+        throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "expected '" + c + "'");
       } else if (character.get() == c) {
         consume(character);
         produce(type);
         return reset();
       } else {
-        throw new LexerException(currentLocation, LexerException.Type.INVALID_CHARACTER, "expected '" + c + "'");
+        throw new LexerException(currentTextLocation, LexerException.Type.INVALID_CHARACTER, "expected '" + c + "'");
       }
     };
   }
@@ -114,12 +114,12 @@ public class Lexer {
 
   private LexFunction lexZeroX(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "expected [0-9A-Fa-f]");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "expected [0-9A-Fa-f]");
     } else if (isHexadecimal(character.get())) {
       consume(character);
       return next(this::lexHexadecimal);
     } else {
-      throw new LexerException(currentLocation, LexerException.Type.INVALID_CHARACTER, "expected [0-9A-Fa-f]");
+      throw new LexerException(currentTextLocation, LexerException.Type.INVALID_CHARACTER, "expected [0-9A-Fa-f]");
     }
   }
 
@@ -151,7 +151,7 @@ public class Lexer {
 
   private LexFunction lexCharacter(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "expected [\\x20-\\x7E&&[^\"']]");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "expected [\\x20-\\x7E&&[^\"']]");
     } else if (character.get() == '\\') {
       consume(character);
       return next(this::lexCharacterEscape);
@@ -159,36 +159,36 @@ public class Lexer {
       consume(character);
       return next(this::lexCharacterClose);
     } else {
-      throw new LexerException(currentLocation, LexerException.Type.INVALID_CHARACTER, "expected [\\x20-\\x7E&&[^\"']]");
+      throw new LexerException(currentTextLocation, LexerException.Type.INVALID_CHARACTER, "expected [\\x20-\\x7E&&[^\"']]");
     }
   }
 
   private LexFunction lexCharacterEscape(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "expected [\"'\\tn]");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "expected [\"'\\tn]");
     } else if (isEscaped(character.get())) {
       consume(character);
       return next(this::lexCharacterClose);
     } else {
-      throw new LexerException(currentLocation, LexerException.Type.INVALID_ESCAPE, "expected [\"'\\tn]");
+      throw new LexerException(currentTextLocation, LexerException.Type.INVALID_ESCAPE, "expected [\"'\\tn]");
     }
   }
 
   private LexFunction lexCharacterClose(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "expected '\\''");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "expected '\\''");
     } else if (character.get() == '\'') {
       consume(character);
       produce(Token.Type.CHARACTER);
       return reset();
     } else {
-      throw new LexerException(currentLocation, LexerException.Type.INVALID_CHARACTER, "expected '\\''");
+      throw new LexerException(currentTextLocation, LexerException.Type.INVALID_CHARACTER, "expected '\\''");
     }
   }
 
   private LexFunction lexString(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "no matching '\"'");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "no matching '\"'");
     } else if (character.get() == '\\') {
       consume(character);
       return next(this::lexStringEscape);
@@ -200,18 +200,18 @@ public class Lexer {
       consume(character);
       return next(this::lexString);
     } else {
-      throw new LexerException(currentLocation, LexerException.Type.INVALID_CHARACTER, "expected [\\x20-\\x7E&&[^']]");
+      throw new LexerException(currentTextLocation, LexerException.Type.INVALID_CHARACTER, "expected [\\x20-\\x7E&&[^']]");
     }
   }
 
   private LexFunction lexStringEscape(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "expected [\"'\\tn]");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "expected [\"'\\tn]");
     } else if (isEscaped(character.get())) {
       consume(character);
       return next(this::lexString);
     } else {
-      throw new LexerException(currentLocation, LexerException.Type.INVALID_ESCAPE, "expected [\"'\\tn]");
+      throw new LexerException(currentTextLocation, LexerException.Type.INVALID_ESCAPE, "expected [\"'\\tn]");
     }
   }
 
@@ -245,7 +245,7 @@ public class Lexer {
 
   private LexFunction lexMultiLineComment(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "no matching \"*/\"");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "no matching \"*/\"");
     } else if (character.get() == '*') {
       consume(character);
       return next(this::lexMultiLineCommentClose);
@@ -257,7 +257,7 @@ public class Lexer {
 
   private LexFunction lexMultiLineCommentClose(Optional<Character> character) throws LexerException {
     if (!character.isPresent()) {
-      throw new LexerException(currentLocation, LexerException.Type.UNEXPECTED_EOF, "no matching \"*/\"");
+      throw new LexerException(currentTextLocation, LexerException.Type.UNEXPECTED_EOF, "no matching \"*/\"");
     } else if (character.get() == '/') {
       consume(character);
       return reset();
@@ -515,7 +515,7 @@ public class Lexer {
       consume(character);
       return next(this::lexWhitespace);
     } else {
-      throw new LexerException(currentLocation, LexerException.Type.INVALID_CHARACTER, "invalid character");
+      throw new LexerException(currentTextLocation, LexerException.Type.INVALID_CHARACTER, "invalid character");
     }
   }
 
@@ -526,33 +526,33 @@ public class Lexer {
   private void clear() {
     tokens.clear();
     text.setLength(0);
-    currentLocation = Location.start();
-    startLocation = currentLocation;
+    currentTextLocation = TextLocation.start();
+    startTextLocation = currentTextLocation;
     exceptions.clear();
   }
 
   private void consume(Optional<Character> character) {
     if (character.get() == '\n') {
-      currentLocation = currentLocation.incrementLine();
+      currentTextLocation = currentTextLocation.incrementLine();
     } else {
-      currentLocation = currentLocation.incrementColumn();
+      currentTextLocation = currentTextLocation.incrementColumn();
     }
     text.append(character.get());
   }
 
   private void produce(Token.Type tokenType) {
-    tokens.add(new Token(startLocation, tokenType, text.toString()));
+    tokens.add(new Token(startTextLocation, tokenType, text.toString()));
   }
 
   private LexFunction reset() {
     text.setLength(0);
-    startLocation = currentLocation;
+    startTextLocation = currentTextLocation;
     return this::lexEmpty;
   }
 
   private LexFunction redo(Optional<Character> character) throws LexerException {
     text.setLength(0);
-    startLocation = currentLocation;
+    startTextLocation = currentTextLocation;
     return lexEmpty(character);
   }
 
@@ -562,7 +562,7 @@ public class Lexer {
 
   private LexFunction accept() {
     text.setLength(0);
-    startLocation = currentLocation;
+    startTextLocation = currentTextLocation;
     return this::lexEOF;
   }
 

@@ -17,19 +17,19 @@ public class ParserException extends Exception {
     UNEXPECTED_EOF,
   }
 
-  private final Location location;
+  private final TextLocation textLocation;
   private final Type type;
   private final String message;
 
   public ParserException(Token token, Type type, String message) {
-    super(token.getLocation() + ":" + type + ": " + message);
-    this.location = token.getLocation();
+    super(token.getTextLocation() + ":" + type + ": " + message);
+    this.textLocation = token.getTextLocation();
     this.type = type;
     this.message = message;
   }
 
-  public Location getLocation() {
-    return location;
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   public Type getType() {
@@ -43,7 +43,7 @@ public class ParserException extends Exception {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ParserException {\n");
-    s.append(indent(depth + 1) + "line: " + location.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "message: \"" + message + "\",\n");
     s.append(indent(depth) + "}");
@@ -56,7 +56,7 @@ public class ParserException extends Exception {
   }
 
   public boolean equals(ParserException that) {
-    return (location == that.location)
+    return (textLocation == that.textLocation)
       && (type.equals(that.type))
       && (message.equals(that.message));
   }
@@ -68,7 +68,7 @@ public class ParserException extends Exception {
 
   @Override
   public int hashCode() {
-    return Objects.hash(location, type, message);
+    return Objects.hash(textLocation, type, message);
   }
 
 }

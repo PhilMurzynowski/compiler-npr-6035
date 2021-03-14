@@ -15,7 +15,7 @@ class Main {
 
   private static String tokenString(Token token) {
     StringBuilder output = new StringBuilder();
-    output.append(token.getLocation().getLine());
+    output.append(token.getTextLocation().getLine());
     switch (token.getType()) {
       case CHARACTER:
         output.append(" CHARLITERAL");
@@ -44,12 +44,12 @@ class Main {
   private static String lexerExceptionString(String filename, String input, LexerException lexerException) {
     StringBuilder output = new StringBuilder();
     output.append(filename);
-    output.append(":" + lexerException.getLocation().getLine());
-    output.append(":" + lexerException.getLocation().getColumn());
+    output.append(":" + lexerException.getTextLocation().getLine());
+    output.append(":" + lexerException.getTextLocation().getColumn());
     output.append(": " + lexerException.getType());
     output.append(": " + lexerException.getMessage() + ":\n\n");
-    output.append(input.split("\n", -1)[lexerException.getLocation().getLine() - 1] + "\n");
-    output.append(" ".repeat(lexerException.getLocation().getColumn() - 1) + "^");
+    output.append(input.split("\n", -1)[lexerException.getTextLocation().getLine() - 1] + "\n");
+    output.append(" ".repeat(lexerException.getTextLocation().getColumn() - 1) + "^");
     return output.toString();
   }
 
@@ -76,12 +76,12 @@ class Main {
   private static String parserExceptionString(String filename, String input, ParserException parserException) {
     StringBuilder output = new StringBuilder();
     output.append(filename);
-    output.append(":" + parserException.getLocation().getLine());
-    output.append(":" + parserException.getLocation().getColumn());
+    output.append(":" + parserException.getTextLocation().getLine());
+    output.append(":" + parserException.getTextLocation().getColumn());
     output.append(": " + parserException.getType());
     output.append(": " + parserException.getMessage() + ":\n\n");
-    output.append(input.split("\n", -1)[parserException.getLocation().getLine() - 1] + "\n");
-    output.append(" ".repeat(parserException.getLocation().getColumn() - 1) + "^");
+    output.append(input.split("\n", -1)[parserException.getTextLocation().getLine() - 1] + "\n");
+    output.append(" ".repeat(parserException.getTextLocation().getColumn() - 1) + "^");
     return output.toString();
   }
 

@@ -4,18 +4,18 @@ import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
-public class Location {
+public class TextLocation {
 
   private final int line;
   private final int column;
 
-  private Location(int line, int column) {
+  private TextLocation(int line, int column) {
     this.line = line;
     this.column = column;
   }
 
-  public static Location start() {
-    return new Location(1, 1);
+  public static TextLocation start() {
+    return new TextLocation(1, 1);
   }
 
   public int getLine() {
@@ -26,17 +26,17 @@ public class Location {
     return column;
   }
 
-  public Location incrementLine() {
-    return new Location(line + 1, 1);
+  public TextLocation incrementLine() {
+    return new TextLocation(line + 1, 1);
   }
 
-  public Location incrementColumn() {
-    return new Location(line, column + 1);
+  public TextLocation incrementColumn() {
+    return new TextLocation(line, column + 1);
   }
 
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append("Location {\n");
+    s.append("TextLocation {\n");
     s.append(indent(depth + 1) + "line: " + line + ",\n");
     s.append(indent(depth + 1) + "column: " + column + ",\n");
     s.append(indent(depth) + "}");
@@ -48,14 +48,14 @@ public class Location {
     return line + ":" + column;
   }
 
-  public boolean equals(Location that) {
+  public boolean equals(TextLocation that) {
     return (line == that.line)
       && (column == that.column);
   }
 
   @Override
   public boolean equals(Object that) {
-    return that instanceof Location && equals((Location)that);
+    return that instanceof TextLocation && equals((TextLocation)that);
   }
 
   @Override

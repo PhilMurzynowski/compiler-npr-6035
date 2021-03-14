@@ -16,19 +16,19 @@ public class LexerException extends Exception {
     UNEXPECTED_EOF,
   }
 
-  private final Location location;
+  private final TextLocation textLocation;
   private final Type type;
   private final String message;
 
-  public LexerException(Location location, Type type, String message) {
-    super(location + ":" + ": " + type + ": " + message);
-    this.location = location;
+  public LexerException(TextLocation textLocation, Type type, String message) {
+    super(textLocation + ":" + ": " + type + ": " + message);
+    this.textLocation = textLocation;
     this.type = type;
     this.message = message;
   }
 
-  public Location getLocation() {
-    return location;
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   public Type getType() {
@@ -42,7 +42,7 @@ public class LexerException extends Exception {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LexerException {\n");
-    s.append(indent(depth + 1) + "location: " + location.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "message: \"" + message + "\",\n");
     s.append(indent(depth) + "}");
@@ -55,7 +55,7 @@ public class LexerException extends Exception {
   }
 
   public boolean equals(LexerException that) {
-    return (location.equals(that.location))
+    return (textLocation.equals(that.textLocation))
       && (type.equals(that.type))
       && (message.equals(that.message));
   }
@@ -67,7 +67,7 @@ public class LexerException extends Exception {
 
   @Override
   public int hashCode() {
-    return Objects.hash(location, type, message);
+    return Objects.hash(textLocation, type, message);
   }
 
 }

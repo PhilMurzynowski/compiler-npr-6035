@@ -60,18 +60,18 @@ public class Token {
 
   }
 
-  private final Location location;
+  private final TextLocation textLocation;
   private final Type type;
   private final String text;
 
-  public Token(Location location, Type type, String text) {
-    this.location = location;
+  public Token(TextLocation textLocation, Type type, String text) {
+    this.textLocation = textLocation;
     this.type = type;
     this.text = text;
   }
 
-  public Location getLocation() {
-    return location;
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   public Type getType() {
@@ -94,7 +94,7 @@ public class Token {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("Token {\n");
-    s.append(indent(depth + 1) + "location: " + location.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "location: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "text: \"" + text + "\",\n");
     s.append(indent(depth) + "}");
@@ -107,7 +107,7 @@ public class Token {
   }
 
   public boolean equals(Token that) {
-    return (location == that.location)
+    return (textLocation == that.textLocation)
       && (type.equals(that.type))
       && (text.equals(that.text));
   }
@@ -119,7 +119,7 @@ public class Token {
 
   @Override
   public int hashCode() {
-    return Objects.hash(location, type, text);
+    return Objects.hash(textLocation, type, text);
   }
 
 }
