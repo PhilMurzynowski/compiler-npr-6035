@@ -12,24 +12,38 @@ public class Lexer {
   private final StringBuilder text;
   private Location currentLocation;
   private Location startLocation;
+  private final List<LexerException> exceptions;
 
   public Lexer() {
     tokens = new ArrayList<>();
     text = new StringBuilder();
+    exceptions = new ArrayList<>();
   }
 
-  public List<Token> lexAll(String input) throws LexerException {
+  public Result lexAll(String input) {
     clear();
 
     LexFunction lexFunction = this::lexEmpty;
     for (char c : input.toCharArray()) {
-      lexFunction = lexFunction.apply(Optional.of(c));
+      try {
+        lexFunction = lexFunction.apply(Optional.of(c));
+      } catch (LexerException exception) {
+        exceptions.add(exception);
+        consume(Optional.of(c));
+        lexFunction = reset();
+      }
     }
-    lexFunction.apply(Optional.empty());
+
+    try {
+      lexFunction.apply(Optional.empty());
+    } catch (LexerException exception) {
+      exceptions.add(exception);
+      accept();
+    }
 
     produce(Token.Type.EOF);
 
-    return tokens;
+    return new Result(tokens, exceptions);
   }
 
   private LexFunction lexLogical(char c, Token.Type type) {
@@ -514,6 +528,7 @@ public class Lexer {
     text.setLength(0);
     currentLocation = Location.start();
     startLocation = currentLocation;
+    exceptions.clear();
   }
 
   private void consume(Optional<Character> character) {
@@ -630,6 +645,30 @@ public class Lexer {
       default:
         return false;
     }
+  }
+
+  public static class Result {
+
+    private final List<Token> tokens;
+    private final List<LexerException> exceptions;
+
+    private Result(List<Token> tokens, List<LexerException> exceptions) {
+      this.tokens = List.copyOf(tokens);
+      this.exceptions = List.copyOf(exceptions);
+    }
+
+    public List<Token> getTokens() {
+      return tokens;
+    }
+
+    public boolean hasExceptions() {
+      return !exceptions.isEmpty();
+    }
+
+    public List<LexerException> getExceptions() {
+      return exceptions;
+    }
+
   }
 
 }

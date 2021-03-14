@@ -55,16 +55,21 @@ class Main {
   }
 
   private static void lex(String filename, String input, PrintStream outputStream) {
-    Lexer lexer = new Lexer();
-    try {
-      List<Token> tokens = lexer.lexAll(input);
-      for (Token token : tokens) {
-        if (!token.is(Token.Type.EOF)) {
-          outputStream.println(tokenString(token));
-        }
+    Lexer.Result lexerResult = new Lexer().lexAll(input);
+
+    for (Token token : lexerResult.getTokens()) {
+      if (!token.is(Token.Type.EOF)) {
+        outputStream.println(tokenString(token));
       }
-    } catch (LexerException lexerException) {
-      System.err.println(lexerExceptionString(filename, input, lexerException));
+    }
+
+    if (lexerResult.hasExceptions()) {
+      System.err.println("\n*** ERRORS ***\n");
+
+      for (LexerException exception : lexerResult.getExceptions()) {
+        System.err.println(lexerExceptionString(filename, input, exception));
+      }
+
       System.exit(1);
     }
   }
@@ -82,17 +87,20 @@ class Main {
   }
 
   private static void parse(String filename, String input, PrintStream outputStream) {
-    Lexer lexer = new Lexer();
-    Parser parser = new Parser();
-    // Abstracter abstracter = new Abstracter();
-    try {
-      List<Token> tokens = lexer.lexAll(input);
-      /* PTNode ptProgram = */ parser.parseAll(tokens);
-      // ASTProgram program = abstracter.abstractProgram(ptProgram);
-      // outputStream.print(program.prettyString(0));
-    } catch (LexerException lexerException) {
-      System.err.println(lexerExceptionString(filename, input, lexerException));
+    Lexer.Result lexerResult = new Lexer().lexAll(input);
+  
+    if (lexerResult.hasExceptions()) {
+      System.err.println("\n*** ERRORS ***\n");
+
+      for (LexerException exception : lexerResult.getExceptions()) {
+        System.err.println(lexerExceptionString(filename, input, exception));
+      }
+
       System.exit(1);
+    }
+
+    try {
+      new Parser().parseAll(lexerResult.getTokens());
     } catch (ParserException parserException) {
       System.err.println(parserExceptionString(filename, input, parserException));
       System.exit(2);
