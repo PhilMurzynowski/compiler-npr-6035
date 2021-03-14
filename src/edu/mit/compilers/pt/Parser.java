@@ -1,6 +1,7 @@
 package edu.mit.compilers.pt;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import edu.mit.compilers.tk.*;
@@ -8,36 +9,83 @@ import edu.mit.compilers.tk.*;
 public class Parser {
 
   private Peekable tokens;
+  private final List<ParserException> exceptions;
 
-  public Parser() { }
+  public Parser() {
+    exceptions = new ArrayList<>();
+  }
 
   // Start -> Program
-  public PTNonterminal parseAll(List<Token> tokens) throws ParserException {
+  public Result parseAll(List<Token> tokens) {
+    clear();
+
     this.tokens = Peekable.of(tokens);
 
     PTNonterminal parseTree = parseProgram();
 
     if (!this.tokens.peek().is(Token.Type.EOF)) {
-      throw new ParserException(this.tokens.peek(), ParserException.Type.INCOMPLETE_PARSE, "incomplete parse");
+      exceptions.add(new ParserException(this.tokens.peek(), ParserException.Type.INCOMPLETE_PARSE, "incomplete parse"));
     }
 
-    return parseTree;
+    return new Result(parseTree, exceptions);
   }
 
   // Program -> ImportDeclaration* FieldDeclaration* MethodDeclaration*
-  private PTNonterminal parseProgram() throws ParserException {
+  private PTNonterminal parseProgram() {
     PTNonterminal.Builder builder = new PTNonterminal.Builder(PTNonterminal.Type.PROGRAM);
 
-    while (tokens.peek().is(Token.Type.IMPORT)) {
-      builder.addChild(parseImportDeclaration());
+    while (true) {
+      while (tokens.peek().is(Token.Type.IMPORT)) {
+        try {
+          builder.addChild(parseImportDeclaration());
+        } catch (ParserException exception) {
+          exceptions.add(exception);
+          recover(Token.Type.SEMICOLON);
+        }
+      }
+    
+      if (tokens.peek().is(Token.Type.INT, Token.Type.BOOL, Token.Type.VOID, Token.Type.EOF)) {
+        break;
+      }
+
+      exceptions.add(exception(Token.Type.IMPORT, Token.Type.INT, Token.Type.BOOL, Token.Type.VOID));
+      recover(Token.Type.SEMICOLON);
     }
 
-    while (tokens.peek(2).is(Token.Type.LEFT_SQUARE, Token.Type.COMMA, Token.Type.SEMICOLON)) {
-      builder.addChild(parseFieldDeclaration());
+    while (true) {
+      while (tokens.peek(2).is(Token.Type.LEFT_SQUARE, Token.Type.COMMA, Token.Type.SEMICOLON)) {
+        try {
+          builder.addChild(parseFieldDeclaration());
+        } catch (ParserException exception) {
+          exceptions.add(exception);
+          recover(Token.Type.SEMICOLON);
+        }
+      }
+
+      if (tokens.peek(2).is(Token.Type.LEFT_ROUND, Token.Type.EOF)) {
+        break;
+      }
+    
+      exceptions.add(exception(2, Token.Type.LEFT_SQUARE, Token.Type.COMMA, Token.Type.SEMICOLON, Token.Type.LEFT_ROUND));
+      recover(Token.Type.SEMICOLON);
     }
 
-    while (tokens.peek(2).is(Token.Type.LEFT_ROUND)) {
-      builder.addChild(parseMethodDeclaration());
+    while (true) {
+      while (tokens.peek(2).is(Token.Type.LEFT_ROUND)) {
+        try {
+          builder.addChild(parseMethodDeclaration());
+        } catch (ParserException exception) {
+          exceptions.add(exception);
+          recover(Token.Type.RIGHT_CURLY);
+        }
+      }
+
+      if (tokens.peek(2).is(Token.Type.EOF)) {
+        break;
+      }
+    
+      exceptions.add(exception(2, Token.Type.LEFT_ROUND));
+      recover(Token.Type.RIGHT_CURLY);
     }
 
     return builder.build();
@@ -151,11 +199,33 @@ public class Parser {
     builder.addChild(new PTTerminal(tokens.next()));
 
     while (tokens.peek().is(Token.Type.INT, Token.Type.BOOL)) {
-      builder.addChild(parseFieldDeclaration());
+      try {
+        builder.addChild(parseFieldDeclaration());
+      } catch (ParserException exception) {
+        exceptions.add(exception);
+        recover(Token.Type.SEMICOLON);
+      }
     }
 
     while (tokens.peek().is(Token.Type.IDENTIFIER, Token.Type.IF, Token.Type.FOR, Token.Type.WHILE, Token.Type.RETURN, Token.Type.BREAK, Token.Type.CONTINUE)) {
-      builder.addChild(parseStatement());
+      if (tokens.peek().is(Token.Type.IDENTIFIER, Token.Type.RETURN, Token.Type.BREAK, Token.Type.CONTINUE)) {
+        try {
+          builder.addChild(parseStatement());
+        } catch (ParserException exception) {
+          exceptions.add(exception);
+          recover(Token.Type.SEMICOLON);
+        }
+      } else /* if (tokens.peek().is(Token.Type.IF, Token.Type.FOR, Token.Type.WHILE)) */ {
+        try {
+          builder.addChild(parseStatement());
+        } catch (ParserException exception) {
+          exceptions.add(exception);
+          recover(Token.Type.RIGHT_CURLY);
+          if (tokens.peek().is(Token.Type.ELSE)) {
+            recover(Token.Type.RIGHT_CURLY);
+          }
+        }
+      }
     }
 
     expect(Token.Type.RIGHT_CURLY);
@@ -715,6 +785,10 @@ public class Parser {
     return builder.build();
   }
 
+  private void clear() {
+    exceptions.clear();
+  }
+
   private String message(Token.Type ...tokenTypes) {
     StringBuilder message = new StringBuilder();
     message.append("expected { ");
@@ -741,6 +815,26 @@ public class Parser {
 
   private ParserException exception(Token.Type ...tokenTypes) {
     return exception(0, tokenTypes);
+  }
+
+  private void recover(Token.Type tokenType) {
+    if (tokenType.equals(Token.Type.RIGHT_CURLY)) {
+      // NOTE(rbd): Attempt to match curly brackets
+      while (!tokens.next().is(Token.Type.LEFT_CURLY, Token.Type.EOF)) { }
+      for (int curlies = 1; curlies > 0 && !tokens.peek().is(Token.Type.EOF); ) {
+        if (tokens.peek().is(Token.Type.LEFT_CURLY)) {
+          tokens.next();
+          ++curlies;
+        } else if (tokens.peek().is(Token.Type.RIGHT_CURLY)) {
+          tokens.next();
+          --curlies;
+        } else {
+          tokens.next();
+        }
+      }
+    } else {
+      while (!tokens.next().is(tokenType, Token.Type.EOF)) { }
+    }
   }
 
   private static class Peekable {
@@ -775,6 +869,30 @@ public class Parser {
       } else {
         return tokens.get(index++);
       }
+    }
+
+  }
+
+  public static class Result {
+
+    private final PTNode parseTree;
+    private final List<ParserException> exceptions;
+
+    private Result(PTNode parseTree, List<ParserException> exceptions) {
+      this.parseTree = parseTree;
+      this.exceptions = List.copyOf(exceptions);
+    }
+
+    public PTNode getParseTree() {
+      return parseTree;
+    }
+
+    public boolean hasExceptions() {
+      return !exceptions.isEmpty();
+    }
+
+    public List<ParserException> getExceptions() {
+      return exceptions;
     }
 
   }

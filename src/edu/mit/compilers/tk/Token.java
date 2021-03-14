@@ -16,8 +16,8 @@ public class Token {
     COMMA,               // ,
     LEFT_ROUND,          // (
     RIGHT_ROUND,         // )
-    LEFT_CURLY,          // }
-    RIGHT_CURLY,         // {
+    LEFT_CURLY,          // {
+    RIGHT_CURLY,         // }
     PERCENT,             // %
     STAR,                // *
     AMPERSAND_AMPERSAND, // &&
