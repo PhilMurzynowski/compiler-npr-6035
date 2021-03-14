@@ -1,8 +1,9 @@
 package edu.mit.compilers.ir;
-
 import java.util.Optional;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 
 import edu.mit.compilers.common.*;
@@ -32,13 +33,16 @@ class SymbolTable {
 
   }
 
-  // Phil
   private static class ScalarDeclaration {
 
     private final VariableType type;
 
     public ScalarDeclaration(VariableType type) {
-      throw new RuntimeException("not implemented");
+			this.type = type;
+    }
+
+    public VariableType getType() {
+      return type;
     }
 
   }
@@ -62,9 +66,12 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public SymbolTable(SymbolTable parent) {
-    throw new RuntimeException("not implemented");
+		this.parent = Optional.of(parent);
+		this.importDeclarations = new HashSet<String>();
+		this.methodDeclarations = new HashMap<String, MethodDeclaration>(); 
+		this.scalarDeclarations = new HashMap<String, ScalarDeclaration>(); 
+		this.arrayDeclarations  = new HashMap<String, ArrayDeclaration>(); 
   }
 
   public boolean exists(String identifier) {
@@ -79,9 +86,9 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public boolean methodExists(String identifier) {
-    throw new RuntimeException("not implemented");
+		return methodDeclarations.containsKey(identifier)
+			|| (parent.isPresent() && parent.get().methodExists(identifier));		
   }
 
   public boolean scalarExists(String identifier) {
@@ -94,9 +101,8 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public void addImport(String identifier) {
-    throw new RuntimeException("not implemented");
+		importDeclarations.add(identifier);
   }
 
   public void addMethod(String identifier, MethodType returnType, List<VariableType> argumentTypes) {
@@ -108,9 +114,8 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public void addArray(String identifier, VariableType type) {
-    throw new RuntimeException("not implemented");
+    arrayDeclarations.put(identifier, new ArrayDeclaration(type));
   }
 
   public MethodType methodReturnType(String identifier) {
@@ -122,9 +127,8 @@ class SymbolTable {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public VariableType scalarType(String identifier) {
-    throw new RuntimeException("not implemented");
+		return scalarDeclarations.get(identifier).getType();
   }
 
   public VariableType arrayType(String identifier) {

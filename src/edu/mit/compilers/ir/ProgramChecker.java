@@ -18,9 +18,30 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public List<SemanticException> visit(ASTProgram program) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+		// not creating symbol table
+		for (ASTImportDeclaration importDeclaration : program.getImportDeclarations()) {
+			exceptions.addAll(importDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+		}
+		for (ASTFieldDeclaration fieldDeclaration : program.getFieldDeclarations()) {
+			exceptions.addAll(fieldDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+		}
+		boolean hasValidMainDeclaration = false;
+		for (ASTMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
+			exceptions.addAll(methodDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+			// check for valid main function
+			if (methodDeclaration.getIdentifier().equals("main")
+			 && methodDeclaration.getMethodType() == MethodType.VOID
+			 && methodDeclaration.getArguments().isEmpty()) {
+					hasValidMainDeclaration = true;	
+			}
+		}
+		if (!hasValidMainDeclaration) {	
+			exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_MAIN, "missing declaration of main method in program"));
+		}
+		return exceptions;
   }
 
   public List<SemanticException> visit(ASTImportDeclaration importDeclaration) {
@@ -42,9 +63,19 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public List<SemanticException> visit(ASTMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+		final List<SemanticException> exceptions = new ArrayList<>();
+
+		final String identifier = methodDeclaration.getIdentifier();
+		final ASTBlock block = methodDeclaration.getBlock();
+		final Optional<MethodType> type = Optional.of(methodDeclaration.getMethodType());
+
+		if (symbolTable.exists(identifier)) {
+			exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+		}
+		exceptions.addAll(block.accept(new ProgramChecker(symbolTable, inLoop, type))); // pass in new type
+
+		return exceptions;
   }
 
   public List<SemanticException> visit(ASTBlock block) {
@@ -68,9 +99,25 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public List<SemanticException> visit(ASTAssignStatement assignStatement) {
-    throw new RuntimeException("not implemented");
+		final List<SemanticException> exceptions = new ArrayList<>();
+
+		ASTLocationExpression location = assignStatement.getLocation();
+		ASTExpression expression = assignStatement.getExpression();
+
+		final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+		final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+		exceptions.addAll(locationExceptions);
+
+		if (locationExceptions.isEmpty() && expressionExceptions.isEmpty()) {
+      final VariableType locationType = location.accept(new ExpressionChecker(symbolTable));
+      final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
+        if (!expressionType.equals(locationType)) {
+          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "assign statement requries same type for location and evaluated expression"));
+				}
+		}
+
+		return exceptions;
   }
 
   public List<SemanticException> visit(ASTCompoundAssignStatement compoundAssignStatement) {

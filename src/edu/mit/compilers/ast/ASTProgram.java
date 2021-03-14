@@ -49,6 +49,16 @@ public class ASTProgram implements ASTNode {
     }
   }
 
+	public List<ASTImportDeclaration> getImportDeclarations() {
+		return importDeclarations;
+	}
+	public List<ASTFieldDeclaration> getFieldDeclarations() {
+		return fieldDeclarations;
+	}
+	public List<ASTMethodDeclaration> getMethodDeclarations() {
+		return methodDeclarations;
+	}
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

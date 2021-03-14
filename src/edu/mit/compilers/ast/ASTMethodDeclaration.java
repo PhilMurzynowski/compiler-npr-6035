@@ -126,6 +126,22 @@ public class ASTMethodDeclaration implements ASTNode {
 
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+	
+	public MethodType getMethodType() {
+		return type;
+	}
+
+	public List<Argument> getArguments() {
+		return arguments;
+	}
+
+	public ASTBlock getBlock() {
+		return block;
+	}
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);
