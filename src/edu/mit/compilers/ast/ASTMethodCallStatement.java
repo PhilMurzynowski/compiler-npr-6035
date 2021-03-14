@@ -10,6 +10,10 @@ public class ASTMethodCallStatement implements ASTStatement {
     this.call = call;
   }
 
+  public ASTMethodCallExpression getCall() {
+    return call;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

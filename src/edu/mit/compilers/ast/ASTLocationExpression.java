@@ -41,6 +41,14 @@ public class ASTLocationExpression implements ASTExpression {
     }
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
+  public Optional<ASTExpression> getOffset() {
+    return offset;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

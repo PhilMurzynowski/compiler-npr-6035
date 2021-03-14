@@ -7,6 +7,8 @@ import java.util.Optional;
 import edu.mit.compilers.ast.*;
 import edu.mit.compilers.common.*;
 
+import javax.print.attribute.standard.OrientationRequested;
+
 public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> {
 
   private final SymbolTable symbolTable;
@@ -15,7 +17,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public ProgramChecker(SymbolTable symbolTable, boolean inLoop, Optional<MethodType> returnType) {
-    throw new RuntimeException("not implemented");
+    this.symbolTable = symbolTable;
+    this.inLoop = inLoop;
+    this.returnType = returnType;
   }
 
   public List<SemanticException> visit(ASTProgram program) {
@@ -60,7 +64,29 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTFieldDeclaration fieldDeclaration) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    final VariableType type = fieldDeclaration.getType();
+    for (ASTFieldDeclaration.Identifier identifier : fieldDeclaration.getIdentifiers()) {
+      // duplicate symbol check
+      if (symbolTable.exists(identifier.getIdentifier())) {
+        exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+      } else {
+        final Optional<ASTIntegerLiteral> length = identifier.getLength();
+        // check array index and add to array symbols
+        if (length.isPresent()) {
+          // TODO: check that array length is > 0 (rule 4)
+          final List<SemanticException> lengthExceptions = length.get().accept(new ProgramChecker(symbolTable, inLoop, returnType));
+          exceptions.addAll(lengthExceptions);
+          symbolTable.addArray(identifier.getIdentifier(), type);
+        // add to scalar symbols
+        } else {
+          symbolTable.addScalar(identifier.getIdentifier(), type);
+        }
+      }
+    }
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTMethodDeclaration methodDeclaration) {
@@ -96,7 +122,36 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTIDAssignStatement idAssignStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    Optional<VariableType> identifierType = Optional.empty();
+    Optional<VariableType> expressionType = Optional.empty();
+
+    // scalar identifier exists
+    final String identifier = idAssignStatement.getIdentifier();
+    if (symbolTable.scalarExists(identifier)) {
+      identifierType = Optional.of(symbolTable.scalarType(identifier));
+    } else {
+      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "invalid scalar identifier " + identifier));
+    }
+
+    // expression is valid
+    final ASTExpression expression = idAssignStatement.getExpression();
+    final List<SemanticException> exprExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    exceptions.addAll(exprExceptions);
+    if (exprExceptions.isEmpty()) {
+      expressionType = Optional.of(expression.accept(new ExpressionChecker(symbolTable)));
+    }
+
+    // identifier type matches expression type
+    if (
+        identifierType.isPresent() && expressionType.isPresent()
+        && !(identifierType.get().equals(expressionType.get()))
+    ) {
+      exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "assign statement requires same type for location and evaluated expression"));
+    }
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTAssignStatement assignStatement) {
@@ -156,7 +211,12 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTMethodCallStatement methodCallStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // relies completely on ASTMethodCallExpression
+    exceptions.addAll(methodCallStatement.getCall().accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTIfStatement ifStatement) {
@@ -213,7 +273,24 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTWhileStatement whileStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // verify condition expression is valid and evaluates to boolean
+    final ASTExpression condition = whileStatement.getCondition();
+    final List<SemanticException> conditionExceptions =  condition.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    exceptions.addAll(conditionExceptions);
+    if (conditionExceptions.isEmpty()) {
+      final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
+      if (!conditionType.equals(VariableType.BOOLEAN)) {
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "while loop condition expression requires a boolean"));
+      }
+    }
+
+    // collect semantic errors from body
+    final ASTBlock body = whileStatement.getBody();
+    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, true, returnType)));
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTReturnStatement returnStatement) {
@@ -258,7 +335,13 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTContinueStatement continueStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    if (!inLoop) {
+      exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "continue keyword not allowed outside of a loop"));
+    }
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTBinaryExpression binaryExpression) {
@@ -328,7 +411,39 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTLocationExpression locationExpression) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    final String locationId = locationExpression.getIdentifier();
+    // location is scalar variable
+    if (symbolTable.scalarExists(locationId)) {
+      return exceptions;
+
+    // location is array variable
+    } else if (symbolTable.arrayExists(locationId)) {
+      // array has offset
+      final Optional<ASTExpression> offset = locationExpression.getOffset();
+      if (offset.isPresent()) {
+        // offset is semantically valid
+        final List<SemanticException> offsetExceptions = offset.get().accept(new ProgramChecker(symbolTable, inLoop, returnType));
+        exceptions.addAll(offsetExceptions);
+        if (offsetExceptions.isEmpty()) {
+          // offset evaluates to integer
+          final VariableType offsetType = offset.get().accept(new ExpressionChecker(symbolTable));
+          if (!offsetType.equals(VariableType.INTEGER)) {
+            exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "array index must evaluate to an integer"));
+          }
+        }
+      } else {
+        exceptions.add(new SemanticException(SemanticException.Type.MISSING_SYMBOL, "array must have index"));
+      }
+
+    } else if (symbolTable.exists(locationId)) {
+      exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "invalid location: " + locationId));
+    } else {
+      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + locationId));
+    }
+
+    return exceptions;
   }
 
   // Phil
@@ -351,7 +466,12 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTIntegerLiteral integerLiteral) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // check that integer is in range
+    // TODO: update ASTIntegerLiteral to tolerate values out of range
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTCharacterLiteral characterLiteral) {
@@ -369,7 +489,11 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Noah
   public List<SemanticException> visit(ASTStringLiteral stringLiteral) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // NOTE(nmp): Nothing to check.
+
+    return exceptions;
   }
 
 }

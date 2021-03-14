@@ -42,6 +42,14 @@ public class ASTMethodCallExpression implements ASTExpression {
     }
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
+  public List<ASTArgument> getArguments() {
+    return new ArrayList<>(arguments);
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

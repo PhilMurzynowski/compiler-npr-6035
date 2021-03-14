@@ -51,6 +51,14 @@ public class ASTFieldDeclaration implements ASTNode {
 
     }
 
+    public String getIdentifier() {
+      return identifier;
+    }
+
+    public Optional<ASTIntegerLiteral> getLength(){
+      return length;
+    }
+
     public String prettyString(int depth) {
       if (length.isPresent()) {
         return identifier + "[" + length.get().prettyString(depth) + "]";
@@ -104,6 +112,14 @@ public class ASTFieldDeclaration implements ASTNode {
       return new ASTFieldDeclaration(type, List.copyOf(identifiers));
     }
 
+  }
+
+  public VariableType getType() {
+    return type;
+  }
+
+  public List<Identifier> getIdentifiers() {
+    return new ArrayList<>(identifiers);
   }
 
   @Override

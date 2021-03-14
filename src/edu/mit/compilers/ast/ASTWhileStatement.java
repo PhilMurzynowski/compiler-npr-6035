@@ -40,6 +40,14 @@ public class ASTWhileStatement implements ASTStatement {
     }
   }
 
+  public ASTExpression getCondition() {
+    return condition;
+  }
+
+  public ASTBlock getBody() {
+    return body;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);
