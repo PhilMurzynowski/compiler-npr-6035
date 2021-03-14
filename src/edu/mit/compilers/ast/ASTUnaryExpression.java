@@ -2,6 +2,8 @@ package edu.mit.compilers.ast;
 
 import java.util.Stack;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTUnaryExpression implements ASTExpression {
@@ -57,6 +59,39 @@ public class ASTUnaryExpression implements ASTExpression {
 
   public ASTExpression getExpression() {
     return expression;
+  }
+
+  private boolean acceptsInteger() {
+    return type.equals(Type.NEGATE);
+  }
+
+  private boolean acceptsBoolean() {
+    return type.equals(Type.NOT);
+  }
+
+  public boolean acceptsType(VariableType type) {
+    if (type.equals(VariableType.INTEGER)) {
+      return acceptsInteger();
+    } else /* if (type.equals(VariableType.BOOLEAN)) */ {
+      return acceptsBoolean();
+    }
+  }
+
+  private boolean returnsInteger() {
+    return type.equals(Type.NEGATE);
+  }
+
+  @SuppressWarnings("unused")
+  private boolean returnsBoolean() {
+    return type.equals(Type.NOT);
+  }
+
+  public VariableType returnType() {
+    if (returnsInteger()) {
+      return VariableType.INTEGER;
+    } else /* if (returnsBoolean()) */ {
+      return VariableType.BOOLEAN;
+    }
   }
 
   @Override

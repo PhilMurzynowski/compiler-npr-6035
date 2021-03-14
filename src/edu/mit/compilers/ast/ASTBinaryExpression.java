@@ -1,5 +1,7 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTBinaryExpression implements ASTExpression {
@@ -68,6 +70,63 @@ public class ASTBinaryExpression implements ASTExpression {
 	public Type getType() {
 		return type;
 	}
+
+  private boolean acceptsInteger() {
+    return (type.equals(Type.EQUAL))
+      || (type.equals(Type.NOT_EQUAL))
+      || (type.equals(Type.LESS_THAN))
+      || (type.equals(Type.LESS_THAN_OR_EQUAL))
+      || (type.equals(Type.GREATER_THAN))
+      || (type.equals(Type.GREATER_THAN_OR_EQUAL))
+      || (type.equals(Type.ADD))
+      || (type.equals(Type.SUBTRACT))
+      || (type.equals(Type.MULTIPLY))
+      || (type.equals(Type.DIVIDE))
+      || (type.equals(Type.MODULUS));
+  }
+
+  private boolean acceptsBoolean() {
+    return (type.equals(Type.OR))
+      || (type.equals(Type.AND))
+      || (type.equals(Type.EQUAL))
+      || (type.equals(Type.NOT_EQUAL));
+  }
+
+  public boolean acceptsType(VariableType type) {
+    if (type.equals(VariableType.INTEGER)) {
+      return acceptsInteger();
+    } else /* if (type.equals(VariableType.BOOLEAN)) */ {
+      return acceptsBoolean();
+    }
+  }
+
+  private boolean returnsInteger() {
+    return (type.equals(Type.ADD))
+      || (type.equals(Type.SUBTRACT))
+      || (type.equals(Type.MULTIPLY))
+      || (type.equals(Type.DIVIDE))
+      || (type.equals(Type.MODULUS));
+  }
+
+  @SuppressWarnings("unused")
+  private boolean returnsBoolean() {
+    return (type.equals(Type.OR))
+      || (type.equals(Type.AND))
+      || (type.equals(Type.EQUAL))
+      || (type.equals(Type.NOT_EQUAL))
+      || (type.equals(Type.LESS_THAN))
+      || (type.equals(Type.LESS_THAN_OR_EQUAL))
+      || (type.equals(Type.GREATER_THAN))
+      || (type.equals(Type.GREATER_THAN_OR_EQUAL));
+  }
+
+  public VariableType returnType() {
+    if (returnsInteger()) {
+      return VariableType.INTEGER;
+    } else /* if (returnsBoolean()) */ {
+      return VariableType.BOOLEAN;
+    }
+  }
 
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {

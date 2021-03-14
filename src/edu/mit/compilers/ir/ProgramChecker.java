@@ -316,20 +316,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     exceptions.addAll(expressionExceptions);
 
     if (expressionExceptions.isEmpty()) {
-      final ASTUnaryExpression.Type type = unaryExpression.getType();
+      final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
 
-      if (type.equals(ASTUnaryExpression.Type.NOT)) {
-        final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
-
-        if (!expressionType.equals(VariableType.BOOLEAN)) {
-          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "unary operator ! requires a boolean"));
-        }
-      } else /* if (type.equals(ASTUnaryExpression.Type.NEGATE)) */ {
-        final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
-
-        if (!expressionType.equals(VariableType.INTEGER)) {
-          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "unary operator - requires an integer"));
-        }
+      if (!unaryExpression.acceptsType(expressionType)) {
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "incorrect input type to unary operator "));
       }
     }
 
