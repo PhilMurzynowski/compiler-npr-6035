@@ -2,6 +2,8 @@ package edu.mit.compilers.tk;
 
 import java.util.Objects;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LexerException extends Exception {
@@ -14,25 +16,19 @@ public class LexerException extends Exception {
     UNEXPECTED_EOF,
   }
 
-  private final int line;
-  private final int column;
+  private final Location location;
   private final Type type;
   private final String message;
 
-  public LexerException(int line, int column, Type type, String message) {
-    super(line + ":" + column + ": " + type + ": " + message);
-    this.line = line;
-    this.column = column;
+  public LexerException(Location location, Type type, String message) {
+    super(location + ":" + ": " + type + ": " + message);
+    this.location = location;
     this.type = type;
     this.message = message;
   }
 
-  public int getLine() {
-    return line;
-  }
-
-  public int getColumn() {
-    return column;
+  public Location getLocation() {
+    return location;
   }
 
   public Type getType() {
@@ -46,8 +42,7 @@ public class LexerException extends Exception {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LexerException {\n");
-    s.append(indent(depth + 1) + "line: " + line + ",\n");
-    s.append(indent(depth + 1) + "column: " + column + ",\n");
+    s.append(indent(depth + 1) + "location: " + location.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "message: \"" + message + "\",\n");
     s.append(indent(depth) + "}");
@@ -60,8 +55,7 @@ public class LexerException extends Exception {
   }
 
   public boolean equals(LexerException that) {
-    return (line == that.line)
-      && (column == that.column)
+    return (location.equals(that.location))
       && (type.equals(that.type))
       && (message.equals(that.message));
   }
@@ -73,7 +67,7 @@ public class LexerException extends Exception {
 
   @Override
   public int hashCode() {
-    return Objects.hash(line, column, type, message);
+    return Objects.hash(location, type, message);
   }
 
 }

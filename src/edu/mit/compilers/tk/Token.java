@@ -2,6 +2,8 @@ package edu.mit.compilers.tk;
 
 import java.util.Objects;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class Token {
@@ -58,24 +60,18 @@ public class Token {
 
   }
 
-  private final int line;
-  private final int column;
+  private final Location location;
   private final Type type;
   private final String text;
 
-  public Token(int line, int column, Type type, String text) {
-    this.line = line;
-    this.column = column;
+  public Token(Location location, Type type, String text) {
+    this.location = location;
     this.type = type;
     this.text = text;
   }
 
-  public int getLine() {
-    return line;
-  }
-
-  public int getColumn() {
-    return column;
+  public Location getLocation() {
+    return location;
   }
 
   public Type getType() {
@@ -98,8 +94,7 @@ public class Token {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("Token {\n");
-    s.append(indent(depth + 1) + "line: " + line + ",\n");
-    s.append(indent(depth + 1) + "column: " + column + ",\n");
+    s.append(indent(depth + 1) + "location: " + location.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "text: \"" + text + "\",\n");
     s.append(indent(depth) + "}");
@@ -112,8 +107,7 @@ public class Token {
   }
 
   public boolean equals(Token that) {
-    return (line == that.line)
-      && (column == that.column)
+    return (location == that.location)
       && (type.equals(that.type))
       && (text.equals(that.text));
   }
@@ -125,7 +119,7 @@ public class Token {
 
   @Override
   public int hashCode() {
-    return Objects.hash(column, line, type, text);
+    return Objects.hash(location, type, text);
   }
 
 }

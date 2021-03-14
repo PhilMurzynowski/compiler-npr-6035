@@ -2,6 +2,7 @@ package edu.mit.compilers.pt;
 
 import java.util.Objects;
 
+import edu.mit.compilers.common.*;
 import edu.mit.compilers.tk.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
@@ -16,25 +17,19 @@ public class ParserException extends Exception {
     UNEXPECTED_EOF,
   }
 
-  private final int line;
-  private final int column;
+  private final Location location;
   private final Type type;
   private final String message;
 
   public ParserException(Token token, Type type, String message) {
-    super(token.getLine() + ":" + token.getColumn() + ": " + type + ": " + message);
-    this.line = token.getLine();
-    this.column = token.getColumn();
+    super(token.getLocation() + ":" + type + ": " + message);
+    this.location = token.getLocation();
     this.type = type;
     this.message = message;
   }
 
-  public int getLine() {
-    return line;
-  }
-
-  public int getColumn() {
-    return column;
+  public Location getLocation() {
+    return location;
   }
 
   public Type getType() {
@@ -48,8 +43,7 @@ public class ParserException extends Exception {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ParserException {\n");
-    s.append(indent(depth + 1) + "line: " + line + ",\n");
-    s.append(indent(depth + 1) + "column: " + column + ",\n");
+    s.append(indent(depth + 1) + "line: " + location.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "message: \"" + message + "\",\n");
     s.append(indent(depth) + "}");
@@ -62,8 +56,7 @@ public class ParserException extends Exception {
   }
 
   public boolean equals(ParserException that) {
-    return (line == that.line)
-      && (column == that.column)
+    return (location == that.location)
       && (type.equals(that.type))
       && (message.equals(that.message));
   }
@@ -75,7 +68,7 @@ public class ParserException extends Exception {
 
   @Override
   public int hashCode() {
-    return Objects.hash(line, column, type, message);
+    return Objects.hash(location, type, message);
   }
 
 }
