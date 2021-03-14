@@ -2,6 +2,8 @@ package edu.mit.compilers.ast;
 
 import java.util.Optional;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTCompoundAssignStatement implements ASTStatement {
@@ -13,11 +15,13 @@ public class ASTCompoundAssignStatement implements ASTStatement {
     DECREMENT,
   }
 
+  private final TextLocation textLocation;
   private final ASTLocationExpression location;
   private final Type type;
   private final Optional<ASTExpression> expression;
 
-  private ASTCompoundAssignStatement(ASTLocationExpression location, Type type, Optional<ASTExpression> expression) {
+  private ASTCompoundAssignStatement(TextLocation textLocation, ASTLocationExpression location, Type type, Optional<ASTExpression> expression) {
+    this.textLocation = textLocation;
     this.location = location;
     this.type = type;
     this.expression = expression;
@@ -25,11 +29,13 @@ public class ASTCompoundAssignStatement implements ASTStatement {
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private ASTLocationExpression location;
     private Type type;
     private Optional<ASTExpression> expression;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       location = null;
       type = null;
       expression = Optional.empty();
@@ -54,7 +60,7 @@ public class ASTCompoundAssignStatement implements ASTStatement {
       assert location != null;
       assert type != null;
 
-      return new ASTCompoundAssignStatement(location, type, expression);
+      return new ASTCompoundAssignStatement(textLocation, location, type, expression);
     }
   }
 
@@ -68,6 +74,11 @@ public class ASTCompoundAssignStatement implements ASTStatement {
 
   public Optional<ASTExpression> getExpression() {
     return expression;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -104,6 +115,7 @@ public class ASTCompoundAssignStatement implements ASTStatement {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTCompoundAssignStatement {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "location: " + location.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     if (expression.isPresent()) {

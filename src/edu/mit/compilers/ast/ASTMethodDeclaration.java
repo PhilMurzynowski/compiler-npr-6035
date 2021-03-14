@@ -9,6 +9,7 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTMethodDeclaration implements ASTNode {
 
+  private final TextLocation textLocation;
   private final MethodType type;
   private final String identifier;
   private final List<Argument> arguments;
@@ -16,20 +17,24 @@ public class ASTMethodDeclaration implements ASTNode {
 
   public static class Argument {
 
+    private final TextLocation textLocation;
     private final VariableType type;
     private final String identifier;
 
-    public Argument(VariableType type, String identifier) {
+    private Argument(TextLocation textLocation, VariableType type, String identifier) {
+      this.textLocation = textLocation;
       this.type = type;
       this.identifier = identifier;
     }
 
     public static class Builder {
 
+      private final TextLocation textLocation;
       private VariableType type;
       private String identifier;
 
-      public Builder() {
+      public Builder(TextLocation textLocation) {
+        this.textLocation = textLocation;
         type = null;
         identifier = null;
       }
@@ -48,9 +53,13 @@ public class ASTMethodDeclaration implements ASTNode {
         assert type != null;
         assert identifier != null;
 
-        return new Argument(type, identifier);
+        return new Argument(textLocation, type, identifier);
       }
 
+    }
+
+    public TextLocation getTextLocation() {
+      return textLocation;
     }
 
     public String prettyString(int depth) {
@@ -67,6 +76,7 @@ public class ASTMethodDeclaration implements ASTNode {
     public String debugString(int depth) {
       StringBuilder s = new StringBuilder();
       s.append("Argument {\n");
+      s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
       s.append(indent(depth + 1) + "type: " + type + ",\n");
       s.append(indent(depth + 1) + "indentifier: " + identifier + ",\n");
       s.append(indent(depth) + "}");
@@ -75,7 +85,8 @@ public class ASTMethodDeclaration implements ASTNode {
 
   }
 
-  private ASTMethodDeclaration(MethodType type, String identifier, List<Argument> arguments, ASTBlock block) {
+  private ASTMethodDeclaration(TextLocation textLocation, MethodType type, String identifier, List<Argument> arguments, ASTBlock block) {
+    this.textLocation = textLocation;
     this.type = type;
     this.identifier = identifier;
     this.arguments = arguments;
@@ -84,12 +95,14 @@ public class ASTMethodDeclaration implements ASTNode {
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private MethodType type;
     private String identifier;
     private final List<Argument> arguments;
     private ASTBlock block;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       type = null;
       identifier = null;
       arguments = new ArrayList<>();
@@ -121,7 +134,7 @@ public class ASTMethodDeclaration implements ASTNode {
       assert identifier != null;
       assert block != null;
 
-      return new ASTMethodDeclaration(type, identifier, List.copyOf(arguments), block);
+      return new ASTMethodDeclaration(textLocation, type, identifier, List.copyOf(arguments), block);
     }
 
   }
@@ -141,6 +154,11 @@ public class ASTMethodDeclaration implements ASTNode {
 	public ASTBlock getBlock() {
 		return block;
 	}
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
+  }
 
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
@@ -174,6 +192,7 @@ public class ASTMethodDeclaration implements ASTNode {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTMethodDeclaration {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth + 1) + "arguments: [\n");

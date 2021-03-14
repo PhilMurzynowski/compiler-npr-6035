@@ -2,24 +2,30 @@ package edu.mit.compilers.ast;
 
 import java.util.Optional;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTLocationExpression implements ASTExpression {
 
+  private final TextLocation textLocation;
   private final String identifier;
   private final Optional<ASTExpression> offset;
 
-  private ASTLocationExpression(String identifier, Optional<ASTExpression> offset) {
+  private ASTLocationExpression(TextLocation textLocation, String identifier, Optional<ASTExpression> offset) {
+    this.textLocation = textLocation;
     this.identifier = identifier;
     this.offset = offset;
   }
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private String identifier;
     private Optional<ASTExpression> offset;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       identifier = null;
       offset = Optional.empty();
     }
@@ -37,8 +43,13 @@ public class ASTLocationExpression implements ASTExpression {
     public ASTLocationExpression build() {
       assert identifier != null;
 
-      return new ASTLocationExpression(identifier, offset);
+      return new ASTLocationExpression(textLocation, identifier, offset);
     }
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -72,6 +83,7 @@ public class ASTLocationExpression implements ASTExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTLocationExpression {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     if (offset.isPresent()) {
       s.append(indent(depth + 1) + "offset: " + offset.get().debugString(depth + 1) + ",\n");

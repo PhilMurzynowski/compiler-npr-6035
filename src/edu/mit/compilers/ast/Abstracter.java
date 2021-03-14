@@ -43,7 +43,7 @@ public class Abstracter {
     nodes.next();
 
     assert nodes.peek().is(Token.Type.IDENTIFIER);
-    importDeclaration = new ASTImportDeclaration(nodes.next().getText());
+    importDeclaration = new ASTImportDeclaration(ptImportDeclaration.getTextLocation(), nodes.next().getText());
 
     assert nodes.peek().is(Token.Type.SEMICOLON);
     nodes.next();
@@ -57,7 +57,7 @@ public class Abstracter {
   private ASTFieldDeclaration abstractFieldDeclaration(PTNode ptFieldDeclaration) {
     assert ptFieldDeclaration.is(PTNonterminal.Type.FIELD_DECLARATION);
 
-    final ASTFieldDeclaration.Builder builder = new ASTFieldDeclaration.Builder();
+    final ASTFieldDeclaration.Builder builder = new ASTFieldDeclaration.Builder(ptFieldDeclaration.getTextLocation());
     final Peekable nodes = Peekable.of(ptFieldDeclaration.getChildren());
 
     if (nodes.peek().is(Token.Type.INT)) {
@@ -89,7 +89,7 @@ public class Abstracter {
   private ASTMethodDeclaration abstractMethodDeclaration(PTNode ptMethodDeclaration) {
     assert ptMethodDeclaration.is(PTNonterminal.Type.METHOD_DECLARATION);
 
-    final ASTMethodDeclaration.Builder builder = new ASTMethodDeclaration.Builder();
+    final ASTMethodDeclaration.Builder builder = new ASTMethodDeclaration.Builder(ptMethodDeclaration.getTextLocation());
     final Peekable nodes = Peekable.of(ptMethodDeclaration.getChildren());
 
     if (nodes.peek().is(Token.Type.INT)) {
@@ -133,7 +133,7 @@ public class Abstracter {
   private ASTFieldDeclaration.Identifier abstractFieldIdentifierDeclaration(PTNode ptFieldIdentifierDeclaration) {
     assert ptFieldIdentifierDeclaration.is(PTNonterminal.Type.FIELD_IDENTIFIER_DECLARATION);
 
-    final ASTFieldDeclaration.Identifier.Builder builder = new ASTFieldDeclaration.Identifier.Builder();
+    final ASTFieldDeclaration.Identifier.Builder builder = new ASTFieldDeclaration.Identifier.Builder(ptFieldIdentifierDeclaration.getTextLocation());
     final Peekable nodes = Peekable.of(ptFieldIdentifierDeclaration.getChildren());
 
     assert nodes.peek().is(Token.Type.IDENTIFIER);
@@ -157,7 +157,7 @@ public class Abstracter {
   private ASTMethodDeclaration.Argument abstractArgumentDeclaration(PTNode ptArgumentDeclaration) {
     assert ptArgumentDeclaration.is(PTNonterminal.Type.ARGUMENT_DECLARATION);
 
-    final ASTMethodDeclaration.Argument.Builder builder = new ASTMethodDeclaration.Argument.Builder();
+    final ASTMethodDeclaration.Argument.Builder builder = new ASTMethodDeclaration.Argument.Builder(ptArgumentDeclaration.getTextLocation());
     final Peekable nodes = Peekable.of(ptArgumentDeclaration.getChildren());
 
     if (nodes.peek().is(Token.Type.INT)) {
@@ -181,7 +181,7 @@ public class Abstracter {
   private ASTBlock abstractBlock(PTNode ptBlock) {
     assert ptBlock.is(PTNonterminal.Type.BLOCK);
 
-    final ASTBlock.Builder builder = new ASTBlock.Builder();
+    final ASTBlock.Builder builder = new ASTBlock.Builder(ptBlock.getTextLocation());
     final Peekable nodes = Peekable.of(ptBlock.getChildren());
 
     assert nodes.peek().is(Token.Type.LEFT_CURLY);
@@ -260,7 +260,7 @@ public class Abstracter {
   private ASTAssignStatement abstractAssignStatement(PTNode ptAssignStatement) {
     assert ptAssignStatement.is(PTNonterminal.Type.ASSIGN_STATEMENT);
 
-    final ASTAssignStatement.Builder builder = new ASTAssignStatement.Builder();
+    final ASTAssignStatement.Builder builder = new ASTAssignStatement.Builder(ptAssignStatement.getTextLocation());
     final Peekable nodes = Peekable.of(ptAssignStatement.getChildren());
 
     builder.withLocation(abstractLocationExpression(nodes.next()));
@@ -302,7 +302,7 @@ public class Abstracter {
     ASTMethodCallStatement methodCallStatement;
     final Peekable nodes = Peekable.of(ptMethodCallStatement.getChildren());
 
-    methodCallStatement = new ASTMethodCallStatement(abstractMethodCallExpression(nodes.next()));
+    methodCallStatement = new ASTMethodCallStatement(ptMethodCallStatement.getTextLocation(), abstractMethodCallExpression(nodes.next()));
 
     assert nodes.peek().is(Token.Type.SEMICOLON);
     nodes.next();
@@ -316,7 +316,7 @@ public class Abstracter {
   private ASTIfStatement abstractIfStatement(PTNode ptIfStatement) {
     assert ptIfStatement.is(PTNonterminal.Type.IF_STATEMENT);
 
-    final ASTIfStatement.Builder builder = new ASTIfStatement.Builder();
+    final ASTIfStatement.Builder builder = new ASTIfStatement.Builder(ptIfStatement.getTextLocation());
     final Peekable nodes = Peekable.of(ptIfStatement.getChildren());
 
     assert nodes.peek().is(Token.Type.IF);
@@ -347,7 +347,7 @@ public class Abstracter {
   private ASTForStatement abstractForStatement(PTNode ptForStatement) {
     assert ptForStatement.is(PTNonterminal.Type.FOR_STATEMENT);
 
-    final ASTForStatement.Builder builder = new ASTForStatement.Builder();
+    final ASTForStatement.Builder builder = new ASTForStatement.Builder(ptForStatement.getTextLocation());
     final Peekable nodes = Peekable.of(ptForStatement.getChildren());
 
     assert nodes.peek().is(Token.Type.FOR);
@@ -382,7 +382,7 @@ public class Abstracter {
   private ASTWhileStatement abstractWhileStatement(PTNode ptWhileStatement) {
     assert ptWhileStatement.is(PTNonterminal.Type.WHILE_STATEMENT);
 
-    final ASTWhileStatement.Builder builder = new ASTWhileStatement.Builder();
+    final ASTWhileStatement.Builder builder = new ASTWhileStatement.Builder(ptWhileStatement.getTextLocation());
     final Peekable nodes = Peekable.of(ptWhileStatement.getChildren());
 
     assert nodes.peek().is(Token.Type.WHILE);
@@ -407,7 +407,7 @@ public class Abstracter {
   private ASTReturnStatement abstractReturnStatement(PTNode ptReturnStatement) {
     assert ptReturnStatement.is(PTNonterminal.Type.RETURN_STATEMENT);
 
-    final ASTReturnStatement.Builder builder = new ASTReturnStatement.Builder();
+    final ASTReturnStatement.Builder builder = new ASTReturnStatement.Builder(ptReturnStatement.getTextLocation());
     final Peekable nodes = Peekable.of(ptReturnStatement.getChildren());
 
     assert nodes.peek().is(Token.Type.RETURN);
@@ -439,7 +439,7 @@ public class Abstracter {
 
     assert !nodes.hasNext();
 
-    return new ASTBreakStatement();
+    return new ASTBreakStatement(ptBreakStatement.getTextLocation());
   }
 
   // ContinueStatement -> CONTINUE SEMICOLON
@@ -456,14 +456,14 @@ public class Abstracter {
 
     assert !nodes.hasNext();
 
-    return new ASTContinueStatement();
+    return new ASTContinueStatement(ptContinueStatement.getTextLocation());
   }
 
   // IDAssignExpression -> IDENTIFIER EQUAL Expression
   private ASTIDAssignStatement abstractIDAssignExpression(PTNode ptIDAssignExpression) {
     assert ptIDAssignExpression.is(PTNonterminal.Type.ID_ASSIGN_EXPRESSION);
 
-    final ASTIDAssignStatement.Builder builder = new ASTIDAssignStatement.Builder();
+    final ASTIDAssignStatement.Builder builder = new ASTIDAssignStatement.Builder(ptIDAssignExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptIDAssignExpression.getChildren());
 
     assert nodes.peek().is(Token.Type.IDENTIFIER);
@@ -483,7 +483,7 @@ public class Abstracter {
   private ASTCompoundAssignStatement abstractCompoundAssignExpression(PTNode ptCompoundAssignExpression) {
     assert ptCompoundAssignExpression.is(PTNonterminal.Type.COMPOUND_ASSIGN_EXPRESSION);
 
-    final ASTCompoundAssignStatement.Builder builder = new ASTCompoundAssignStatement.Builder();
+    final ASTCompoundAssignStatement.Builder builder = new ASTCompoundAssignStatement.Builder(ptCompoundAssignExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptCompoundAssignExpression.getChildren());
 
     builder.withLocation(abstractLocationExpression(nodes.next()));
@@ -531,7 +531,7 @@ public class Abstracter {
   private ASTExpression abstractOrExpression(PTNode ptOrExpression) {
     assert ptOrExpression.is(PTNonterminal.Type.OR_EXPRESSION);
 
-    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder();
+    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder(ptOrExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptOrExpression.getChildren());
 
     builder.withExpression(abstractAndExpression(nodes.next()));
@@ -551,7 +551,7 @@ public class Abstracter {
   private ASTExpression abstractAndExpression(PTNode ptAndExpression) {
     assert ptAndExpression.is(PTNonterminal.Type.AND_EXPRESSION);
 
-    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder();
+    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder(ptAndExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptAndExpression.getChildren());
 
     builder.withExpression(abstractEqualityExpression(nodes.next()));
@@ -571,7 +571,7 @@ public class Abstracter {
   private ASTExpression abstractEqualityExpression(PTNode ptEqualityExpression) {
     assert ptEqualityExpression.is(PTNonterminal.Type.EQUALITY_EXPRESSION);
 
-    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder();
+    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder(ptEqualityExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptEqualityExpression.getChildren());
 
     builder.withExpression(abstractRelationalExpression(nodes.next()));
@@ -597,7 +597,7 @@ public class Abstracter {
   private ASTExpression abstractRelationalExpression(PTNode ptRelationalExpression) {
     assert ptRelationalExpression.is(PTNonterminal.Type.RELATIONAL_EXPRESSION);
 
-    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder();
+    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder(ptRelationalExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptRelationalExpression.getChildren());
 
     builder.withExpression(abstractAdditiveExpression(nodes.next()));
@@ -631,7 +631,7 @@ public class Abstracter {
   private ASTExpression abstractAdditiveExpression(PTNode ptAdditiveExpression) {
     assert ptAdditiveExpression.is(PTNonterminal.Type.ADDITIVE_EXPRESSION);
 
-    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder();
+    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder(ptAdditiveExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptAdditiveExpression.getChildren());
 
     builder.withExpression(abstractMultiplicativeExpression(nodes.next()));
@@ -657,7 +657,7 @@ public class Abstracter {
   private ASTExpression abstractMultiplicativeExpression(PTNode ptMultiplicativeExpression) {
     assert ptMultiplicativeExpression.is(PTNonterminal.Type.MULTIPLICATIVE_EXPRESSION);
 
-    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder();
+    final ASTBinaryExpression.Builder builder = new ASTBinaryExpression.Builder(ptMultiplicativeExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptMultiplicativeExpression.getChildren());
 
     builder.withExpression(abstractNotExpression(nodes.next()));
@@ -691,9 +691,8 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptNotExpression.getChildren());
 
     while (nodes.peek().is(Token.Type.BANG)) {
+      builder.pushType(nodes.peek().getTextLocation(), ASTUnaryExpression.Type.NOT);
       nodes.next();
-
-      builder.pushType(ASTUnaryExpression.Type.NOT);
     }
 
     builder.withExpression(abstractNegationExpression(nodes.next()));
@@ -711,9 +710,8 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptNegationExpression.getChildren());
 
     while (nodes.peek().is(Token.Type.MINUS)) {
+      builder.pushType(nodes.peek().getTextLocation(), ASTUnaryExpression.Type.NEGATE);
       nodes.next();
-
-      builder.pushType(ASTUnaryExpression.Type.NEGATE);
     }
 
     builder.withExpression(abstractUnitExpression(nodes.next()));
@@ -758,7 +756,7 @@ public class Abstracter {
   private ASTLocationExpression abstractLocationExpression(PTNode ptLocationExpression) {
     assert ptLocationExpression.is(PTNonterminal.Type.LOCATION_EXPRESSION);
 
-    final ASTLocationExpression.Builder builder = new ASTLocationExpression.Builder();
+    final ASTLocationExpression.Builder builder = new ASTLocationExpression.Builder(ptLocationExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptLocationExpression.getChildren());
 
     assert nodes.peek().is(Token.Type.IDENTIFIER);
@@ -782,7 +780,7 @@ public class Abstracter {
   private ASTMethodCallExpression abstractMethodCallExpression(PTNode ptMethodCallExpression) {
     assert ptMethodCallExpression.is(PTNonterminal.Type.METHOD_CALL_EXPRESSION);
 
-    final ASTMethodCallExpression.Builder builder = new ASTMethodCallExpression.Builder();
+    final ASTMethodCallExpression.Builder builder = new ASTMethodCallExpression.Builder(ptMethodCallExpression.getTextLocation());
     final Peekable nodes = Peekable.of(ptMethodCallExpression.getChildren());
 
     assert nodes.peek().is(Token.Type.IDENTIFIER);
@@ -823,7 +821,7 @@ public class Abstracter {
     nodes.next();
 
     assert nodes.peek().is(Token.Type.IDENTIFIER);
-    lengthExpression = new ASTLengthExpression(nodes.next().getText());
+    lengthExpression = new ASTLengthExpression(ptLengthExpression.getTextLocation(), nodes.next().getText());
 
     assert nodes.peek().is(Token.Type.RIGHT_ROUND);
     nodes.next();
@@ -883,9 +881,9 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptIntegerLiteral.getChildren());
 
     if (nodes.peek().is(Token.Type.DECIMAL)) {
-      integerLiteral = new ASTIntegerLiteral(parseDecimal(nodes.next().getText()));
+      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), parseDecimal(nodes.next().getText()));
     } else if (nodes.peek().is(Token.Type.HEXADECIMAL)) {
-      integerLiteral = new ASTIntegerLiteral(parseHexadecimal(nodes.next().getText()));
+      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), parseHexadecimal(nodes.next().getText()));
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -902,7 +900,7 @@ public class Abstracter {
     ASTCharacterLiteral characterLiteral;
     final Peekable nodes = Peekable.of(ptCharacterLiteral.getChildren());
 
-    characterLiteral = new ASTCharacterLiteral(parseCharacter(nodes.next().getText()));
+    characterLiteral = new ASTCharacterLiteral(ptCharacterLiteral.getTextLocation(), parseCharacter(nodes.next().getText()));
 
     assert !nodes.hasNext();
 
@@ -919,11 +917,11 @@ public class Abstracter {
     if (nodes.peek().is(Token.Type.TRUE)) {
       nodes.next();
 
-      booleanLiteral = new ASTBooleanLiteral(true);
+      booleanLiteral = new ASTBooleanLiteral(ptBooleanLiteral.getTextLocation(), true);
     } else if (nodes.peek().is(Token.Type.FALSE)) {
       nodes.next();
 
-      booleanLiteral = new ASTBooleanLiteral(false);
+      booleanLiteral = new ASTBooleanLiteral(ptBooleanLiteral.getTextLocation(), false);
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -940,7 +938,7 @@ public class Abstracter {
     ASTStringLiteral stringLiteral;
     final Peekable nodes = Peekable.of(ptStringLiteral.getChildren());
 
-    stringLiteral = new ASTStringLiteral(parseString(nodes.next().getText()));
+    stringLiteral = new ASTStringLiteral(ptStringLiteral.getTextLocation(), parseString(nodes.next().getText()));
 
     assert !nodes.hasNext();
 

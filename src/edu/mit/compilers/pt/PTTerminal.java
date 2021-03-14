@@ -3,6 +3,7 @@ package edu.mit.compilers.pt;
 import java.util.Objects;
 import java.util.List;
 
+import edu.mit.compilers.common.*;
 import edu.mit.compilers.tk.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
@@ -13,6 +14,11 @@ public class PTTerminal implements PTNode {
 
   public PTTerminal(Token token) {
     this.token = token;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return token.getTextLocation();
   }
 
   @Override

@@ -1,13 +1,22 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTCharacterLiteral implements ASTExpression {
 
+  private final TextLocation textLocation;
   private final char value;
 
-  public ASTCharacterLiteral(char value) {
+  public ASTCharacterLiteral(TextLocation textLocation, char value) {
+    this.textLocation = textLocation;
     this.value = value;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -34,6 +43,7 @@ public class ASTCharacterLiteral implements ASTExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTCharacterLiteral {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "value: '" + value + "',\n"); // FIXME(rbd): Handle un/escape characters.
     s.append(indent(depth) + "}");
     return s.toString();

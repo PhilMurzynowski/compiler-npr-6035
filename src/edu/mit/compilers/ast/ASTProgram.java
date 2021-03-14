@@ -3,6 +3,8 @@ package edu.mit.compilers.ast;
 import java.util.List;
 import java.util.ArrayList;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTProgram implements ASTNode {
@@ -60,6 +62,11 @@ public class ASTProgram implements ASTNode {
 	}
 
   @Override
+  public TextLocation getTextLocation() {
+    return TextLocation.start();
+  }
+
+  @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);
   }
@@ -83,6 +90,7 @@ public class ASTProgram implements ASTNode {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTProgram {\n");
+    s.append(indent(depth + 1) + "textLocation: " + TextLocation.start().debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "importDeclarations: [\n");
     for (ASTImportDeclaration importDeclaration : importDeclarations) {
       s.append(indent(depth + 2) + importDeclaration.debugString(depth + 2) + ",\n");

@@ -2,15 +2,19 @@ package edu.mit.compilers.ast;
 
 import java.util.Optional;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTIfStatement implements ASTStatement {
 
+  private final TextLocation textLocation;
   private final ASTExpression condition;
   private final ASTBlock body;
   private final Optional<ASTBlock> other;
 
-  private ASTIfStatement(ASTExpression condition, ASTBlock body, Optional<ASTBlock> other) {
+  private ASTIfStatement(TextLocation textLocation, ASTExpression condition, ASTBlock body, Optional<ASTBlock> other) {
+    this.textLocation = textLocation;
     this.condition = condition;
     this.body = body;
     this.other = other;
@@ -18,11 +22,13 @@ public class ASTIfStatement implements ASTStatement {
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private ASTExpression condition;
     private ASTBlock body;
     private Optional<ASTBlock> other;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       condition = null;
       body = null;
       other = Optional.empty();
@@ -47,7 +53,7 @@ public class ASTIfStatement implements ASTStatement {
       assert condition != null;
       assert body != null;
 
-      return new ASTIfStatement(condition, body, other);
+      return new ASTIfStatement(textLocation, condition, body, other);
     }
   }
 
@@ -61,6 +67,11 @@ public class ASTIfStatement implements ASTStatement {
 
   public Optional<ASTBlock> getOther() {
     return other;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -91,6 +102,7 @@ public class ASTIfStatement implements ASTStatement {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTIfStatement {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "condition: " + condition.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "body: " + body.debugString(depth + 1) + ",\n");
     if (other.isPresent()) {

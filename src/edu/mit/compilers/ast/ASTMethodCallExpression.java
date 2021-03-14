@@ -3,24 +3,30 @@ package edu.mit.compilers.ast;
 import java.util.List;
 import java.util.ArrayList;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTMethodCallExpression implements ASTExpression {
 
+  private final TextLocation textLocation;
   private final String identifier;
   private final List<ASTArgument> arguments;
 
-  private ASTMethodCallExpression(String identifier, List<ASTArgument> arguments) {
+  private ASTMethodCallExpression(TextLocation textLocation, String identifier, List<ASTArgument> arguments) {
+    this.textLocation = textLocation;
     this.identifier = identifier;
     this.arguments = arguments;
   }
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private String identifier;
     private List<ASTArgument> arguments;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       identifier = null;
       arguments = new ArrayList<>();
     }
@@ -38,8 +44,13 @@ public class ASTMethodCallExpression implements ASTExpression {
     public ASTMethodCallExpression build() {
       assert identifier != null;
 
-      return new ASTMethodCallExpression(identifier, List.copyOf(arguments));
+      return new ASTMethodCallExpression(textLocation, identifier, List.copyOf(arguments));
     }
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -76,6 +87,7 @@ public class ASTMethodCallExpression implements ASTExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTMethodCallExpression {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth + 1) + "arguments: [\n");
     for (ASTArgument argument : arguments) {

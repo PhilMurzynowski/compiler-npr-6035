@@ -2,6 +2,7 @@ package edu.mit.compilers.pt;
 
 import java.util.List;
 
+import edu.mit.compilers.common.*;
 import edu.mit.compilers.tk.*;
 
 public interface PTNode {
@@ -9,6 +10,8 @@ public interface PTNode {
   public static PTNode eos() {
     return new PTNonterminal.Builder(PTNonterminal.Type.EOS).build();
   }
+
+  public TextLocation getTextLocation();
 
   public boolean is(Token.Type ...tokenTypes);
 

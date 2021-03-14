@@ -1,13 +1,22 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTIntegerLiteral implements ASTExpression {
 
+  private final TextLocation textLocation;
   private final long value;
 
-  public ASTIntegerLiteral(long value) {
+  public ASTIntegerLiteral(TextLocation textLocation, long value) {
+    this.textLocation = textLocation;
     this.value = value;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -34,6 +43,7 @@ public class ASTIntegerLiteral implements ASTExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTIntegerLiteral {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "value: " + value + ",\n");
     s.append(indent(depth) + "}");
     return s.toString();

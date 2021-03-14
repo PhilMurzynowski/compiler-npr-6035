@@ -88,6 +88,9 @@ class Main {
   private static void parse(String filename, String input, PrintStream outputStream) {
     Lexer.Result lexerResult = new Lexer().lexAll(input);
     Parser.Result parserResult = new Parser().parseAll(lexerResult.getTokens());
+    // ASTProgram program = new Abstracter().abstractProgram(parserResult.getParseTree());
+
+    // System.err.println(program.prettyString(0));
 
     if (lexerResult.hasExceptions() || parserResult.hasExceptions()) {
       System.err.println("\n*** ERRORS ***\n");

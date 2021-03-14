@@ -10,25 +10,30 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTFieldDeclaration implements ASTNode {
 
+  private final TextLocation textLocation;
   private final VariableType type;
   private final List<Identifier> identifiers;
 
   public static class Identifier {
 
+    private final TextLocation textLocation;
     private final String identifier;
     private final Optional<ASTIntegerLiteral> length;
 
-    private Identifier(String identifier, Optional<ASTIntegerLiteral> length) {
+    private Identifier(TextLocation textLocation, String identifier, Optional<ASTIntegerLiteral> length) {
+      this.textLocation = textLocation;
       this.identifier = identifier;
       this.length = length;
     }
 
     public static class Builder {
 
+      private final TextLocation textLocation;
       private String identifier;
       private Optional<ASTIntegerLiteral> length;
 
-      public Builder() {
+      public Builder(TextLocation textLocation) {
+        this.textLocation = textLocation;
         identifier = null;
         length = Optional.empty();
       }
@@ -46,9 +51,13 @@ public class ASTFieldDeclaration implements ASTNode {
       public Identifier build() {
         assert identifier != null;
 
-        return new Identifier(identifier, length);
+        return new Identifier(textLocation, identifier, length);
       }
 
+    }
+
+    public TextLocation getTextLocation() {
+      return textLocation;
     }
 
     public String prettyString(int depth) {
@@ -62,6 +71,7 @@ public class ASTFieldDeclaration implements ASTNode {
     public String debugString(int depth) {
       StringBuilder s = new StringBuilder();
       s.append("Identifier {\n");
+      s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
       s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
       if (length.isPresent()) {
         s.append(indent(depth + 1) + "length: " + length.get().debugString(depth + 1) + ",\n");
@@ -72,17 +82,20 @@ public class ASTFieldDeclaration implements ASTNode {
 
   }
 
-  private ASTFieldDeclaration(VariableType type, List<Identifier> identifiers) {
+  private ASTFieldDeclaration(TextLocation textLocation, VariableType type, List<Identifier> identifiers) {
+    this.textLocation = textLocation;
     this.type = type;
     this.identifiers = identifiers;
   }
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private VariableType type;
     private List<Identifier> identifiers;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       type = null;
       identifiers = new ArrayList<>();
     }
@@ -101,9 +114,14 @@ public class ASTFieldDeclaration implements ASTNode {
       assert type != null;
       assert identifiers.size() > 0;
 
-      return new ASTFieldDeclaration(type, List.copyOf(identifiers));
+      return new ASTFieldDeclaration(textLocation, type, List.copyOf(identifiers));
     }
 
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -131,6 +149,7 @@ public class ASTFieldDeclaration implements ASTNode {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTFieldDeclaration {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "identifiers: [\n");
     for (Identifier identifier : identifiers) {

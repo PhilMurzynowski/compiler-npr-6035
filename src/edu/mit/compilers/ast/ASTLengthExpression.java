@@ -1,17 +1,26 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTLengthExpression implements ASTExpression {
 
+  private final TextLocation textLocation;
   private final String identifier;
 
-  public ASTLengthExpression(String identifier) {
+  public ASTLengthExpression(TextLocation textLocation, String identifier) {
+    this.textLocation = textLocation;
     this.identifier = identifier;
   }
 
   public String getIdentifier() {
     return identifier;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -42,6 +51,7 @@ public class ASTLengthExpression implements ASTExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTLengthExpression {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth) + "}");
     return s.toString();

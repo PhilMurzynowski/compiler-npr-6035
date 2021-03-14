@@ -1,6 +1,10 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 public interface ASTNode {
+
+  public TextLocation getTextLocation();
 
   public static interface Visitor<T> {
     

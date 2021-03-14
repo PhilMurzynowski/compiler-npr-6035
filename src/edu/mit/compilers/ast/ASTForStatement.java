@@ -1,15 +1,19 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTForStatement implements ASTStatement {
 
+  private final TextLocation textLocation;
   private final ASTIDAssignStatement initial;
   private final ASTExpression condition;
   private final ASTCompoundAssignStatement update;
   private final ASTBlock body;
 
-  private ASTForStatement(ASTIDAssignStatement initial, ASTExpression condition, ASTCompoundAssignStatement update, ASTBlock body) {
+  private ASTForStatement(TextLocation textLocation, ASTIDAssignStatement initial, ASTExpression condition, ASTCompoundAssignStatement update, ASTBlock body) {
+    this.textLocation = textLocation;
     this.initial = initial;
     this.condition = condition;
     this.update = update;
@@ -18,12 +22,14 @@ public class ASTForStatement implements ASTStatement {
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private ASTIDAssignStatement initial;
     private ASTExpression condition;
     private ASTCompoundAssignStatement update;
     private ASTBlock body;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       initial = null;
       condition = null;
       update = null;
@@ -56,7 +62,7 @@ public class ASTForStatement implements ASTStatement {
       assert update != null;
       assert body != null;
 
-      return new ASTForStatement(initial, condition, update, body);
+      return new ASTForStatement(textLocation, initial, condition, update, body);
     }
   }
 
@@ -74,6 +80,11 @@ public class ASTForStatement implements ASTStatement {
 
   public ASTBlock getBody() {
     return body;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -105,6 +116,7 @@ public class ASTForStatement implements ASTStatement {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTForStatement {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "initial: " + initial.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "condition: " + condition.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "update: " + update.debugString(depth + 1) + ",\n");

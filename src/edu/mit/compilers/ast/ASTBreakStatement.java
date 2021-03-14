@@ -1,8 +1,21 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class ASTBreakStatement implements ASTStatement {
 
-  public ASTBreakStatement() { }
+  private final TextLocation textLocation;
+
+  public ASTBreakStatement(TextLocation textLocation) {
+    this.textLocation = textLocation;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
+  }
 
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
@@ -21,7 +34,11 @@ public class ASTBreakStatement implements ASTStatement {
 
   @Override
   public String debugString(int depth) {
-    return "ASTBreakStatement { }";
+    StringBuilder s = new StringBuilder();
+    s.append("ASTBreakStatement {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

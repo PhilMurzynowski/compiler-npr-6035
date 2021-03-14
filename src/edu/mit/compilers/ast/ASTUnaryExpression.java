@@ -13,25 +13,30 @@ public class ASTUnaryExpression implements ASTExpression {
     NEGATE,
   }
 
+  private final TextLocation textLocation;
   private final Type type;
   private final ASTExpression expression;
 
-  private ASTUnaryExpression(Type type, ASTExpression expression) {
+  private ASTUnaryExpression(TextLocation textLocation, Type type, ASTExpression expression) {
+    this.textLocation = textLocation;
     this.type = type;
     this.expression = expression;
   }
 
   public static class Builder {
 
+    private final Stack<TextLocation> textLocations;
     private final Stack<Type> types;
     private ASTExpression expression;
 
     public Builder() {
+      textLocations = new Stack<>();
       types = new Stack<>();
       expression = null;
     }
 
-    public Builder pushType(Type type) {
+    public Builder pushType(TextLocation textLocation, Type type) {
+      textLocations.push(textLocation);
       types.push(type);
       return this;
     }
@@ -45,7 +50,7 @@ public class ASTUnaryExpression implements ASTExpression {
       assert expression != null;
 
       while (!types.isEmpty()) {
-        expression = new ASTUnaryExpression(types.pop(), expression);
+        expression = new ASTUnaryExpression(textLocations.pop(), types.pop(), expression);
       }
 
       return expression;
@@ -95,6 +100,11 @@ public class ASTUnaryExpression implements ASTExpression {
   }
 
   @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
+  }
+
+  @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);
   }
@@ -127,6 +137,7 @@ public class ASTUnaryExpression implements ASTExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTUnaryExpression {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "expression: " + expression.debugString(depth + 1) + ",\n");
     s.append(indent(depth) + "}");

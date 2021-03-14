@@ -1,13 +1,22 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTStringLiteral implements ASTArgument {
 
+  private final TextLocation textLocation;
   private final String value;
 
-  public ASTStringLiteral(String value) {
+  public ASTStringLiteral(TextLocation textLocation, String value) {
+    this.textLocation = textLocation;
     this.value = value;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -29,6 +38,7 @@ public class ASTStringLiteral implements ASTArgument {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTStringLiteral {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "value: \"" + value + "\",\n"); // FIXME(rbd): Handle un/escape characters.
     s.append(indent(depth) + "}");
     return s.toString();

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.ArrayList;
 
+import edu.mit.compilers.common.*;
 import edu.mit.compilers.tk.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
@@ -92,6 +93,11 @@ public class PTNonterminal implements PTNode {
       return new PTNonterminal(type, List.copyOf(children));
     }
 
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return children.get(0).getTextLocation();
   }
 
   @Override

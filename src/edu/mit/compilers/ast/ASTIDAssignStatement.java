@@ -1,23 +1,29 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTIDAssignStatement implements ASTStatement {
 
+  private final TextLocation textLocation;
   private final String identifier;
   private final ASTExpression expression;
 
-  private ASTIDAssignStatement(String identifier, ASTExpression expression) {
+  private ASTIDAssignStatement(TextLocation textLocation, String identifier, ASTExpression expression) {
+    this.textLocation = textLocation;
     this.identifier = identifier;
     this.expression = expression;
   }
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private String identifier;
     private ASTExpression expression;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       identifier = null;
       expression = null;
     }
@@ -36,8 +42,13 @@ public class ASTIDAssignStatement implements ASTStatement {
       assert identifier != null;
       assert expression != null;
 
-      return new ASTIDAssignStatement(identifier, expression);
+      return new ASTIDAssignStatement(textLocation, identifier, expression);
     }
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -64,6 +75,7 @@ public class ASTIDAssignStatement implements ASTStatement {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTIDAssignStatement {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth + 1) + "expression: " + expression.debugString(depth + 1) + ",\n");
     s.append(indent(depth) + "}");

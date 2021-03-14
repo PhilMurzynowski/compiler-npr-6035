@@ -22,11 +22,13 @@ public class ASTBinaryExpression implements ASTExpression {
     MODULUS,
   }
 
+  private final TextLocation textLocation;
   private final ASTExpression left;
   private final Type type;
   private final ASTExpression right;
 
-  private ASTBinaryExpression(ASTExpression left, Type type, ASTExpression right) {
+  private ASTBinaryExpression(TextLocation textLocation, ASTExpression left, Type type, ASTExpression right) {
+    this.textLocation = textLocation;
     this.left = left;
     this.type = type;
     this.right = right;
@@ -34,9 +36,11 @@ public class ASTBinaryExpression implements ASTExpression {
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private ASTExpression expression;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       expression = null;
     }
 
@@ -48,7 +52,7 @@ public class ASTBinaryExpression implements ASTExpression {
     public Builder withExpression(Type type, ASTExpression expression) {
       assert this.expression != null;
 
-      this.expression = new ASTBinaryExpression(this.expression, type, expression);
+      this.expression = new ASTBinaryExpression(textLocation, this.expression, type, expression);
       return this;
     }
 
@@ -129,6 +133,11 @@ public class ASTBinaryExpression implements ASTExpression {
   }
 
   @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
+  }
+
+  @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);
   }
@@ -184,6 +193,7 @@ public class ASTBinaryExpression implements ASTExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTBinaryExpression {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "left: " + left.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "type: " + type + ",\n");
     s.append(indent(depth + 1) + "right: " + right.debugString(depth + 1) + ",\n");

@@ -2,21 +2,27 @@ package edu.mit.compilers.ast;
 
 import java.util.Optional;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTReturnStatement implements ASTStatement {
 
+  private final TextLocation textLocation;
   private final Optional<ASTExpression> expression;
 
-  private ASTReturnStatement(Optional<ASTExpression> expression) {
+  private ASTReturnStatement(TextLocation textLocation, Optional<ASTExpression> expression) {
+    this.textLocation = textLocation;
     this.expression = expression;
   }
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private Optional<ASTExpression> expression;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       expression = Optional.empty();
     }
 
@@ -26,13 +32,18 @@ public class ASTReturnStatement implements ASTStatement {
     }
 
     public ASTReturnStatement build() {
-      return new ASTReturnStatement(expression);
+      return new ASTReturnStatement(textLocation, expression);
     }
   }
 
 	public Optional<ASTExpression> getExpression() {
 		return expression;
 	}
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
+  }
 
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
@@ -60,6 +71,7 @@ public class ASTReturnStatement implements ASTStatement {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTReturnStatement {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     if (expression.isPresent()) {
       s.append(indent(depth + 1) + "expression: " + expression.get().debugString(depth + 1) + ",\n");
     }

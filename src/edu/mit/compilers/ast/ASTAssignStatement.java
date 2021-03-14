@@ -1,23 +1,29 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTAssignStatement implements ASTStatement {
 
+  private final TextLocation textLocation;
   private final ASTLocationExpression location;
   private final ASTExpression expression;
 
-  private ASTAssignStatement(ASTLocationExpression location, ASTExpression expression) {
+  private ASTAssignStatement(TextLocation textLocation, ASTLocationExpression location, ASTExpression expression) {
+    this.textLocation = textLocation;
     this.location = location;
     this.expression = expression;
   }
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private ASTLocationExpression location;
     private ASTExpression expression;
 
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       location = null;
       expression = null;
     }
@@ -36,7 +42,7 @@ public class ASTAssignStatement implements ASTStatement {
       assert location != null;
       assert expression != null;
 
-      return new ASTAssignStatement(location, expression);
+      return new ASTAssignStatement(textLocation, location, expression);
     }
   }
 
@@ -46,6 +52,11 @@ public class ASTAssignStatement implements ASTStatement {
 
   public ASTExpression getExpression() {
     return expression;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -72,6 +83,7 @@ public class ASTAssignStatement implements ASTStatement {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTAssignStatement {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "location: " + location.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "expression: " + expression.debugString(depth + 1) + ",\n");
     s.append(indent(depth) + "}");

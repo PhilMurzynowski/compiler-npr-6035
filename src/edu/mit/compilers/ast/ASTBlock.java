@@ -3,24 +3,30 @@ package edu.mit.compilers.ast;
 import java.util.List;
 import java.util.ArrayList;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTBlock implements ASTNode {
 
+  private final TextLocation textLocation;
   private final List<ASTFieldDeclaration> fieldDeclarations;
   private final List<ASTStatement> statements;
 
-  private ASTBlock(List<ASTFieldDeclaration> fieldDeclarations, List<ASTStatement> statements) {
+  private ASTBlock(TextLocation textLocation, List<ASTFieldDeclaration> fieldDeclarations, List<ASTStatement> statements) {
+    this.textLocation = textLocation;
     this.fieldDeclarations = fieldDeclarations;
     this.statements = statements;
   }
 
   public static class Builder {
 
+    private final TextLocation textLocation;
     private final List<ASTFieldDeclaration> fieldDeclarations;
     private final List<ASTStatement> statements;
     
-    public Builder() {
+    public Builder(TextLocation textLocation) {
+      this.textLocation = textLocation;
       fieldDeclarations = new ArrayList<>();
       statements = new ArrayList<>();
     }
@@ -36,7 +42,7 @@ public class ASTBlock implements ASTNode {
     }
 
     public ASTBlock build() {
-      return new ASTBlock(List.copyOf(fieldDeclarations), List.copyOf(statements));
+      return new ASTBlock(textLocation, List.copyOf(fieldDeclarations), List.copyOf(statements));
     }
 
   }
@@ -47,6 +53,11 @@ public class ASTBlock implements ASTNode {
 
   public List<ASTStatement> getStatements() {
     return statements;
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
@@ -72,6 +83,7 @@ public class ASTBlock implements ASTNode {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTBlock {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "fieldDeclarations: [\n");
     for (ASTFieldDeclaration fieldDeclaration : fieldDeclarations) {
       s.append(indent(depth + 2) + fieldDeclaration.debugString(depth + 2) + ",\n");

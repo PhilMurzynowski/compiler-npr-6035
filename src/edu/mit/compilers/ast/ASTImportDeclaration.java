@@ -1,12 +1,16 @@
 package edu.mit.compilers.ast;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTImportDeclaration implements ASTNode {
 
+  private final TextLocation textLocation;
   private final String identifier;
 
-  public ASTImportDeclaration(String identifier) {
+  public ASTImportDeclaration(TextLocation textLocation, String identifier) {
+    this.textLocation = textLocation;
     this.identifier = identifier;
   }
 
@@ -28,9 +32,15 @@ public class ASTImportDeclaration implements ASTNode {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("ASTImportDeclaration {\n");
+    s.append(indent(depth + 1) + "textLocation: " + textLocation.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth) + "}");
     return s.toString();
+  }
+
+  @Override
+  public TextLocation getTextLocation() {
+    return textLocation;
   }
 
   @Override
