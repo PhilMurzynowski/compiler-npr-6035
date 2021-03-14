@@ -13,7 +13,8 @@ public class SemanticException extends Exception {
     TYPE_MISMATCH,
     INVALID_KEYWORD,
     UNDEFINED_IDENTIFIER,
-	UNDEFINED_MAIN,
+    UNDEFINED_MAIN,
+    INCOMPATIBLE_ARGUMENTS,
   }
 
   private final Type type;

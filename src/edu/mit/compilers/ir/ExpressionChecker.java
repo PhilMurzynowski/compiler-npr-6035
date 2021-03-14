@@ -12,9 +12,8 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public VariableType visit(ASTBinaryExpression binaryExpression) {
-    throw new RuntimeException("not implemented");
+    return binaryExpression.returnType();
   }
 
   public VariableType visit(ASTUnaryExpression unaryExpression) {
@@ -30,9 +29,15 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public VariableType visit(ASTMethodCallExpression methodCallExpression) {
-    throw new RuntimeException("not implemented");
+    String identifier = methodCallExpression.getIdentifier();
+
+    if (symbolTable.importExists(identifier)) {
+      return VariableType.INTEGER;
+    } /* methodExists */ {
+      // NOTE: ProgramChecker checks that returnType is not void
+      return symbolTable.methodReturnType(identifier).toVariableType();
+    }
   }
 
   public VariableType visit(ASTLengthExpression lengthExpression) {
@@ -44,9 +49,8 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public VariableType visit(ASTCharacterLiteral characterLiteral) {
-    throw new RuntimeException("not implemented");
+    return VariableType.INTEGER;
   }
 
   public VariableType visit(ASTBooleanLiteral booleanLiteral) {
