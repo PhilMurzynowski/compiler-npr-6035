@@ -57,6 +57,18 @@ public class ASTBinaryExpression implements ASTExpression {
     }
   }
 
+	public ASTExpression getleft() {
+		return left;
+	}
+
+	public ASTExpression getright() {
+		return right;
+	}
+
+	public Type getType() {
+		return type;
+	}
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

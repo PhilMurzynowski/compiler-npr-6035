@@ -30,6 +30,10 @@ public class ASTReturnStatement implements ASTStatement {
     }
   }
 
+	public Optional<ASTExpression> getExpression() {
+		return expression;
+	}
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);

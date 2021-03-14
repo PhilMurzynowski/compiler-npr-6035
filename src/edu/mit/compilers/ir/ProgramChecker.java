@@ -159,9 +159,31 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public List<SemanticException> visit(ASTIfStatement ifStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    final ASTExpression condition = ifStatement.getCondition();
+		final ASTBlock body = ifStatement.getBody();
+		final Optional<ASTBlock> other = ifStatement.getOther();
+
+    final List<SemanticException> conditionExceptions = condition.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    exceptions.addAll(conditionExceptions);
+
+    if (conditionExceptions.isEmpty()) {
+      final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
+
+      if (!conditionType.equals(VariableType.BOOLEAN)) {
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "if condition expression requires a boolean"));
+      }
+    }
+
+    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, true, returnType)));
+		if (other.isPresent()) {
+			exceptions.addAll(other.get().accept(new ProgramChecker(symbolTable, true, returnType)));
+		}
+
+
+		return exceptions;
   }
 
   public List<SemanticException> visit(ASTForStatement forStatement) {
@@ -194,9 +216,34 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public List<SemanticException> visit(ASTReturnStatement returnStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+		Optional<ASTExpression> expression = returnStatement.getExpression();
+
+		List<SemanticException> expressionExceptions = new ArrayList<SemanticException>();
+
+		if (expression.isPresent()) {
+			expressionExceptions = expression.get().accept(new ProgramChecker(symbolTable, inLoop, returnType));
+			exceptions.addAll(expressionExceptions);
+		}
+
+		if (!returnType.isPresent()) {
+      exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "return keyword not allowed outside of a method declaration"));
+		} else {
+
+			if (!expression.isPresent() && returnType.get() != MethodType.VOID) {
+				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must return expression for method not of type void"));
+
+			} else if (expression.isPresent() && expressionExceptions.isEmpty()) {
+					final VariableType expressionType = expression.get().accept(new ExpressionChecker(symbolTable));
+					if (!expressionType.name().equals(returnType.get().name())) { // NOTE: not super clean, comparing enums with string conversion
+						exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "type of returned expression must match method return type, must not return expression for method of type void"));
+					}
+			}
+		}
+		
+
+		return exceptions;
   }
 
   public List<SemanticException> visit(ASTBreakStatement breakStatement) {
@@ -214,9 +261,50 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public List<SemanticException> visit(ASTBinaryExpression binaryExpression) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    final ASTExpression left = binaryExpression.getleft();
+    final ASTExpression right = binaryExpression.getright();
+		final ASTBinaryExpression.Type type = binaryExpression.getType();
+
+    final List<SemanticException> leftExceptions = left.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    final List<SemanticException> rightExceptions = right.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    exceptions.addAll(leftExceptions);
+    exceptions.addAll(rightExceptions);
+
+		if (leftExceptions.isEmpty() && rightExceptions.isEmpty()) {
+			
+			final VariableType leftType = left.accept(new ExpressionChecker(symbolTable));
+			final VariableType rightType = right.accept(new ExpressionChecker(symbolTable));
+
+			final boolean booleanOp = (type == ASTBinaryExpression.Type.OR
+															|| type == ASTBinaryExpression.Type.AND
+															|| type == ASTBinaryExpression.Type.EQUAL
+															|| type == ASTBinaryExpression.Type.NOT_EQUAL);
+			
+			final boolean integerOp = (type == ASTBinaryExpression.Type.EQUAL
+															|| type == ASTBinaryExpression.Type.NOT_EQUAL
+															|| type == ASTBinaryExpression.Type.LESS_THAN
+															|| type == ASTBinaryExpression.Type.LESS_THAN_OR_EQUAL
+															|| type == ASTBinaryExpression.Type.GREATER_THAN
+															|| type == ASTBinaryExpression.Type.GREATER_THAN_OR_EQUAL
+															|| type == ASTBinaryExpression.Type.ADD
+															|| type == ASTBinaryExpression.Type.SUBTRACT
+															|| type == ASTBinaryExpression.Type.MULTIPLY
+															|| type == ASTBinaryExpression.Type.DIVIDE
+															|| type == ASTBinaryExpression.Type.MODULUS);
+			
+			if (leftType != rightType) {
+				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "types in binary expression must match"));
+			} else if (booleanOp && (leftType != VariableType.BOOLEAN)) {
+				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must use boolean binary operator for boolean expressions"));
+			} else if (integerOp && (leftType != VariableType.INTEGER)) {
+				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must use integer binary operator for integer expressions"));
+			}
+		}
+
+		return exceptions;
   }
 
   public List<SemanticException> visit(ASTUnaryExpression unaryExpression) {
@@ -255,6 +343,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   // Phil
   public List<SemanticException> visit(ASTMethodCallExpression methodCallExpression) {
+		// check if exists
     throw new RuntimeException("not implemented");
   }
 
@@ -275,9 +364,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     throw new RuntimeException("not implemented");
   }
 
-  // Phil
   public List<SemanticException> visit(ASTCharacterLiteral characterLiteral) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTBooleanLiteral booleanLiteral) {

@@ -51,6 +51,18 @@ public class ASTIfStatement implements ASTStatement {
     }
   }
 
+	public ASTExpression getCondition() {
+		return condition;
+	}
+
+  public ASTBlock getBody() {
+    return body;
+  }
+
+  public Optional<ASTBlock> getOther() {
+    return other;
+  }
+
   @Override
   public <T> T accept(ASTNode.Visitor<T> visitor) {
     return visitor.visit(this);
