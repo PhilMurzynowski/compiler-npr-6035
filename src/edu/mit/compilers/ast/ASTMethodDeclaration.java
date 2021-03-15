@@ -62,6 +62,14 @@ public class ASTMethodDeclaration implements ASTNode {
       return textLocation;
     }
 
+    public VariableType getType() {
+      return type;
+    }
+
+    public String getIdentifier() {
+      return identifier;
+    }
+
     public String prettyString(int depth) {
       StringBuilder s = new StringBuilder();
       if (type.equals(VariableType.INTEGER)) {
@@ -142,26 +150,26 @@ public class ASTMethodDeclaration implements ASTNode {
   public String getIdentifier() {
     return identifier;
   }
-	
-	public MethodType getMethodType() {
-		return type;
-	}
+  
+  public MethodType getMethodType() {
+    return type;
+  }
 
-	public List<Argument> getArguments() {
-		return arguments;
-	}
+  public List<Argument> getArguments() {
+    return arguments;
+  }
 
-	public List<VariableType> getArgumentTypes() {
+  public List<VariableType> getArgumentTypes() {
     List<VariableType> argumentTypes = new ArrayList<>();
     for (Argument argument : this.getArguments()) {
       argumentTypes.add(argument.type);
     }
-		return argumentTypes;
-	}
+    return argumentTypes;
+  }
 
-	public ASTBlock getBlock() {
-		return block;
-	}
+  public ASTBlock getBlock() {
+    return block;
+  }
 
   @Override
   public TextLocation getTextLocation() {
