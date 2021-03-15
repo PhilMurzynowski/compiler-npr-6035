@@ -41,7 +41,7 @@ class ArgumentChecker implements ASTArgument.Visitor<Either<ASTExpression, Seman
   }
 
   public Either<ASTExpression, SemanticException> visit(ASTStringLiteral stringLiteral) {
-    return Either.right(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "Invalid string argument for declared method in method call"));
+    return Either.right(new SemanticException(stringLiteral.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "Invalid string argument for declared method in method call"));
   }
 
 }

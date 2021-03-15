@@ -40,7 +40,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       }
     }
     if (!hasValidMainDeclaration) { 
-      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_MAIN, "missing declaration of main method in program"));
+      exceptions.add(new SemanticException(program.getTextLocation(), SemanticException.Type.UNDEFINED_MAIN, "missing declaration of main method in program"));
     }
     return exceptions;
   }
@@ -51,7 +51,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final String identifier = importDeclaration.getIdentifier();
 
     if (symbolTable.exists(identifier)) {
-      exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+      exceptions.add(new SemanticException(importDeclaration.getTextLocation(), SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
     } else {
       symbolTable.addImport(identifier);
     }
@@ -66,7 +66,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     for (ASTFieldDeclaration.Identifier identifier : fieldDeclaration.getIdentifiers()) {
       // duplicate symbol check
       if (symbolTable.exists(identifier.getIdentifier())) {
-        exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+        exceptions.add(new SemanticException(identifier.getTextLocation(), SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
       } else {
         final Optional<ASTIntegerLiteral> length = identifier.getLength();
         // check array index and add to array symbols
@@ -93,7 +93,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final Optional<MethodType> type = Optional.of(methodDeclaration.getMethodType());
 
     if (symbolTable.exists(identifier)) {
-      exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+      exceptions.add(new SemanticException(methodDeclaration.getTextLocation(), SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
     } else {
       symbolTable.addMethod(identifier, methodDeclaration.getMethodType(), methodDeclaration.getArgumentTypes());
     }
@@ -129,7 +129,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     if (symbolTable.scalarExists(identifier)) {
       identifierType = Optional.of(symbolTable.scalarType(identifier));
     } else {
-      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "invalid scalar identifier " + identifier));
+      exceptions.add(new SemanticException(idAssignStatement.getTextLocation(), SemanticException.Type.UNDEFINED_IDENTIFIER, "invalid scalar identifier " + identifier));
     }
 
     // expression is valid
@@ -145,7 +145,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
         identifierType.isPresent() && expressionType.isPresent()
         && !(identifierType.get().equals(expressionType.get()))
     ) {
-      exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "assign statement requires same type for location and evaluated expression"));
+      exceptions.add(new SemanticException(idAssignStatement.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "assign statement requires same type for location and evaluated expression"));
     }
 
     return exceptions;
@@ -165,7 +165,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final VariableType locationType = location.accept(new ExpressionChecker(symbolTable));
       final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
         if (!expressionType.equals(locationType)) {
-          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "assign statement requries same type for location and evaluated expression"));
+          exceptions.add(new SemanticException(assignStatement.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "assign statement requries same type for location and evaluated expression"));
         }
     }
 
@@ -184,7 +184,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final VariableType locationType = location.accept(new ExpressionChecker(symbolTable));
 
       if (!locationType.equals(VariableType.INTEGER)) {
-        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "left side of compound assign statment requires an integer"));
+        exceptions.add(new SemanticException(location.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "left side of compound assign statment requires an integer"));
       }
     }
 
@@ -198,7 +198,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
         final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
 
         if (!expressionType.equals(VariableType.INTEGER)) {
-          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "right side of compound assign statement requires an integer"));
+          exceptions.add(new SemanticException(expression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "right side of compound assign statement requires an integer"));
         }
       }
     }
@@ -229,15 +229,14 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
 
       if (!conditionType.equals(VariableType.BOOLEAN)) {
-        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "if condition expression requires a boolean"));
+        exceptions.add(new SemanticException(condition.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "if condition expression requires a boolean"));
       }
     }
 
-    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, true, returnType)));
+    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
     if (other.isPresent()) {
-      exceptions.addAll(other.get().accept(new ProgramChecker(symbolTable, true, returnType)));
+      exceptions.addAll(other.get().accept(new ProgramChecker(symbolTable, inLoop, returnType)));
     }
-
 
     return exceptions;
   }
@@ -256,7 +255,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
 
       if (!conditionType.equals(VariableType.BOOLEAN)) {
-        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "for loop condition expression requires a boolean"));
+        exceptions.add(new SemanticException(condition.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "for loop condition expression requires a boolean"));
       }
     }
 
@@ -277,7 +276,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     if (conditionExceptions.isEmpty()) {
       final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
       if (!conditionType.equals(VariableType.BOOLEAN)) {
-        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "while loop condition expression requires a boolean"));
+        exceptions.add(new SemanticException(condition.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "while loop condition expression requires a boolean"));
       }
     }
 
@@ -300,16 +299,16 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     }
 
     if (!returnType.isPresent()) {
-      exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "return keyword not allowed outside of a method declaration"));
+      exceptions.add(new SemanticException(returnStatement.getTextLocation(), SemanticException.Type.INVALID_KEYWORD, "return keyword not allowed outside of a method declaration"));
     } else {
 
       if (!expression.isPresent() && returnType.get() != MethodType.VOID) {
-        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must return expression for method not of type void"));
+        exceptions.add(new SemanticException(returnStatement.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "must return expression for method not of type void"));
 
       } else if (expression.isPresent() && expressionExceptions.isEmpty()) {
         final VariableType expressionType = expression.get().accept(new ExpressionChecker(symbolTable));
-        if (!expressionType.toMethodType().equals(returnType.get())) { // NOTE: not super clean, comparing enums with string conversion
-          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "type of returned expression must match method return type, must not return expression for method of type void"));
+        if (!expressionType.toMethodType().equals(returnType.get())) {
+          exceptions.add(new SemanticException(expression.get().getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "type of returned expression must match method return type, must not return expression for method of type void"));
         }
       }
     }
@@ -322,7 +321,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final List<SemanticException> exceptions = new ArrayList<>();
 
     if (!inLoop) {
-      exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "break keyword not allowed outside of a loop"));
+      exceptions.add(new SemanticException(breakStatement.getTextLocation(), SemanticException.Type.INVALID_KEYWORD, "break keyword not allowed outside of a loop"));
     }
 
     return exceptions;
@@ -332,7 +331,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final List<SemanticException> exceptions = new ArrayList<>();
 
     if (!inLoop) {
-      exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "continue keyword not allowed outside of a loop"));
+      exceptions.add(new SemanticException(continueStatement.getTextLocation(), SemanticException.Type.INVALID_KEYWORD, "continue keyword not allowed outside of a loop"));
     }
 
     return exceptions;
@@ -354,8 +353,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final VariableType leftType = left.accept(new ExpressionChecker(symbolTable));
       final VariableType rightType = right.accept(new ExpressionChecker(symbolTable));
 
-      if (!leftType.equals(rightType) || !binaryExpression.acceptsType(leftType) || !binaryExpression.acceptsType(rightType)) {
-        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "lhs, rhs, and binary operator in binary expression must match types"));
+      if (!leftType.equals(rightType)) {
+        exceptions.add(new SemanticException(binaryExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "left and right side of binary operator must have same type"));
+      } else if (!binaryExpression.acceptsType(leftType)) {
+        exceptions.add(new SemanticException(binaryExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "incorrect operand types for binary operator"));
       }
     }
 
@@ -374,7 +375,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
 
       if (!unaryExpression.acceptsType(expressionType)) {
-        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "incorrect input type to unary operator "));
+        exceptions.add(new SemanticException(expression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "incorrect operand type for unary operator"));
       }
     }
 
@@ -401,17 +402,17 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
           // offset evaluates to integer
           final VariableType offsetType = offset.get().accept(new ExpressionChecker(symbolTable));
           if (!offsetType.equals(VariableType.INTEGER)) {
-            exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "array index must evaluate to an integer"));
+            exceptions.add(new SemanticException(offset.get().getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "array index must evaluate to an integer"));
           }
         }
       } else {
-        exceptions.add(new SemanticException(SemanticException.Type.MISSING_SYMBOL, "array must have index"));
+        exceptions.add(new SemanticException(locationExpression.getTextLocation(), SemanticException.Type.MISSING_SYMBOL, "array must have index"));
       }
 
     } else if (symbolTable.exists(locationId)) {
-      exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "invalid location: " + locationId));
+      exceptions.add(new SemanticException(locationExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "invalid location: " + locationId));
     } else {
-      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + locationId));
+      exceptions.add(new SemanticException(locationExpression.getTextLocation(), SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + locationId));
     }
 
     return exceptions;
@@ -423,7 +424,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final String identifier = methodCallExpression.getIdentifier();
 
     if (!symbolTable.methodExists(identifier) || !symbolTable.importExists(identifier)) {
-      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + identifier));
+      exceptions.add(new SemanticException(methodCallExpression.getTextLocation(), SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + identifier));
     }
 
     // NOTE: should not have any shadowing methods
@@ -431,7 +432,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
       // Cannot have a method with returnType void
       if (symbolTable.methodReturnType(identifier).equals(MethodType.VOID)) {
-          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "method of return type void in expression"));
+        exceptions.add(new SemanticException(methodCallExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "method of return type void in expression"));
       }
 
       List<VariableType> methodDeclarationArguments = symbolTable.methodArgumentTypes(identifier); 
@@ -456,7 +457,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
         final int call_size = methodCallExpressions.size();
 
         if (decl_size != call_size) {
-          exceptions.add(new SemanticException(SemanticException.Type.INCOMPATIBLE_ARGUMENTS, "incorrect number of arguments, expected "+decl_size+" got "+call_size));
+          exceptions.add(new SemanticException(methodCallExpression.getTextLocation(), SemanticException.Type.INCOMPATIBLE_ARGUMENTS, "incorrect number of arguments, expected "+decl_size+" got "+call_size));
         } else {
 
           for (int i=0; i < decl_size; i++) {
@@ -464,7 +465,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
             VariableType declaredArgumentType = methodDeclarationArguments.get(i);
 
             if (!declaredArgumentType.equals(callArgumentType)) {
-              exceptions.add(new SemanticException(SemanticException.Type.INCOMPATIBLE_ARGUMENTS, ""+i+"(th/st) argument of incorrect type, expected " + declaredArgumentType.name()+" got "+callArgumentType.name()));
+              exceptions.add(new SemanticException(methodCallExpressions.get(i).getTextLocation(), SemanticException.Type.INCOMPATIBLE_ARGUMENTS, ""+i+"(th/st) argument of incorrect type, expected " + declaredArgumentType.name()+" got "+callArgumentType.name()));
             }
 
           }
@@ -481,7 +482,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final String identifier = lengthExpression.getIdentifier();
 
     if (!symbolTable.arrayExists(identifier)) {
-      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + identifier));
+      exceptions.add(new SemanticException(lengthExpression.getTextLocation(), SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + identifier));
     }
 
     return exceptions;
