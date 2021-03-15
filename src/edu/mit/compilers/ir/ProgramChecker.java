@@ -72,7 +72,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
 		if (symbolTable.exists(identifier)) {
 			exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
-		}
+		} else {
+      symbolTable.addMethod(identifier, methodDeclaration.getMethodType(), methodDeclaration.getArgumentTypes());
+    }
 		exceptions.addAll(block.accept(new ProgramChecker(symbolTable, inLoop, type))); // pass in new type
 
 		return exceptions;
