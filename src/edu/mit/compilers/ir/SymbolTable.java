@@ -116,15 +116,33 @@ public class SymbolTable {
   }
 
   public MethodType methodReturnType(String identifier) {
-    return methodDeclarations.get(identifier).getReturnType();
+    if (methodDeclarations.containsKey(identifier)) {
+      return methodDeclarations.get(identifier).getReturnType();
+    } else if (parent.isPresent()) {
+      return parent.get().methodReturnType(identifier);
+    } else {
+      throw new RuntimeException("method not in symbol table");
+    }
   }
 
   public List<VariableType> methodArgumentTypes(String identifier) {
-    return new ArrayList<>(methodDeclarations.get(identifier).argumentTypes);
+    if (methodDeclarations.containsKey(identifier)) {
+      return List.copyOf(methodDeclarations.get(identifier).argumentTypes);
+    } else if (parent.isPresent()) {
+      return parent.get().methodArgumentTypes(identifier);
+    } else {
+      throw new RuntimeException("method not in symbol table");
+    }
   }
 
   public VariableType scalarType(String identifier) {
-    return scalarDeclarations.get(identifier).getType();
+    if (scalarDeclarations.containsKey(identifier)) {
+      return scalarDeclarations.get(identifier).getType();
+    } else if (parent.isPresent()) {
+      return parent.get().scalarType(identifier);
+    } else {
+      throw new RuntimeException("scalar not in symbol table");
+    }
   }
 
   public VariableType arrayType(String identifier) {
