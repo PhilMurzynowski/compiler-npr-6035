@@ -278,7 +278,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 			final VariableType leftType = left.accept(new ExpressionChecker(symbolTable));
 			final VariableType rightType = right.accept(new ExpressionChecker(symbolTable));
 
-			if (!binaryExpression.acceptsType(leftType) || !binaryExpression.acceptsType(rightType)) {
+			if (!leftType.equals(rightType) || !binaryExpression.acceptsType(leftType) || !binaryExpression.acceptsType(rightType)) {
 				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "lhs, rhs, and binary operator in binary expression must match types"));
 			}
 		}
