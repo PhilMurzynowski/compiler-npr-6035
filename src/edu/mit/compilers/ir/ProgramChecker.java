@@ -1,5 +1,7 @@
 package edu.mit.compilers.ir;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -518,8 +520,13 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
   public List<SemanticException> visit(ASTIntegerLiteral integerLiteral) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
-    // check that integer is in range
-    // TODO: update ASTIntegerLiteral to tolerate values out of range
+    // if negated and Long.MIN_VALUE > -(integerLiteral)
+    if (isNegated && BigInteger.valueOf(Long.MIN_VALUE).compareTo(integerLiteral.getValue().negate()) > 0) {
+      exceptions.add(new SemanticException(integerLiteral.getTextLocation(), SemanticException.Type.OUT_OF_RANGE, "negative integer -" + integerLiteral.getValue().toString() + " is out of range"));
+    // if Long.MAX_VALUE < -(integerLiteral)
+    } else if ((!isNegated) && BigInteger.valueOf(Long.MAX_VALUE).compareTo(integerLiteral.getValue()) < 0) {
+      exceptions.add(new SemanticException(integerLiteral.getTextLocation(), SemanticException.Type.OUT_OF_RANGE, "positive integer " + integerLiteral.getValue().toString() + " is out of range"));
+    }
 
     return exceptions;
   }

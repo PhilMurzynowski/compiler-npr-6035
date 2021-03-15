@@ -2,20 +2,26 @@ package edu.mit.compilers.ast;
 
 import edu.mit.compilers.common.*;
 
+import java.math.BigInteger;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTIntegerLiteral implements ASTExpression {
 
   private final TextLocation textLocation;
-  private final String value;
+  private final BigInteger value;
 
-  public ASTIntegerLiteral(TextLocation textLocation, String value) {
+  public ASTIntegerLiteral(TextLocation textLocation, BigInteger value) {
     this.textLocation = textLocation;
     this.value = value;
   }
 
+  public BigInteger getValue() {
+    return value;
+  }
+
   public boolean isZero() {
-    return value.matches("0+");
+    return BigInteger.valueOf(0).compareTo(value) == 0;
   }
 
   @Override

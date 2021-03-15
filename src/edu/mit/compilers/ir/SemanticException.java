@@ -19,6 +19,7 @@ public class SemanticException extends Exception {
     MISSING_SYMBOL,
     INCOMPATIBLE_ARGUMENTS,
     INVALID_ARRAY,
+    OUT_OF_RANGE,
   }
 
   private final TextLocation textLocation;

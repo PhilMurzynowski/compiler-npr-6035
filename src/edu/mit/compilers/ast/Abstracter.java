@@ -1,5 +1,6 @@
 package edu.mit.compilers.ast;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import edu.mit.compilers.common.*;
@@ -881,9 +882,9 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptIntegerLiteral.getChildren());
 
     if (nodes.peek().is(Token.Type.DECIMAL)) {
-      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), nodes.next().getText());
+      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), new BigInteger(nodes.next().getText(), 10));
     } else if (nodes.peek().is(Token.Type.HEXADECIMAL)) {
-      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), nodes.next().getText());
+      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), new BigInteger(nodes.next().getText().substring(2), 16));
     } else {
       throw new RuntimeException("unreachable");
     }
