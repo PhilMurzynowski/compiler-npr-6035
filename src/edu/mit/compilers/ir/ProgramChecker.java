@@ -424,7 +424,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     final String identifier = methodCallExpression.getIdentifier();
 
-    if (!symbolTable.methodExists(identifier) || !symbolTable.importExists(identifier)) {
+    if (!symbolTable.methodExists(identifier) && !symbolTable.importExists(identifier)) {
       exceptions.add(new SemanticException(methodCallExpression.getTextLocation(), SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + identifier));
     }
 
@@ -432,9 +432,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     if (symbolTable.methodExists(identifier)) {
 
       // Cannot have a method with returnType void
-      if (symbolTable.methodReturnType(identifier).equals(MethodType.VOID)) {
-        exceptions.add(new SemanticException(methodCallExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "method of return type void in expression"));
-      }
+      // NOTE(rbd): yeah, we can, if it is used in a MethodCallStatement. this case is covered by the ExpressionChecker
+      // if (symbolTable.methodReturnType(identifier).equals(MethodType.VOID)) {
+      //   exceptions.add(new SemanticException(methodCallExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "method of return type void in expression"));
+      // }
 
       List<VariableType> methodDeclarationArguments = symbolTable.methodArgumentTypes(identifier); 
       List<ASTArgument> methodCallArguments = methodCallExpression.getArguments();
