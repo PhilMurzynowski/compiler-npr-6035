@@ -6,7 +6,11 @@ import edu.mit.compilers.common.*;
 
 class ArgumentChecker implements ASTArgument.Visitor<Either<ASTExpression, SemanticException>> {
 
-  public ArgumentChecker() { }
+  private final SymbolTable symbolTable;
+
+  public ArgumentChecker(SymbolTable symbolTable) {
+    this.symbolTable = symbolTable;
+  }
 
   public Either<ASTExpression, SemanticException> visit(ASTBinaryExpression binaryExpression) {
     return Either.left(binaryExpression);
@@ -17,10 +21,17 @@ class ArgumentChecker implements ASTArgument.Visitor<Either<ASTExpression, Seman
   }
 
   public Either<ASTExpression, SemanticException> visit(ASTLocationExpression locationExpression) {
-    if (locationExpression.getOffset().isPresent()) {
+    final String locationId = locationExpression.getIdentifier();
+    if (symbolTable.scalarExists(locationId)) {
       return Either.left(locationExpression);
+    } else if (symbolTable.arrayExists(locationId)) {
+      if (locationExpression.getOffset().isPresent()) {
+        return Either.left(locationExpression);
+      } else {
+        return Either.right(new SemanticException(locationExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "Invalid array argument for declared method in method call"));
+      }
     } else {
-      return Either.right(new SemanticException(locationExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "Invalid array argument for declared method in method call"));
+      throw new RuntimeException("should never get here");
     }
   }
 

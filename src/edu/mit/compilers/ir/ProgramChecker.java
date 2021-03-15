@@ -458,13 +458,18 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       List<ASTExpression> methodCallExpressions = new ArrayList<>();
 
       for (ASTArgument callArgument : methodCallArguments) {
-        Either<ASTExpression, SemanticException> either = callArgument.accept(new ArgumentChecker());
+        List<SemanticException> callArgumentExceptions = callArgument.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of()));
+        argumentExceptions.addAll(callArgumentExceptions);
 
-        if (either.isRight()) {
-          argumentExceptions.add(either.right());
+        if (callArgumentExceptions.isEmpty()) {
+          Either<ASTExpression, SemanticException> either = callArgument.accept(new ArgumentChecker(symbolTable));
 
-        } else {
-          methodCallExpressions.add(either.left());
+          if (either.isRight()) {
+            argumentExceptions.add(either.right());
+
+          } else {
+            methodCallExpressions.add(either.left());
+          }
         }
       }
 

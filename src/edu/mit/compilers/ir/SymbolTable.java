@@ -127,22 +127,22 @@ public class SymbolTable {
 
   public boolean importExists(String identifier) {
     return importDeclarations.contains(identifier)
-      || (parent.isPresent() && parent.get().importExists(identifier));
+      || (!exists(identifier) && parent.isPresent() && parent.get().importExists(identifier));
   }
 
   public boolean methodExists(String identifier) {
     return methodDeclarations.containsKey(identifier)
-      || (parent.isPresent() && parent.get().methodExists(identifier));   
+      || (!exists(identifier) && parent.isPresent() && parent.get().methodExists(identifier));   
   }
 
   public boolean scalarExists(String identifier) {
     return scalarDeclarations.containsKey(identifier) 
-      || (parent.isPresent() && parent.get().scalarExists(identifier));
+      || (!exists(identifier) && parent.isPresent() && parent.get().scalarExists(identifier));
   }
 
   public boolean arrayExists(String identifier) {
     return arrayDeclarations.containsKey(identifier)
-      || (parent.isPresent() && parent.get().arrayExists(identifier));
+      || (!exists(identifier) && parent.isPresent() && parent.get().arrayExists(identifier));
   }
 
   public void addImport(String identifier) {
