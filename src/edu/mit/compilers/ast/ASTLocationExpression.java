@@ -47,6 +47,14 @@ public class ASTLocationExpression implements ASTExpression {
     }
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
+  public Optional<ASTExpression> getOffset() {
+    return offset;
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;

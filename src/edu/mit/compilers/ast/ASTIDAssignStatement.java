@@ -46,6 +46,14 @@ public class ASTIDAssignStatement implements ASTStatement {
     }
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
+  public ASTExpression getExpression() {
+    return expression;
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;

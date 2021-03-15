@@ -46,6 +46,14 @@ public class ASTWhileStatement implements ASTStatement {
     }
   }
 
+  public ASTExpression getCondition() {
+    return condition;
+  }
+
+  public ASTBlock getBody() {
+    return body;
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;

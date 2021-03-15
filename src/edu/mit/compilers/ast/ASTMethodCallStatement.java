@@ -14,6 +14,10 @@ public class ASTMethodCallStatement implements ASTStatement {
     this.call = call;
   }
 
+  public ASTMethodCallExpression getCall() {
+    return call;
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;

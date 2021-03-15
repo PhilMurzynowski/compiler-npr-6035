@@ -63,17 +63,17 @@ public class ASTBinaryExpression implements ASTExpression {
     }
   }
 
-	public ASTExpression getleft() {
-		return left;
-	}
+  public ASTExpression getleft() {
+	  return left;
+  }
 
-	public ASTExpression getright() {
-		return right;
-	}
+  public ASTExpression getright() {
+	  return right;
+  }
 
-	public Type getType() {
-		return type;
-	}
+  public Type getType() {
+	  return type;
+  }
 
   private boolean acceptsInteger() {
     return (type.equals(Type.EQUAL))

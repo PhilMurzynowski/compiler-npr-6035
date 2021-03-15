@@ -1,10 +1,5 @@
 package edu.mit.compilers.ir;
-import java.util.Optional;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import edu.mit.compilers.common.*;
 
@@ -24,7 +19,8 @@ class SymbolTable {
     private final List<VariableType> argumentTypes;
 
     public MethodDeclaration(MethodType returnType, List<VariableType> argumentTypes) {
-      throw new RuntimeException("not implemented"); // FIXME(rbd): @nmpauls I didn't do a defensive copy in addMethod, figuring you might do one here instead?
+      this.returnType = returnType;
+      this.argumentTypes = new ArrayList<>(argumentTypes);
     }
 
     public MethodType getReturnType() {
@@ -61,9 +57,12 @@ class SymbolTable {
 
   }
 
-  // Noah
   public SymbolTable() {
-    throw new RuntimeException("not implemented");
+    this.parent = Optional.empty();
+    this.importDeclarations = new HashSet<String>();
+    this.methodDeclarations = new HashMap<String, MethodDeclaration>();
+    this.scalarDeclarations = new HashMap<String, ScalarDeclaration>();
+    this.arrayDeclarations  = new HashMap<String, ArrayDeclaration>();
   }
 
   public SymbolTable(SymbolTable parent) {
@@ -81,9 +80,9 @@ class SymbolTable {
       || arrayDeclarations.containsKey(identifier);
   }
 
-  // Noah
   public boolean importExists(String identifier) {
-    throw new RuntimeException("not implemented");
+    return importDeclarations.contains(identifier)
+      || (parent.isPresent() && parent.get().importExists(identifier));
   }
 
   public boolean methodExists(String identifier) {
@@ -96,9 +95,9 @@ class SymbolTable {
       || (parent.isPresent() && parent.get().scalarExists(identifier));
   }
 
-  // Noah
   public boolean arrayExists(String identifier) {
-    throw new RuntimeException("not implemented");
+    return arrayDeclarations.containsKey(identifier)
+      || (parent.isPresent() && parent.get().arrayExists(identifier));
   }
 
   public void addImport(String identifier) {
@@ -109,9 +108,8 @@ class SymbolTable {
     methodDeclarations.put(identifier, new MethodDeclaration(returnType, argumentTypes));
   }
 
-  // Noah
   public void addScalar(String identifier, VariableType type) {
-    throw new RuntimeException("not implemented");
+    scalarDeclarations.put(identifier, new ScalarDeclaration(type));
   }
 
   public void addArray(String identifier, VariableType type) {
@@ -122,9 +120,8 @@ class SymbolTable {
     return methodDeclarations.get(identifier).getReturnType();
   }
 
-  // Noah
   public List<VariableType> methodArgumentTypes(String identifier) {
-    throw new RuntimeException("not implemented");
+    return new ArrayList<>(methodDeclarations.get(identifier).argumentTypes);
   }
 
   public VariableType scalarType(String identifier) {

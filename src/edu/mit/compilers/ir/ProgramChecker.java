@@ -7,15 +7,18 @@ import java.util.Optional;
 import edu.mit.compilers.ast.*;
 import edu.mit.compilers.common.*;
 
+import javax.print.attribute.standard.OrientationRequested;
+
 public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> {
 
   private final SymbolTable symbolTable;
   private final boolean inLoop;
   private final Optional<MethodType> returnType;
 
-  // Noah
   public ProgramChecker(SymbolTable symbolTable, boolean inLoop, Optional<MethodType> returnType) {
-    throw new RuntimeException("not implemented");
+    this.symbolTable = symbolTable;
+    this.inLoop = inLoop;
+    this.returnType = returnType;
   }
 
   public List<SemanticException> visit(ASTProgram program) {
@@ -58,9 +61,30 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTFieldDeclaration fieldDeclaration) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    final VariableType type = fieldDeclaration.getType();
+    for (ASTFieldDeclaration.Identifier identifier : fieldDeclaration.getIdentifiers()) {
+      // duplicate symbol check
+      if (symbolTable.exists(identifier.getIdentifier())) {
+        exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+      } else {
+        final Optional<ASTIntegerLiteral> length = identifier.getLength();
+        // check array index and add to array symbols
+        if (length.isPresent()) {
+          // TODO: check that array length is > 0 (rule 4)
+          final List<SemanticException> lengthExceptions = length.get().accept(new ProgramChecker(symbolTable, inLoop, returnType));
+          exceptions.addAll(lengthExceptions);
+          symbolTable.addArray(identifier.getIdentifier(), type);
+        // add to scalar symbols
+        } else {
+          symbolTable.addScalar(identifier.getIdentifier(), type);
+        }
+      }
+    }
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTMethodDeclaration methodDeclaration) {
@@ -72,7 +96,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
 		if (symbolTable.exists(identifier)) {
 			exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
-		}
+		} else {
+      symbolTable.addMethod(identifier, methodDeclaration.getMethodType(), methodDeclaration.getArgumentTypes());
+    }
 		exceptions.addAll(block.accept(new ProgramChecker(symbolTable, inLoop, type))); // pass in new type
 
 		return exceptions;
@@ -94,9 +120,37 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTIDAssignStatement idAssignStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    Optional<VariableType> identifierType = Optional.empty();
+    Optional<VariableType> expressionType = Optional.empty();
+
+    // scalar identifier exists
+    final String identifier = idAssignStatement.getIdentifier();
+    if (symbolTable.scalarExists(identifier)) {
+      identifierType = Optional.of(symbolTable.scalarType(identifier));
+    } else {
+      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "invalid scalar identifier " + identifier));
+    }
+
+    // expression is valid
+    final ASTExpression expression = idAssignStatement.getExpression();
+    final List<SemanticException> exprExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    exceptions.addAll(exprExceptions);
+    if (exprExceptions.isEmpty()) {
+      expressionType = Optional.of(expression.accept(new ExpressionChecker(symbolTable)));
+    }
+
+    // identifier type matches expression type
+    if (
+        identifierType.isPresent() && expressionType.isPresent()
+        && !(identifierType.get().equals(expressionType.get()))
+    ) {
+      exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "assign statement requires same type for location and evaluated expression"));
+    }
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTAssignStatement assignStatement) {
@@ -154,9 +208,13 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTMethodCallStatement methodCallStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // relies completely on ASTMethodCallExpression
+    exceptions.addAll(methodCallStatement.getCall().accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTIfStatement ifStatement) {
@@ -211,9 +269,25 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTWhileStatement whileStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // verify condition expression is valid and evaluates to boolean
+    final ASTExpression condition = whileStatement.getCondition();
+    final List<SemanticException> conditionExceptions =  condition.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    exceptions.addAll(conditionExceptions);
+    if (conditionExceptions.isEmpty()) {
+      final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
+      if (!conditionType.equals(VariableType.BOOLEAN)) {
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "while loop condition expression requires a boolean"));
+      }
+    }
+
+    // collect semantic errors from body
+    final ASTBlock body = whileStatement.getBody();
+    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, true, returnType)));
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTReturnStatement returnStatement) {
@@ -235,10 +309,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must return expression for method not of type void"));
 
 			} else if (expression.isPresent() && expressionExceptions.isEmpty()) {
-					final VariableType expressionType = expression.get().accept(new ExpressionChecker(symbolTable));
-					if (!expressionType.name().equals(returnType.get().name())) { // NOTE: not super clean, comparing enums with string conversion
-						exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "type of returned expression must match method return type, must not return expression for method of type void"));
-					}
+        final VariableType expressionType = expression.get().accept(new ExpressionChecker(symbolTable));
+        if (!expressionType.toMethodType().equals(returnType.get())) { // NOTE: not super clean, comparing enums with string conversion
+          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "type of returned expression must match method return type, must not return expression for method of type void"));
+        }
 			}
 		}
 		
@@ -256,9 +330,14 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTContinueStatement continueStatement) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    if (!inLoop) {
+      exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "continue keyword not allowed outside of a loop"));
+    }
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTBinaryExpression binaryExpression) {
@@ -278,29 +357,8 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 			final VariableType leftType = left.accept(new ExpressionChecker(symbolTable));
 			final VariableType rightType = right.accept(new ExpressionChecker(symbolTable));
 
-			final boolean booleanOp = (type == ASTBinaryExpression.Type.OR
-															|| type == ASTBinaryExpression.Type.AND
-															|| type == ASTBinaryExpression.Type.EQUAL
-															|| type == ASTBinaryExpression.Type.NOT_EQUAL);
-			
-			final boolean integerOp = (type == ASTBinaryExpression.Type.EQUAL
-															|| type == ASTBinaryExpression.Type.NOT_EQUAL
-															|| type == ASTBinaryExpression.Type.LESS_THAN
-															|| type == ASTBinaryExpression.Type.LESS_THAN_OR_EQUAL
-															|| type == ASTBinaryExpression.Type.GREATER_THAN
-															|| type == ASTBinaryExpression.Type.GREATER_THAN_OR_EQUAL
-															|| type == ASTBinaryExpression.Type.ADD
-															|| type == ASTBinaryExpression.Type.SUBTRACT
-															|| type == ASTBinaryExpression.Type.MULTIPLY
-															|| type == ASTBinaryExpression.Type.DIVIDE
-															|| type == ASTBinaryExpression.Type.MODULUS);
-			
-			if (leftType != rightType) {
-				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "types in binary expression must match"));
-			} else if (booleanOp && (leftType != VariableType.BOOLEAN)) {
-				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must use boolean binary operator for boolean expressions"));
-			} else if (integerOp && (leftType != VariableType.INTEGER)) {
-				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must use integer binary operator for integer expressions"));
+			if (!leftType.equals(rightType) || !binaryExpression.acceptsType(leftType) || !binaryExpression.acceptsType(rightType)) {
+				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "lhs, rhs, and binary operator in binary expression must match types"));
 			}
 		}
 
@@ -326,15 +384,98 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTLocationExpression locationExpression) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    final String locationId = locationExpression.getIdentifier();
+    // location is scalar variable
+    if (symbolTable.scalarExists(locationId)) {
+      return exceptions;
+
+    // location is array variable
+    } else if (symbolTable.arrayExists(locationId)) {
+      // array has offset
+      final Optional<ASTExpression> offset = locationExpression.getOffset();
+      if (offset.isPresent()) {
+        // offset is semantically valid
+        final List<SemanticException> offsetExceptions = offset.get().accept(new ProgramChecker(symbolTable, inLoop, returnType));
+        exceptions.addAll(offsetExceptions);
+        if (offsetExceptions.isEmpty()) {
+          // offset evaluates to integer
+          final VariableType offsetType = offset.get().accept(new ExpressionChecker(symbolTable));
+          if (!offsetType.equals(VariableType.INTEGER)) {
+            exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "array index must evaluate to an integer"));
+          }
+        }
+      } else {
+        exceptions.add(new SemanticException(SemanticException.Type.MISSING_SYMBOL, "array must have index"));
+      }
+
+    } else if (symbolTable.exists(locationId)) {
+      exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "invalid location: " + locationId));
+    } else {
+      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + locationId));
+    }
+
+    return exceptions;
   }
 
-  // Phil
   public List<SemanticException> visit(ASTMethodCallExpression methodCallExpression) {
-		// check if exists
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    final String identifier = methodCallExpression.getIdentifier();
+
+    if (!symbolTable.methodExists(identifier) || !symbolTable.importExists(identifier)) {
+      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_IDENTIFIER, "undefined identifier " + identifier));
+    }
+
+    // NOTE: should not have any shadowing methods
+    if (symbolTable.methodExists(identifier)) {
+
+      // Cannot have a method with returnType void
+      if (symbolTable.methodReturnType(identifier).equals(MethodType.VOID)) {
+          exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "method of return type void in expression"));
+      }
+
+      List<VariableType> methodDeclarationArguments = symbolTable.methodArgumentTypes(identifier); 
+      List<ASTArgument> methodCallArguments = methodCallExpression.getArguments();
+      List<SemanticException> argumentExceptions = new ArrayList<>();
+      // Arguments after they have been converted to ASTExpressions
+      List<ASTExpression> methodCallExpressions = new ArrayList<>();
+
+      for (ASTArgument callArgument : methodCallArguments) {
+        Either<ASTExpression, SemanticException> either = callArgument.accept(new ArgumentChecker(symbolTable));
+
+        if (either.isRight()) {
+          argumentExceptions.add(either.right());
+
+        } else {
+          methodCallExpressions.add(either.left());
+        }
+      }
+
+      if (argumentExceptions.isEmpty()) {
+        final int decl_size = methodDeclarationArguments.size();
+        final int call_size = methodCallExpressions.size();
+
+        if (decl_size != call_size) {
+          exceptions.add(new SemanticException(SemanticException.Type.INCOMPATIBLE_ARGUMENTS, "incorrect number of arguments, expected "+decl_size+" got "+call_size));
+        } else {
+
+          for (int i=0; i < decl_size; i++) {
+            VariableType callArgumentType = methodCallExpressions.get(i).accept(new ExpressionChecker(symbolTable));
+            VariableType declaredArgumentType = methodDeclarationArguments.get(i);
+
+            if (!declaredArgumentType.equals(callArgumentType)) {
+              exceptions.add(new SemanticException(SemanticException.Type.INCOMPATIBLE_ARGUMENTS, ""+i+"(th/st) argument of incorrect type, expected " + declaredArgumentType.name()+" got "+callArgumentType.name()));
+            }
+
+          }
+        }
+      }
+    }
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTLengthExpression lengthExpression) {
@@ -349,9 +490,13 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTIntegerLiteral integerLiteral) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // check that integer is in range
+    // TODO: update ASTIntegerLiteral to tolerate values out of range
+
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTCharacterLiteral characterLiteral) {
@@ -367,9 +512,12 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTStringLiteral stringLiteral) {
-    throw new RuntimeException("not implemented");
+    final List<SemanticException> exceptions = new ArrayList<>();
+
+    // NOTE(nmp): Nothing to check.
+
+    return exceptions;
   }
 
 }
