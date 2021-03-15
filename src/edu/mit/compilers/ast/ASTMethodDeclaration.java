@@ -138,6 +138,14 @@ public class ASTMethodDeclaration implements ASTNode {
 		return arguments;
 	}
 
+	public List<VariableType> getArgumentTypes() {
+    List<VariableType> argumentTypes = new ArrayList<>();
+    for (Argument argument : this.getArguments()) {
+      argumentTypes.add(argument.type);
+    }
+		return argumentTypes;
+	}
+
 	public ASTBlock getBlock() {
 		return block;
 	}

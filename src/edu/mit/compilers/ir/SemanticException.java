@@ -15,6 +15,7 @@ public class SemanticException extends Exception {
     UNDEFINED_IDENTIFIER,
 	  UNDEFINED_MAIN,
     MISSING_SYMBOL,
+    INCOMPATIBLE_ARGUMENTS,
   }
 
   private final Type type;
