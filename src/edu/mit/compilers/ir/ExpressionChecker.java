@@ -9,7 +9,7 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
   // Noah
   public ExpressionChecker(SymbolTable symbolTable) {
-    throw new RuntimeException("not implemented");
+    this.symbolTable = symbolTable;
   }
 
   // Phil
@@ -27,7 +27,14 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
   // Noah
   public VariableType visit(ASTLocationExpression locationExpression) {
-    throw new RuntimeException("not implemented");
+    final String locationId = locationExpression.getIdentifier();
+    if (symbolTable.scalarExists(locationId)) {
+      return symbolTable.scalarType(locationId);
+    } else if (symbolTable.arrayExists(locationId)) {
+      return symbolTable.arrayType(locationId);
+    } else {
+      throw new RuntimeException("should never get here");
+    }
   }
 
   // Phil
@@ -41,7 +48,7 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
   // Noah
   public VariableType visit(ASTIntegerLiteral integerLiteral) {
-    throw new RuntimeException("not implemented");
+    return VariableType.INTEGER;
   }
 
   // Phil
