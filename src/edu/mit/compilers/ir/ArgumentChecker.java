@@ -17,7 +17,11 @@ class ArgumentChecker implements ASTArgument.Visitor<Either<ASTExpression, Seman
   }
 
   public Either<ASTExpression, SemanticException> visit(ASTLocationExpression locationExpression) {
-    return Either.left(locationExpression);
+    if (locationExpression.getOffset().isPresent()) {
+      return Either.left(locationExpression);
+    } else {
+      return Either.right(new SemanticException(locationExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "Invalid array argument for declared method in method call"));
+    }
   }
 
   public Either<ASTExpression, SemanticException> visit(ASTMethodCallExpression methodCallExpression) {

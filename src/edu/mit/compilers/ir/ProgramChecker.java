@@ -401,8 +401,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final String locationId = locationExpression.getIdentifier();
     // location is scalar variable
     if (symbolTable.scalarExists(locationId)) {
+      if (locationExpression.getOffset().isPresent()) {
+        exceptions.add(new SemanticException(locationExpression.getTextLocation(), SemanticException.Type.TYPE_MISMATCH, "cannot index a scalar"));
+      }
       return exceptions;
-
     // location is array variable
     } else if (symbolTable.arrayExists(locationId)) {
       // array has offset
@@ -465,6 +467,8 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
           methodCallExpressions.add(either.left());
         }
       }
+
+      exceptions.addAll(argumentExceptions);
 
       if (argumentExceptions.isEmpty()) {
         final int decl_size = methodDeclarationArguments.size();
