@@ -39,7 +39,7 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
     if (symbolTable.importExists(identifier)) {
       return VariableType.INTEGER;
-    } /* methodExists */ {
+    } else /* if (symbolTable.methodExists(identifier)) */ {
       // NOTE: ProgramChecker checks that returnType is not void
       return symbolTable.methodReturnType(identifier).toVariableType();
     }

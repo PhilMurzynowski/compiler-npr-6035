@@ -12,7 +12,6 @@ class SymbolTable {
   private final Map<String, ScalarDeclaration> scalarDeclarations;
   private final Map<String, ArrayDeclaration> arrayDeclarations;
 
-  // Noah
   private static class MethodDeclaration {
 
     private final MethodType returnType;
@@ -34,7 +33,7 @@ class SymbolTable {
     private final VariableType type;
 
     public ScalarDeclaration(VariableType type) {
-			this.type = type;
+      this.type = type;
     }
 
     public VariableType getType() {
@@ -66,11 +65,11 @@ class SymbolTable {
   }
 
   public SymbolTable(SymbolTable parent) {
-		this.parent = Optional.of(parent);
-		this.importDeclarations = new HashSet<String>();
-		this.methodDeclarations = new HashMap<String, MethodDeclaration>(); 
-		this.scalarDeclarations = new HashMap<String, ScalarDeclaration>(); 
-		this.arrayDeclarations  = new HashMap<String, ArrayDeclaration>(); 
+    this.parent = Optional.of(parent);
+    this.importDeclarations = new HashSet<String>();
+    this.methodDeclarations = new HashMap<String, MethodDeclaration>(); 
+    this.scalarDeclarations = new HashMap<String, ScalarDeclaration>(); 
+    this.arrayDeclarations  = new HashMap<String, ArrayDeclaration>(); 
   }
 
   public boolean exists(String identifier) {
@@ -86,8 +85,8 @@ class SymbolTable {
   }
 
   public boolean methodExists(String identifier) {
-		return methodDeclarations.containsKey(identifier)
-			|| (parent.isPresent() && parent.get().methodExists(identifier));		
+    return methodDeclarations.containsKey(identifier)
+      || (parent.isPresent() && parent.get().methodExists(identifier));   
   }
 
   public boolean scalarExists(String identifier) {
@@ -101,7 +100,7 @@ class SymbolTable {
   }
 
   public void addImport(String identifier) {
-		importDeclarations.add(identifier);
+    importDeclarations.add(identifier);
   }
 
   public void addMethod(String identifier, MethodType returnType, List<VariableType> argumentTypes) {
@@ -125,7 +124,7 @@ class SymbolTable {
   }
 
   public VariableType scalarType(String identifier) {
-		return scalarDeclarations.get(identifier).getType();
+    return scalarDeclarations.get(identifier).getType();
   }
 
   public VariableType arrayType(String identifier) {

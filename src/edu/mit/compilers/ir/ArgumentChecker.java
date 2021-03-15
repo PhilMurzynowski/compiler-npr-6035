@@ -6,11 +6,7 @@ import edu.mit.compilers.common.*;
 
 class ArgumentChecker implements ASTArgument.Visitor<Either<ASTExpression, SemanticException>> {
 
-  private final SymbolTable symbolTable;
-  
-  public ArgumentChecker(SymbolTable symbolTable) {
-    throw new RuntimeException("not implemented");
-  }
+  public ArgumentChecker() { }
 
   public Either<ASTExpression, SemanticException> visit(ASTBinaryExpression binaryExpression) {
     return Either.left(binaryExpression);

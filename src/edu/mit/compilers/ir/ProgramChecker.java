@@ -7,8 +7,6 @@ import java.util.Optional;
 import edu.mit.compilers.ast.*;
 import edu.mit.compilers.common.*;
 
-import javax.print.attribute.standard.OrientationRequested;
-
 public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> {
 
   private final SymbolTable symbolTable;
@@ -24,27 +22,27 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
   public List<SemanticException> visit(ASTProgram program) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
-		// not creating symbol table
-		for (ASTImportDeclaration importDeclaration : program.getImportDeclarations()) {
-			exceptions.addAll(importDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
-		}
-		for (ASTFieldDeclaration fieldDeclaration : program.getFieldDeclarations()) {
-			exceptions.addAll(fieldDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
-		}
-		boolean hasValidMainDeclaration = false;
-		for (ASTMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
-			exceptions.addAll(methodDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
-			// check for valid main function
-			if (methodDeclaration.getIdentifier().equals("main")
-			 && methodDeclaration.getMethodType() == MethodType.VOID
-			 && methodDeclaration.getArguments().isEmpty()) {
-					hasValidMainDeclaration = true;	
-			}
-		}
-		if (!hasValidMainDeclaration) {	
-			exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_MAIN, "missing declaration of main method in program"));
-		}
-		return exceptions;
+    // not creating symbol table
+    for (ASTImportDeclaration importDeclaration : program.getImportDeclarations()) {
+      exceptions.addAll(importDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+    }
+    for (ASTFieldDeclaration fieldDeclaration : program.getFieldDeclarations()) {
+      exceptions.addAll(fieldDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+    }
+    boolean hasValidMainDeclaration = false;
+    for (ASTMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
+      exceptions.addAll(methodDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType)));
+      // check for valid main function
+      if (methodDeclaration.getIdentifier().equals("main")
+       && methodDeclaration.getMethodType() == MethodType.VOID
+       && methodDeclaration.getArguments().isEmpty()) {
+          hasValidMainDeclaration = true; 
+      }
+    }
+    if (!hasValidMainDeclaration) { 
+      exceptions.add(new SemanticException(SemanticException.Type.UNDEFINED_MAIN, "missing declaration of main method in program"));
+    }
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTImportDeclaration importDeclaration) {
@@ -88,20 +86,20 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
   }
 
   public List<SemanticException> visit(ASTMethodDeclaration methodDeclaration) {
-		final List<SemanticException> exceptions = new ArrayList<>();
+    final List<SemanticException> exceptions = new ArrayList<>();
 
-		final String identifier = methodDeclaration.getIdentifier();
-		final ASTBlock block = methodDeclaration.getBlock();
-		final Optional<MethodType> type = Optional.of(methodDeclaration.getMethodType());
+    final String identifier = methodDeclaration.getIdentifier();
+    final ASTBlock block = methodDeclaration.getBlock();
+    final Optional<MethodType> type = Optional.of(methodDeclaration.getMethodType());
 
-		if (symbolTable.exists(identifier)) {
-			exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
-		} else {
+    if (symbolTable.exists(identifier)) {
+      exceptions.add(new SemanticException(SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+    } else {
       symbolTable.addMethod(identifier, methodDeclaration.getMethodType(), methodDeclaration.getArgumentTypes());
     }
-		exceptions.addAll(block.accept(new ProgramChecker(symbolTable, inLoop, type))); // pass in new type
+    exceptions.addAll(block.accept(new ProgramChecker(symbolTable, inLoop, type))); // pass in new type
 
-		return exceptions;
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTBlock block) {
@@ -154,24 +152,24 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
   }
 
   public List<SemanticException> visit(ASTAssignStatement assignStatement) {
-		final List<SemanticException> exceptions = new ArrayList<>();
+    final List<SemanticException> exceptions = new ArrayList<>();
 
-		ASTLocationExpression location = assignStatement.getLocation();
-		ASTExpression expression = assignStatement.getExpression();
+    ASTLocationExpression location = assignStatement.getLocation();
+    ASTExpression expression = assignStatement.getExpression();
 
-		final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType));
-		final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType));
-		exceptions.addAll(locationExceptions);
+    final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType));
+    exceptions.addAll(locationExceptions);
 
-		if (locationExceptions.isEmpty() && expressionExceptions.isEmpty()) {
+    if (locationExceptions.isEmpty() && expressionExceptions.isEmpty()) {
       final VariableType locationType = location.accept(new ExpressionChecker(symbolTable));
       final VariableType expressionType = expression.accept(new ExpressionChecker(symbolTable));
         if (!expressionType.equals(locationType)) {
           exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "assign statement requries same type for location and evaluated expression"));
-				}
-		}
+        }
+    }
 
-		return exceptions;
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTCompoundAssignStatement compoundAssignStatement) {
@@ -221,8 +219,8 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final List<SemanticException> exceptions = new ArrayList<>();
 
     final ASTExpression condition = ifStatement.getCondition();
-		final ASTBlock body = ifStatement.getBody();
-		final Optional<ASTBlock> other = ifStatement.getOther();
+    final ASTBlock body = ifStatement.getBody();
+    final Optional<ASTBlock> other = ifStatement.getOther();
 
     final List<SemanticException> conditionExceptions = condition.accept(new ProgramChecker(symbolTable, inLoop, returnType));
     exceptions.addAll(conditionExceptions);
@@ -236,12 +234,12 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     }
 
     exceptions.addAll(body.accept(new ProgramChecker(symbolTable, true, returnType)));
-		if (other.isPresent()) {
-			exceptions.addAll(other.get().accept(new ProgramChecker(symbolTable, true, returnType)));
-		}
+    if (other.isPresent()) {
+      exceptions.addAll(other.get().accept(new ProgramChecker(symbolTable, true, returnType)));
+    }
 
 
-		return exceptions;
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTForStatement forStatement) {
@@ -292,32 +290,32 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   public List<SemanticException> visit(ASTReturnStatement returnStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
-		Optional<ASTExpression> expression = returnStatement.getExpression();
+    Optional<ASTExpression> expression = returnStatement.getExpression();
 
-		List<SemanticException> expressionExceptions = new ArrayList<SemanticException>();
+    List<SemanticException> expressionExceptions = new ArrayList<SemanticException>();
 
-		if (expression.isPresent()) {
-			expressionExceptions = expression.get().accept(new ProgramChecker(symbolTable, inLoop, returnType));
-			exceptions.addAll(expressionExceptions);
-		}
+    if (expression.isPresent()) {
+      expressionExceptions = expression.get().accept(new ProgramChecker(symbolTable, inLoop, returnType));
+      exceptions.addAll(expressionExceptions);
+    }
 
-		if (!returnType.isPresent()) {
+    if (!returnType.isPresent()) {
       exceptions.add(new SemanticException(SemanticException.Type.INVALID_KEYWORD, "return keyword not allowed outside of a method declaration"));
-		} else {
+    } else {
 
-			if (!expression.isPresent() && returnType.get() != MethodType.VOID) {
-				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must return expression for method not of type void"));
+      if (!expression.isPresent() && returnType.get() != MethodType.VOID) {
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "must return expression for method not of type void"));
 
-			} else if (expression.isPresent() && expressionExceptions.isEmpty()) {
+      } else if (expression.isPresent() && expressionExceptions.isEmpty()) {
         final VariableType expressionType = expression.get().accept(new ExpressionChecker(symbolTable));
         if (!expressionType.toMethodType().equals(returnType.get())) { // NOTE: not super clean, comparing enums with string conversion
           exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "type of returned expression must match method return type, must not return expression for method of type void"));
         }
-			}
-		}
-		
+      }
+    }
+    
 
-		return exceptions;
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTBreakStatement breakStatement) {
@@ -345,24 +343,23 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     final ASTExpression left = binaryExpression.getleft();
     final ASTExpression right = binaryExpression.getright();
-		final ASTBinaryExpression.Type type = binaryExpression.getType();
 
     final List<SemanticException> leftExceptions = left.accept(new ProgramChecker(symbolTable, inLoop, returnType));
     final List<SemanticException> rightExceptions = right.accept(new ProgramChecker(symbolTable, inLoop, returnType));
     exceptions.addAll(leftExceptions);
     exceptions.addAll(rightExceptions);
 
-		if (leftExceptions.isEmpty() && rightExceptions.isEmpty()) {
-			
-			final VariableType leftType = left.accept(new ExpressionChecker(symbolTable));
-			final VariableType rightType = right.accept(new ExpressionChecker(symbolTable));
+    if (leftExceptions.isEmpty() && rightExceptions.isEmpty()) {
+      
+      final VariableType leftType = left.accept(new ExpressionChecker(symbolTable));
+      final VariableType rightType = right.accept(new ExpressionChecker(symbolTable));
 
-			if (!leftType.equals(rightType) || !binaryExpression.acceptsType(leftType) || !binaryExpression.acceptsType(rightType)) {
-				exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "lhs, rhs, and binary operator in binary expression must match types"));
-			}
-		}
+      if (!leftType.equals(rightType) || !binaryExpression.acceptsType(leftType) || !binaryExpression.acceptsType(rightType)) {
+        exceptions.add(new SemanticException(SemanticException.Type.TYPE_MISMATCH, "lhs, rhs, and binary operator in binary expression must match types"));
+      }
+    }
 
-		return exceptions;
+    return exceptions;
   }
 
   public List<SemanticException> visit(ASTUnaryExpression unaryExpression) {
@@ -444,7 +441,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       List<ASTExpression> methodCallExpressions = new ArrayList<>();
 
       for (ASTArgument callArgument : methodCallArguments) {
-        Either<ASTExpression, SemanticException> either = callArgument.accept(new ArgumentChecker(symbolTable));
+        Either<ASTExpression, SemanticException> either = callArgument.accept(new ArgumentChecker());
 
         if (either.isRight()) {
           argumentExceptions.add(either.right());

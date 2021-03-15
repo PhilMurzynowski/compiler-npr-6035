@@ -1,6 +1,7 @@
 package edu.mit.compilers.common;
 
 public enum VariableType {
+
   INTEGER {
 
     @Override
@@ -20,4 +21,5 @@ public enum VariableType {
   };
 
   public abstract MethodType toMethodType();
+
 }
