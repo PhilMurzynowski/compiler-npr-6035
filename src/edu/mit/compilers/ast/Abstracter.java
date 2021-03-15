@@ -881,9 +881,9 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptIntegerLiteral.getChildren());
 
     if (nodes.peek().is(Token.Type.DECIMAL)) {
-      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), parseDecimal(nodes.next().getText()));
+      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), nodes.next().getText());
     } else if (nodes.peek().is(Token.Type.HEXADECIMAL)) {
-      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), parseHexadecimal(nodes.next().getText()));
+      integerLiteral = new ASTIntegerLiteral(ptIntegerLiteral.getTextLocation(), nodes.next().getText());
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -945,19 +945,11 @@ public class Abstracter {
     return stringLiteral;
   }
 
-  long parseDecimal(String decimal) {
-    return Long.decode(decimal);
-  }
-
-  long parseHexadecimal(String hexadecimal) {
-    return Long.decode(hexadecimal);
-  }
-
-  char parseCharacter(String character) {
+  private char parseCharacter(String character) {
     return character.charAt(1); // FIXME(rbd): Handle un/escape characters.
   }
 
-  String parseString(String string) {
+  private String parseString(String string) {
     return string.substring(1, string.length() - 1); // FIXME(rbd): Handle un/escape characters.
   }
 

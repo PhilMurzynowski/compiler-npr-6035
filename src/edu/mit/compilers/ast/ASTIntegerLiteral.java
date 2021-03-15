@@ -7,9 +7,9 @@ import static edu.mit.compilers.common.Utilities.indent;
 public class ASTIntegerLiteral implements ASTExpression {
 
   private final TextLocation textLocation;
-  private final long value;
+  private final String value;
 
-  public ASTIntegerLiteral(TextLocation textLocation, long value) {
+  public ASTIntegerLiteral(TextLocation textLocation, String value) {
     this.textLocation = textLocation;
     this.value = value;
   }
