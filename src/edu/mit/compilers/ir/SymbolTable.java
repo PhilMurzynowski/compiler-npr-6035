@@ -3,7 +3,7 @@ import java.util.*;
 
 import edu.mit.compilers.common.*;
 
-class SymbolTable {
+public class SymbolTable {
 
   private final Optional<SymbolTable> parent;
 

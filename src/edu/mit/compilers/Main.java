@@ -6,10 +6,13 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
+import java.util.Optional;
+import java.util.List;
 
 import edu.mit.compilers.tk.*;
 import edu.mit.compilers.pt.*;
-// import edu.mit.compilers.ast.*;
+import edu.mit.compilers.ast.*;
+import edu.mit.compilers.ir.*;
 
 class Main {
 
@@ -88,9 +91,6 @@ class Main {
   private static void parse(String filename, String input, PrintStream outputStream) {
     Lexer.Result lexerResult = new Lexer().lexAll(input);
     Parser.Result parserResult = new Parser().parseAll(lexerResult.getTokens());
-    // ASTProgram program = new Abstracter().abstractProgram(parserResult.getParseTree());
-
-    // System.err.println(program.prettyString(0));
 
     if (lexerResult.hasExceptions() || parserResult.hasExceptions()) {
       System.err.println("\n*** ERRORS ***\n");
@@ -106,6 +106,45 @@ class Main {
       System.exit(1);
     }
 
+  }
+
+  // FIXME(rbd): I reeeaaally need to make an abstract CompilerException class and stop copy-pasting this...
+
+  private static String semanticExceptionString(String filename, String input, SemanticException semanticException) {
+    StringBuilder output = new StringBuilder();
+    output.append(filename);
+    output.append(":" + semanticException.getTextLocation().getLine());
+    output.append(":" + semanticException.getTextLocation().getColumn());
+    output.append(": " + semanticException.getType());
+    output.append(": " + semanticException.getMessage() + ":\n\n");
+    output.append(input.split("\n", -1)[semanticException.getTextLocation().getLine() - 1] + "\n");
+    output.append(" ".repeat(semanticException.getTextLocation().getColumn() - 1) + "^");
+    return output.toString();
+  }
+
+  private static void check(String filename, String input, PrintStream outputStream) {
+    Lexer.Result lexerResult = new Lexer().lexAll(input);
+    Parser.Result parserResult = new Parser().parseAll(lexerResult.getTokens());
+    ASTProgram program = new Abstracter().abstractProgram(parserResult.getParseTree());
+    List<SemanticException> semanticExceptions = program.accept(new ProgramChecker(new SymbolTable(), false, Optional.empty()));
+
+    if (lexerResult.hasExceptions() || parserResult.hasExceptions() || !semanticExceptions.isEmpty()) {
+      System.err.println("\n*** ERRORS ***\n");
+
+      for (LexerException exception : lexerResult.getExceptions()) {
+        System.err.println(lexerExceptionString(filename, input, exception));
+      }
+
+      for (ParserException exception : parserResult.getExceptions()) {
+        System.err.println(parserExceptionString(filename, input, exception));
+      }
+
+      for (SemanticException exception : semanticExceptions) {
+        System.err.println(semanticExceptionString(filename, input, exception));
+      }
+
+      System.exit(1);
+    }
   }
 
   // https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
@@ -130,6 +169,9 @@ class Main {
         case PARSE:
         case DEFAULT:
           parse(CLI.infile == null ? "STDIN" : CLI.infile, input, outputStream);
+          break;
+        case INTER:
+          check(CLI.infile == null ? "STDIN" : CLI.infile, input, outputStream);
           break;
         default:
           break;
