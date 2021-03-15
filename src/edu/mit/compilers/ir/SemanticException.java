@@ -18,6 +18,7 @@ public class SemanticException extends Exception {
     UNDEFINED_MAIN,
     MISSING_SYMBOL,
     INCOMPATIBLE_ARGUMENTS,
+    INVALID_ARRAY,
   }
 
   private final TextLocation textLocation;

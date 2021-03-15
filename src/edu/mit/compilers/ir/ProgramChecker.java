@@ -73,7 +73,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
         final Optional<ASTIntegerLiteral> length = identifier.getLength();
         // check array index and add to array symbols
         if (length.isPresent()) {
-          // TODO: check that array length is > 0 (rule 4)
+          if (length.get().isZero()) {
+            exceptions.add(new SemanticException(length.get().getTextLocation(), SemanticException.Type.INVALID_ARRAY, "array size cannot be 0"));
+          }
           final List<SemanticException> lengthExceptions = length.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of()));
           exceptions.addAll(lengthExceptions);
           symbolTable.addArray(identifier.getIdentifier(), type);

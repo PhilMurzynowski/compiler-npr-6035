@@ -14,6 +14,10 @@ public class ASTIntegerLiteral implements ASTExpression {
     this.value = value;
   }
 
+  public boolean isZero() {
+    return value.matches("0+");
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;
