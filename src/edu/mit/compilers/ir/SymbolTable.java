@@ -3,6 +3,8 @@ import java.util.*;
 
 import edu.mit.compilers.common.*;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class SymbolTable {
 
   private final Optional<SymbolTable> parent;
@@ -26,6 +28,24 @@ public class SymbolTable {
       return returnType;
     }
 
+    public String debugString(int depth) {
+      StringBuilder s = new StringBuilder();
+      s.append("MethodDeclaration {\n");
+      s.append(indent(depth + 1) + "returnType: " + returnType + ",\n");
+      s.append(indent(depth + 1) + "argumentTypes: [\n");
+      for (VariableType argumentType : argumentTypes) {
+        s.append(indent(depth + 2) + argumentType + ",\n");
+      }
+      s.append(indent(depth + 1) + "],\n");
+      s.append(indent(depth) + "}");
+      return s.toString();
+    }
+
+    @Override
+    public String toString() {
+      return debugString(0);
+    }
+
   }
 
   private static class ScalarDeclaration {
@@ -40,6 +60,19 @@ public class SymbolTable {
       return type;
     }
 
+    public String debugString(int depth) {
+      StringBuilder s = new StringBuilder();
+      s.append("ScalarDeclaration {\n");
+      s.append(indent(depth + 1) + "type: " + type + ",\n");
+      s.append(indent(depth) + "}");
+      return s.toString();
+    }
+
+    @Override
+    public String toString() {
+      return debugString(0);
+    }
+
   }
 
   private static class ArrayDeclaration {
@@ -52,6 +85,19 @@ public class SymbolTable {
 
     public VariableType getType() {
       return type;
+    }
+
+    public String debugString(int depth) {
+      StringBuilder s = new StringBuilder();
+      s.append("ArrayDeclaration {\n");
+      s.append(indent(depth + 1) + "type: " + type + ",\n");
+      s.append(indent(depth) + "}");
+      return s.toString();
+    }
+
+    @Override
+    public String toString() {
+      return debugString(0);
     }
 
   }
@@ -146,7 +192,48 @@ public class SymbolTable {
   }
 
   public VariableType arrayType(String identifier) {
-    return arrayDeclarations.get(identifier).getType();
+    if (arrayDeclarations.containsKey(identifier)) {
+      return arrayDeclarations.get(identifier).getType();
+    } else if (parent.isPresent()) {
+      return parent.get().arrayType(identifier);
+    } else {
+      throw new RuntimeException("array not in symbol table");
+    }
+  }
+
+  public String debugString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("SymbolTable {\n");
+    if (parent.isPresent()) {
+      s.append(indent(depth + 1) + "parent: " + parent.get().debugString(depth + 1) + ",\n");
+    }
+    s.append(indent(depth + 1) + "importDeclarations: {\n");
+    for (String importDeclaration : importDeclarations) {
+      s.append(indent(depth + 2) + importDeclaration + ",\n");
+    }
+    s.append(indent(depth + 1) + "},\n");
+    s.append(indent(depth + 1) + "methodDeclarations: {\n");
+    for (Map.Entry<String, MethodDeclaration> methodDeclarationEntry : methodDeclarations.entrySet()) {
+      s.append(indent(depth + 2) + methodDeclarationEntry.getKey() + " => " + methodDeclarationEntry.getValue().debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "},\n");
+    s.append(indent(depth + 1) + "scalarDeclarations: {\n");
+    for (Map.Entry<String, ScalarDeclaration> scalarDeclarationEntry : scalarDeclarations.entrySet()) {
+      s.append(indent(depth + 2) + scalarDeclarationEntry.getKey() + " => " + scalarDeclarationEntry.getValue().debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "},\n");
+    s.append(indent(depth + 1) + "arrayDeclarations: {\n");
+    for (Map.Entry<String, ArrayDeclaration> arrayDeclarationEntry : arrayDeclarations.entrySet()) {
+      s.append(indent(depth + 2) + arrayDeclarationEntry.getKey() + " => " + arrayDeclarationEntry.getValue().debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "},\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
+  }
+
+  @Override
+  public String toString() {
+    return debugString(0);
   }
 
 }
