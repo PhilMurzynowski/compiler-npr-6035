@@ -126,7 +126,7 @@ class Main {
     Lexer.Result lexerResult = new Lexer().lexAll(input);
     Parser.Result parserResult = new Parser().parseAll(lexerResult.getTokens());
     ASTProgram program = new Abstracter().abstractProgram(parserResult.getParseTree());
-    List<SemanticException> semanticExceptions = program.accept(new ProgramChecker(new SymbolTable(), false, Optional.empty(), List.of()));
+    List<SemanticException> semanticExceptions = program.accept(new ProgramChecker(new SymbolTable(), false, Optional.empty(), List.of(), false));
 
     if (lexerResult.hasExceptions() || parserResult.hasExceptions() || !semanticExceptions.isEmpty()) {
       System.err.println("\n*** ERRORS ***\n");
