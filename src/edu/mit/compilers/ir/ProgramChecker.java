@@ -14,13 +14,15 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
   private final Optional<MethodType> returnType;
   private final List<ASTMethodDeclaration.Argument> arguments;
   private final boolean inStatement;
+  private final boolean isNegated;
 
-  public ProgramChecker(SymbolTable symbolTable, boolean inLoop, Optional<MethodType> returnType, List<ASTMethodDeclaration.Argument> arguments, boolean inStatement) {
+  public ProgramChecker(SymbolTable symbolTable, boolean inLoop, Optional<MethodType> returnType, List<ASTMethodDeclaration.Argument> arguments, boolean inStatement, boolean isNegated) {
     this.symbolTable = symbolTable;
     this.inLoop = inLoop;
     this.returnType = returnType;
     this.arguments = arguments;
     this.inStatement = inStatement;
+    this.isNegated = isNegated;
   }
 
   public List<SemanticException> visit(ASTProgram program) {
@@ -28,14 +30,14 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     // not creating symbol table
     for (ASTImportDeclaration importDeclaration : program.getImportDeclarations()) {
-      exceptions.addAll(importDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false)));
+      exceptions.addAll(importDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false)));
     }
     for (ASTFieldDeclaration fieldDeclaration : program.getFieldDeclarations()) {
-      exceptions.addAll(fieldDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false)));
+      exceptions.addAll(fieldDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false)));
     }
     boolean hasValidMainDeclaration = false;
     for (ASTMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
-      exceptions.addAll(methodDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false)));
+      exceptions.addAll(methodDeclaration.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false)));
       // check for valid main function
       if (methodDeclaration.getIdentifier().equals("main")
        && methodDeclaration.getMethodType() == MethodType.VOID
@@ -78,7 +80,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
           if (length.get().isZero()) {
             exceptions.add(new SemanticException(length.get().getTextLocation(), SemanticException.Type.INVALID_ARRAY, "array size cannot be 0"));
           }
-          final List<SemanticException> lengthExceptions = length.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+          final List<SemanticException> lengthExceptions = length.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
           exceptions.addAll(lengthExceptions);
           symbolTable.addArray(identifier.getIdentifier(), type);
         // add to scalar symbols
@@ -103,7 +105,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     } else {
       symbolTable.addMethod(identifier, methodDeclaration.getMethodType(), methodDeclaration.getArgumentTypes());
     }
-    exceptions.addAll(block.accept(new ProgramChecker(symbolTable, inLoop, type, methodDeclaration.getArguments(), false))); // pass in new type and arguments
+    exceptions.addAll(block.accept(new ProgramChecker(symbolTable, inLoop, type, methodDeclaration.getArguments(), false, false))); // pass in new type and arguments
 
     return exceptions;
   }
@@ -122,11 +124,11 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     }
 
     for (ASTFieldDeclaration fieldDeclaration : block.getFieldDeclarations()) {
-      exceptions.addAll(fieldDeclaration.accept(new ProgramChecker(blockSymbolTable, inLoop, returnType, List.of(), false)));
+      exceptions.addAll(fieldDeclaration.accept(new ProgramChecker(blockSymbolTable, inLoop, returnType, List.of(), false, false)));
     }
 
     for (ASTStatement statement : block.getStatements()) {
-      exceptions.addAll(statement.accept(new ProgramChecker(blockSymbolTable, inLoop, returnType, List.of(), false)));
+      exceptions.addAll(statement.accept(new ProgramChecker(blockSymbolTable, inLoop, returnType, List.of(), false, false)));
     }
 
     return exceptions;
@@ -148,7 +150,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     // expression is valid
     final ASTExpression expression = idAssignStatement.getExpression();
-    final List<SemanticException> exprExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> exprExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
     exceptions.addAll(exprExceptions);
     if (exprExceptions.isEmpty()) {
       expressionType = Optional.of(expression.accept(new ExpressionChecker(symbolTable)));
@@ -171,8 +173,8 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     ASTLocationExpression location = assignStatement.getLocation();
     ASTExpression expression = assignStatement.getExpression();
 
-    final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
-    final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
+    final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
     exceptions.addAll(locationExceptions);
     exceptions.addAll(expressionExceptions);
 
@@ -192,7 +194,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     final ASTLocationExpression location = compoundAssignStatement.getLocation();
 
-    final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
     exceptions.addAll(locationExceptions);
 
     if (locationExceptions.isEmpty()) {
@@ -206,7 +208,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     if (compoundAssignStatement.getExpression().isPresent()) {
       final ASTExpression expression = compoundAssignStatement.getExpression().get();
 
-      final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+      final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
       exceptions.addAll(expressionExceptions);
 
       if (expressionExceptions.isEmpty()) {
@@ -225,7 +227,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final List<SemanticException> exceptions = new ArrayList<>();
 
     // relies completely on ASTMethodCallExpression
-    exceptions.addAll(methodCallStatement.getCall().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), true)));
+    exceptions.addAll(methodCallStatement.getCall().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), true, false)));
 
     return exceptions;
   }
@@ -237,7 +239,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final ASTBlock body = ifStatement.getBody();
     final Optional<ASTBlock> other = ifStatement.getOther();
 
-    final List<SemanticException> conditionExceptions = condition.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> conditionExceptions = condition.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
     exceptions.addAll(conditionExceptions);
 
     if (conditionExceptions.isEmpty()) {
@@ -248,9 +250,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       }
     }
 
-    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false)));
+    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false)));
     if (other.isPresent()) {
-      exceptions.addAll(other.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false)));
+      exceptions.addAll(other.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false)));
     }
 
     return exceptions;
@@ -259,11 +261,11 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
   public List<SemanticException> visit(ASTForStatement forStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
-    exceptions.addAll(forStatement.getInitial().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false)));
+    exceptions.addAll(forStatement.getInitial().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false)));
 
     final ASTExpression condition = forStatement.getCondition();
 
-    final List<SemanticException> conditionExceptions = condition.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> conditionExceptions = condition.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
     exceptions.addAll(conditionExceptions);
 
     if (conditionExceptions.isEmpty()) {
@@ -274,9 +276,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       }
     }
 
-    exceptions.addAll(forStatement.getUpdate().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false)));
+    exceptions.addAll(forStatement.getUpdate().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false)));
 
-    exceptions.addAll(forStatement.getBody().accept(new ProgramChecker(symbolTable, true, returnType, List.of(), false)));
+    exceptions.addAll(forStatement.getBody().accept(new ProgramChecker(symbolTable, true, returnType, List.of(), false, false)));
 
     return exceptions;
   }
@@ -286,7 +288,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     // verify condition expression is valid and evaluates to boolean
     final ASTExpression condition = whileStatement.getCondition();
-    final List<SemanticException> conditionExceptions =  condition.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> conditionExceptions =  condition.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
     exceptions.addAll(conditionExceptions);
     if (conditionExceptions.isEmpty()) {
       final VariableType conditionType = condition.accept(new ExpressionChecker(symbolTable));
@@ -297,7 +299,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     // collect semantic errors from body
     final ASTBlock body = whileStatement.getBody();
-    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, true, returnType, List.of(), false)));
+    exceptions.addAll(body.accept(new ProgramChecker(symbolTable, true, returnType, List.of(), false, false)));
 
     return exceptions;
   }
@@ -309,7 +311,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     List<SemanticException> expressionExceptions = new ArrayList<SemanticException>();
 
     if (expression.isPresent()) {
-      expressionExceptions = expression.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+      expressionExceptions = expression.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
       exceptions.addAll(expressionExceptions);
     }
 
@@ -358,8 +360,8 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final ASTExpression left = binaryExpression.getleft();
     final ASTExpression right = binaryExpression.getright();
 
-    final List<SemanticException> leftExceptions = left.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
-    final List<SemanticException> rightExceptions = right.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> leftExceptions = left.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
+    final List<SemanticException> rightExceptions = right.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
     exceptions.addAll(leftExceptions);
     exceptions.addAll(rightExceptions);
 
@@ -383,7 +385,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     final ASTExpression expression = unaryExpression.getExpression();
 
-    final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+    final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, unaryExpression.getType().equals(ASTUnaryExpression.Type.NEGATE)));
     exceptions.addAll(expressionExceptions);
 
     if (expressionExceptions.isEmpty()) {
@@ -413,7 +415,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       final Optional<ASTExpression> offset = locationExpression.getOffset();
       if (offset.isPresent()) {
         // offset is semantically valid
-        final List<SemanticException> offsetExceptions = offset.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+        final List<SemanticException> offsetExceptions = offset.get().accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
         exceptions.addAll(offsetExceptions);
         if (offsetExceptions.isEmpty()) {
           // offset evaluates to integer
@@ -460,7 +462,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
       List<ASTExpression> methodCallExpressions = new ArrayList<>();
 
       for (ASTArgument callArgument : methodCallArguments) {
-        List<SemanticException> callArgumentExceptions = callArgument.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false));
+        List<SemanticException> callArgumentExceptions = callArgument.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, false));
         argumentExceptions.addAll(callArgumentExceptions);
 
         if (callArgumentExceptions.isEmpty()) {
