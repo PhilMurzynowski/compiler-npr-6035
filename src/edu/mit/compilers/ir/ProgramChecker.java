@@ -15,7 +15,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
   private final boolean inLoop;
   private final Optional<MethodType> returnType;
 
-  // Noah
   public ProgramChecker(SymbolTable symbolTable, boolean inLoop, Optional<MethodType> returnType) {
     this.symbolTable = symbolTable;
     this.inLoop = inLoop;
@@ -62,7 +61,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTFieldDeclaration fieldDeclaration) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -120,7 +118,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTIDAssignStatement idAssignStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -209,7 +206,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTMethodCallStatement methodCallStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -271,7 +267,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTWhileStatement whileStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -333,7 +328,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTContinueStatement continueStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -409,7 +403,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTLocationExpression locationExpression) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -464,7 +457,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTIntegerLiteral integerLiteral) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -487,7 +479,6 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
-  // Noah
   public List<SemanticException> visit(ASTStringLiteral stringLiteral) {
     final List<SemanticException> exceptions = new ArrayList<>();
 

@@ -6,8 +6,7 @@ import edu.mit.compilers.common.*;
 class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
 
   private final SymbolTable symbolTable;
-
-  // Noah
+  
   public ExpressionChecker(SymbolTable symbolTable) {
     this.symbolTable = symbolTable;
   }
@@ -25,7 +24,6 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
     }
   }
 
-  // Noah
   public VariableType visit(ASTLocationExpression locationExpression) {
     final String locationId = locationExpression.getIdentifier();
     if (symbolTable.scalarExists(locationId)) {
@@ -46,7 +44,6 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
     return VariableType.INTEGER;
   }
 
-  // Noah
   public VariableType visit(ASTIntegerLiteral integerLiteral) {
     return VariableType.INTEGER;
   }
