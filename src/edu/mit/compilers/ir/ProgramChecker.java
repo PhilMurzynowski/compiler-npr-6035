@@ -74,7 +74,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     for (ASTFieldDeclaration.Identifier identifier : fieldDeclaration.getIdentifiers()) {
       // duplicate symbol check
       if (symbolTable.exists(identifier.getIdentifier())) {
-        exceptions.add(new SemanticException(identifier.getTextLocation(), SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier));
+        exceptions.add(new SemanticException(identifier.getTextLocation(), SemanticException.Type.DUPLICATE_IDENTIFIER, "duplicate identifier " + identifier.getIdentifier()));
       } else {
         final Optional<ASTIntegerLiteral> length = identifier.getLength();
         // check array index and add to array symbols
