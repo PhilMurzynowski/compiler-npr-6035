@@ -160,6 +160,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     final List<SemanticException> locationExceptions = location.accept(new ProgramChecker(symbolTable, inLoop, returnType));
     final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType));
     exceptions.addAll(locationExceptions);
+    exceptions.addAll(expressionExceptions);
 
     if (locationExceptions.isEmpty() && expressionExceptions.isEmpty()) {
       final VariableType locationType = location.accept(new ExpressionChecker(symbolTable));
