@@ -7,13 +7,19 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class SymbolTable {
 
+  // the symbol table of the enclosing scope, if one exists
   private final Optional<SymbolTable> parent;
 
+  // the table contents: imports, methods, and fields.
   private final Set<String> importDeclarations;
   private final Map<String, MethodDeclaration> methodDeclarations;
   private final Map<String, ScalarDeclaration> scalarDeclarations;
   private final Map<String, ArrayDeclaration> arrayDeclarations;
 
+  /**
+   * Immutable type representing a method declaration, including its return type
+   * and argument types.
+   */
   private static class MethodDeclaration {
 
     private final MethodType returnType;
@@ -48,6 +54,9 @@ public class SymbolTable {
 
   }
 
+  /**
+   * Immutable type representing a scalar field declaration, including its type.
+   */
   private static class ScalarDeclaration {
 
     private final VariableType type;
@@ -75,6 +84,10 @@ public class SymbolTable {
 
   }
 
+  /**
+   * Immutable class representing an array field declaration, including its
+   * type.
+   */
   private static class ArrayDeclaration {
 
     private final VariableType type;
@@ -102,6 +115,9 @@ public class SymbolTable {
 
   }
 
+  /**
+   * Create an un-parented symbol table.
+   */
   public SymbolTable() {
     this.parent = Optional.empty();
     this.importDeclarations = new HashSet<String>();
@@ -110,6 +126,11 @@ public class SymbolTable {
     this.arrayDeclarations  = new HashMap<String, ArrayDeclaration>();
   }
 
+  /**
+   * Create a symbol table with a parent table.
+   *
+   * @param parent the symbol table from this table's enclosing scope.
+   */
   public SymbolTable(SymbolTable parent) {
     this.parent = Optional.of(parent);
     this.importDeclarations = new HashSet<String>();
@@ -118,6 +139,14 @@ public class SymbolTable {
     this.arrayDeclarations  = new HashMap<String, ArrayDeclaration>(); 
   }
 
+  /**
+   * Check whether an identifier exists in this symbol table's scope only. Does
+   * not traverse parent symbol tables to find the symbols.
+   *
+   * @param identifier the symbol to find
+   * @return whether a symbol of any kind with this identifier exists in the
+   *  table's scopes
+   */
   public boolean exists(String identifier) {
     return importDeclarations.contains(identifier)
       || methodDeclarations.containsKey(identifier) 
@@ -125,42 +154,102 @@ public class SymbolTable {
       || arrayDeclarations.containsKey(identifier);
   }
 
+  /**
+   * Check whether an import exists in the symbol table of any scope enclosing
+   * this table.
+   *
+   * @param identifier the import to find
+   * @return whether this import exists in this or any enclosing symbol table
+   */
   public boolean importExists(String identifier) {
     return importDeclarations.contains(identifier)
       || (!exists(identifier) && parent.isPresent() && parent.get().importExists(identifier));
   }
 
+  /**
+   * Check whether a method exists in the symbol table of any scope enclosing
+   * this table.
+   *
+   * @param identifier the method to find
+   * @return whether this method exists in this or any enclosing symbol table
+   */
   public boolean methodExists(String identifier) {
     return methodDeclarations.containsKey(identifier)
       || (!exists(identifier) && parent.isPresent() && parent.get().methodExists(identifier));   
   }
 
+  /**
+   * Check whether a scalar exists in the symbol table of any scope enclosing
+   * this table. Does not search for array variables.
+   *
+   * @param identifier the scalar to find
+   * @return whether this scalar exists in this or any enclosing symbol table
+   */
   public boolean scalarExists(String identifier) {
     return scalarDeclarations.containsKey(identifier) 
       || (!exists(identifier) && parent.isPresent() && parent.get().scalarExists(identifier));
   }
 
+  /**
+   * Check whether an array exists in the symbol table of any scope enclosing
+   * this table. Does not search for scalar variables.
+   *
+   * @param identifier the array to find
+   * @return whether this array exists in this or any enclosing symbol table
+   */
   public boolean arrayExists(String identifier) {
     return arrayDeclarations.containsKey(identifier)
       || (!exists(identifier) && parent.isPresent() && parent.get().arrayExists(identifier));
   }
 
+  /**
+   * Add a new import to this symbol table.
+   *
+   * @param identifier the import's string identifier
+   */
   public void addImport(String identifier) {
     importDeclarations.add(identifier);
   }
 
+  /**
+   * Add a new method to this symbol table.
+   *
+   * @param identifier the method's string identifier
+   * @param returnType the method return type
+   * @param argumentTypes the method's argument types, in the order they are
+   *                      declared
+   */
   public void addMethod(String identifier, MethodType returnType, List<VariableType> argumentTypes) {
     methodDeclarations.put(identifier, new MethodDeclaration(returnType, argumentTypes));
   }
 
+  /**
+   * Add a new scalar variable to this symbol table.
+   *
+   * @param identifier the scalar's string identifier
+   * @param type the scalar type
+   */
   public void addScalar(String identifier, VariableType type) {
     scalarDeclarations.put(identifier, new ScalarDeclaration(type));
   }
 
+  /**
+   * Add a new array variable to this symbol table.
+   *
+   * @param identifier the array's string identifier
+   * @param type the array type
+   */
   public void addArray(String identifier, VariableType type) {
     arrayDeclarations.put(identifier, new ArrayDeclaration(type));
   }
 
+  /**
+   * Retrieves the return type of a method with the given identifier.
+   *
+   * @param identifier the method name; must exist in the current symbol table
+   *                   hierarchy
+   * @return the corresponding method's return type
+   */
   public MethodType methodReturnType(String identifier) {
     if (methodDeclarations.containsKey(identifier)) {
       return methodDeclarations.get(identifier).getReturnType();
@@ -171,6 +260,14 @@ public class SymbolTable {
     }
   }
 
+  /**
+   * Retrieve the argument types of a method with the given identifier.
+   *
+   * @param identifier the method name; must exist in the current symbol table
+   *                   hierarchy
+   * @return the corresponding method's argument types listed in the order they
+   *  are declared
+   */
   public List<VariableType> methodArgumentTypes(String identifier) {
     if (methodDeclarations.containsKey(identifier)) {
       return List.copyOf(methodDeclarations.get(identifier).argumentTypes);
@@ -181,6 +278,13 @@ public class SymbolTable {
     }
   }
 
+  /**
+   * Retrieve the type of a scalar variable with the given identifier
+   *
+   * @param identifier the scalar name; must exist in the current symbol table
+   *                   hierarchy
+   * @return the corresponding scalar's type
+   */
   public VariableType scalarType(String identifier) {
     if (scalarDeclarations.containsKey(identifier)) {
       return scalarDeclarations.get(identifier).getType();
@@ -191,6 +295,13 @@ public class SymbolTable {
     }
   }
 
+  /**
+   * Retrieve the type of an array variable with the given identifier
+   *
+   * @param identifier the array name; must exist in the current symbol table
+   *                   hierarchy
+   * @return the corresponding array's type
+   */
   public VariableType arrayType(String identifier) {
     if (arrayDeclarations.containsKey(identifier)) {
       return arrayDeclarations.get(identifier).getType();
