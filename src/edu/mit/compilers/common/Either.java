@@ -2,6 +2,10 @@ package edu.mit.compilers.common;
 
 import java.util.Optional;
 
+/*
+ * A custom class that holds one of two types.
+ */
+
 public final class Either<A, B> {
 
   private final Optional<A> a;

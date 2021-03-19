@@ -30,7 +30,7 @@ We used three visitors to perform semantic checks:
 
 - [ProgramChecker][prog]: performs the vast majority of semantic checks, collects errors, and constructs symbol tables.
 - [ExpressionChecker][expr]: used by ProgramChecker to get the return type of a full expression.
-- [ArgumentChecker][arg]: *to be written*
+- [ArgumentChecker][arg]: used by ProgramChecker to validate arguments in a method call
 
 [prog]: ../src/edu/mit/compilers/ir/ProgramChecker.java
 [expr]: ../src/edu/mit/compilers/ir/ExpressionChecker.java
@@ -39,3 +39,7 @@ We used three visitors to perform semantic checks:
 ## Symbol table ADT
 
 *to be written*
+
+## Modifications for Later Phases
+
+- Add the length of the array as part of an array declaration in the symbol table.

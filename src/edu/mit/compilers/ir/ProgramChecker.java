@@ -13,8 +13,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   private final SymbolTable symbolTable;
   private final boolean inLoop;
-  private final Optional<MethodType> returnType;
-  private final List<ASTMethodDeclaration.Argument> arguments;
+  private final Optional<MethodType> returnType; private final List<ASTMethodDeclaration.Argument> arguments;
   private final boolean inStatement;
   private final boolean isNegated;
 
@@ -27,6 +26,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     this.isNegated = isNegated;
   }
 
+  /*
+   * Recursively check program import, field, and method declarations.
+   * Check for main declaration.
+   */
   public List<SemanticException> visit(ASTProgram program) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -53,6 +56,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check import does not already exist.
+   */
   public List<SemanticException> visit(ASTImportDeclaration importDeclaration) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -67,6 +73,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check for field duplicates, check nonzero length.
+   */
   public List<SemanticException> visit(ASTFieldDeclaration fieldDeclaration) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -95,6 +104,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check for duplicates and recurisively check block.
+   */
   public List<SemanticException> visit(ASTMethodDeclaration methodDeclaration) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -112,6 +124,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check if local variable names are shadowing formal parameter names.
+   * Recursively check field declarations and statements.
+   */
   public List<SemanticException> visit(ASTBlock block) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -136,6 +152,10 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * ASTIDAssignStatment used in the context of a for loop.
+   * Check if symbol exists, check expression, and check type match of previous two.
+   */
   public List<SemanticException> visit(ASTIDAssignStatement idAssignStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -169,6 +189,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check location and expression, and check matching types.
+   */
   public List<SemanticException> visit(ASTAssignStatement assignStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -191,6 +214,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check location and integer types of left and right hand sides.
+   */
   public List<SemanticException> visit(ASTCompoundAssignStatement compoundAssignStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -225,6 +251,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Relies completely on ASTMethodCallExpression.
+   */
   public List<SemanticException> visit(ASTMethodCallStatement methodCallStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -260,6 +289,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check the id assign statment, condition to be a valid boolean expr, and compound assign update.
+   */
   public List<SemanticException> visit(ASTForStatement forStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -285,6 +317,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check condition and recursively check body.
+   */
   public List<SemanticException> visit(ASTWhileStatement whileStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -306,6 +341,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check expression if exists, then check return keyword is within a method, and that method return type matches return statement.
+   */
   public List<SemanticException> visit(ASTReturnStatement returnStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
     Optional<ASTExpression> expression = returnStatement.getExpression();
@@ -336,6 +374,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check if within a loop.
+   */
   public List<SemanticException> visit(ASTBreakStatement breakStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -346,6 +387,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check if within a loop.
+   */
   public List<SemanticException> visit(ASTContinueStatement continueStatement) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
@@ -356,6 +400,9 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
     return exceptions;
   }
 
+  /*
+   * Check l and rhs, check types match.
+   */
   public List<SemanticException> visit(ASTBinaryExpression binaryExpression) {
     final List<SemanticException> exceptions = new ArrayList<>();
 
