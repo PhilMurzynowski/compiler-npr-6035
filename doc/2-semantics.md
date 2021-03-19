@@ -38,7 +38,17 @@ We used three visitors to perform semantic checks:
 
 ## Symbol table ADT
 
-*to be written*
+[SymbolTables][symboltable] are constructed by the ProgramChecker visitor during semantic checks. A single table stores the symbols declared at a single scope in the program, and have a pointer to the symbol table of their parent scope.
+
+Tables store multiple categories of symbols:
+- imports: identifiers from import statements
+- methods: identifiers for methods, their return types, and an ordered list of their argument types
+- scalars: identifiers for non-array fields and their data types
+- arrays: identifiers for array fields, their data types, and their lengths
+
+When searching for a specific kind of symbol, there are methods to check for a symbol just in the current scope, as well as checking the hierarchy of scopes.
+
+[symboltable]: ../src/edu/mit/compilers/ir/SymbolTable.java
 
 ## Modifications for Later Phases
 
