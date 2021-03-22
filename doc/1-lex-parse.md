@@ -172,7 +172,7 @@ with helpful context.
 
 The implementation can be found [here][LexerException].
 
-[LexerException]: ../src/edu/mit/compilers/tk/LexerException
+[LexerException]: ../src/edu/mit/compilers/tk/LexerException.java
 
 ## Syntactic Analysis
 
@@ -257,7 +257,7 @@ The parse tree is given by two variants that implement the `PTNode` interface, a
 
 The implementation can be found [here][PTNode].
 
-[PTNode]: ../src/edu/mit/compilers/pt/PTNode
+[PTNode]: ../src/edu/mit/compilers/pt/PTNode.java
 
 #### Terminal
 
@@ -269,7 +269,7 @@ PTTerminal <- <PTNode> {
 
 The implementation can be found [here][PTTerminal].
 
-[PTTerminal]: ../src/edu/mit/compilers/pt/PTTerminal
+[PTTerminal]: ../src/edu/mit/compilers/pt/PTTerminal.java
 
 #### Nonterminal
 
@@ -321,7 +321,7 @@ PTNonterminal <- <PTNode> {
 
 The implementation can be found [here][PTNonterminal].
 
-[PTNonterminal]: ../src/edu/mit/compilers/pt/PTNonterminal
+[PTNonterminal]: ../src/edu/mit/compilers/pt/PTNonterminal.java
 
 ### Parser
 
@@ -354,7 +354,7 @@ left curly brace.
 
 The implementation can be found [here][Parser].
 
-[Parser]: ../src/edu/mit/compilers/pt/Parser
+[Parser]: ../src/edu/mit/compilers/pt/Parser.java
 
 ### Parser Exception
 
@@ -381,7 +381,7 @@ the mistake in the source code.
 
 The implementation can be found [here][ParserException].
 
-[ParserException]: ../src/edu/mit/compilers/pt/ParserException
+[ParserException]: ../src/edu/mit/compilers/pt/ParserException.java
 
 ## Syntactic Analysis (cont'd)
 
@@ -404,7 +404,7 @@ ASTProgram <- <ASTNode> {
 
 The implementation can be found [here][ASTProgram].
 
-[ASTProgram]: ../src/edu/mit/compilers/ast/ASTProgram
+[ASTProgram]: ../src/edu/mit/compilers/ast/ASTProgram.java
 
 #### Declarations
 
@@ -429,9 +429,9 @@ ASTMethodDeclaration <- <ASTNode> {
 The respective implementations can be found [here][ASTImportDeclaration], [here][ASTFieldDeclaration], and
 [here][ASTMethodDeclaration].
 
-[ASTImportDeclaration]: ../src/edu/mit/compilers/ast/ASTImportDeclaration
-[ASTFieldDeclaration]: ../src/edu/mit/compilers/ast/ASTFieldDeclaration
-[ASTMethodDeclaration]: ../src/edu/mit/compilers/ast/ASTMethodDeclaration
+[ASTImportDeclaration]: ../src/edu/mit/compilers/ast/ASTImportDeclaration.java
+[ASTFieldDeclaration]: ../src/edu/mit/compilers/ast/ASTFieldDeclaration.java
+[ASTMethodDeclaration]: ../src/edu/mit/compilers/ast/ASTMethodDeclaration.java
 
 #### Block
 
@@ -444,7 +444,7 @@ ASTBlock <- <ASTNode> {
 
 The implementation can be found [here][ASTBlock].
 
-[ASTBlock]: ../src/edu/mit/compilers/ast/ASTBlock
+[ASTBlock]: ../src/edu/mit/compilers/ast/ASTBlock.java
 
 #### Statements
 
@@ -502,16 +502,16 @@ The respective implementations can be found [here][ASTIDAssignStatement], [here]
 [here][ASTCompoundAssignStatement], [here][ASTMethodCallStatement], [here][ASTIfStatement], [here][ASTForStatement],
 [here][ASTWhileStatement], [here][ASTReturnStatement], [here][ASTBreakStatement], and [here][ASTContinueStatement].
 
-[ASTIDAssignStatement]: ../src/edu/mit/compilers/ast/ASTIDAssignStatement
-[ASTAssignStatement]: ../src/edu/mit/compilers/ast/ASTAssignStatement
-[ASTCompoundAssignStatement]: ../src/edu/mit/compilers/ast/ASTCompoundAssignStatement
-[ASTMethodCallStatement]: ../src/edu/mit/compilers/ast/ASTMethodCallStatement
-[ASTIfStatement]: ../src/edu/mit/compilers/ast/ASTIfStatement
-[ASTForStatement]: ../src/edu/mit/compilers/ast/ASTForStatement
-[ASTWhileStatement]: ../src/edu/mit/compilers/ast/ASTWhileStatement
-[ASTReturnStatement]: ../src/edu/mit/compilers/ast/ASTReturnStatement
-[ASTBreakStatement]: ../src/edu/mit/compilers/ast/ASTBreakStatement
-[ASTContinueStatement]: ../src/edu/mit/compilers/ast/ASTContinueStatement
+[ASTIDAssignStatement]: ../src/edu/mit/compilers/ast/ASTIDAssignStatement.java
+[ASTAssignStatement]: ../src/edu/mit/compilers/ast/ASTAssignStatement.java
+[ASTCompoundAssignStatement]: ../src/edu/mit/compilers/ast/ASTCompoundAssignStatement.java
+[ASTMethodCallStatement]: ../src/edu/mit/compilers/ast/ASTMethodCallStatement.java
+[ASTIfStatement]: ../src/edu/mit/compilers/ast/ASTIfStatement.java
+[ASTForStatement]: ../src/edu/mit/compilers/ast/ASTForStatement.java
+[ASTWhileStatement]: ../src/edu/mit/compilers/ast/ASTWhileStatement.java
+[ASTReturnStatement]: ../src/edu/mit/compilers/ast/ASTReturnStatement.java
+[ASTBreakStatement]: ../src/edu/mit/compilers/ast/ASTBreakStatement.java
+[ASTContinueStatement]: ../src/edu/mit/compilers/ast/ASTContinueStatement.java
 
 #### Expressions
 
@@ -560,11 +560,11 @@ ASTLengthExpression <- <ASTExpression> {
 The respective implementations can be found [here][ASTBinaryExpression], [here][ASTUnaryExpression],
 [here][ASTLocationExpression], [here][ASTMethodCallExpression], and [here][ASTLengthExpression].
 
-[ASTBinaryExpression]: ../src/edu/mit/compilers/ast/ASTBinaryExpression
-[ASTUnaryExpression]: ../src/edu/mit/compilers/ast/ASTUnaryExpression
-[ASTLocationExpression]: ../src/edu/mit/compilers/ast/ASTLocationExpression
-[ASTMethodCallExpression]: ../src/edu/mit/compilers/ast/ASTMethodCallExpression
-[ASTLengthExpression]: ../src/edu/mit/compilers/ast/ASTLengthExpression
+[ASTBinaryExpression]: ../src/edu/mit/compilers/ast/ASTBinaryExpression.java
+[ASTUnaryExpression]: ../src/edu/mit/compilers/ast/ASTUnaryExpression.java
+[ASTLocationExpression]: ../src/edu/mit/compilers/ast/ASTLocationExpression.java
+[ASTMethodCallExpression]: ../src/edu/mit/compilers/ast/ASTMethodCallExpression.java
+[ASTLengthExpression]: ../src/edu/mit/compilers/ast/ASTLengthExpression.java
 
 #### Literals
 
@@ -595,10 +595,10 @@ parse negative integer literals which are initially parsed as positive (and woul
 The respective implementations can be found [here][ASTIntegerLiteral], [here][ASTCharacterLiteral],
 [here][ASTBooleanLiteral], and [here][ASTStringLiteral]
 
-[ASTIntegerLiteral]: ../src/edu/mit/compilers/ast/ASTIntegerLiteral
-[ASTCharacterLiteral]: ../src/edu/mit/compilers/ast/ASTCharacterLiteral
-[ASTBooleanLiteral]: ../src/edu/mit/compilers/ast/ASTBooleanLiteral
-[ASTStringLiteral]: ../src/edu/mit/compilers/ast/ASTStringLiteral
+[ASTIntegerLiteral]: ../src/edu/mit/compilers/ast/ASTIntegerLiteral.java
+[ASTCharacterLiteral]: ../src/edu/mit/compilers/ast/ASTCharacterLiteral.java
+[ASTBooleanLiteral]: ../src/edu/mit/compilers/ast/ASTBooleanLiteral.java
+[ASTStringLiteral]: ../src/edu/mit/compilers/ast/ASTStringLiteral.java
 
 ### Abstracter
 
@@ -614,4 +614,4 @@ are familiar with.
 
 The implementation can be found [here][Abstracter].
 
-[Abstracter]: ../src/edu/mit/compilers/ast/Abstracter
+[Abstracter]: ../src/edu/mit/compilers/ast/Abstracter.java
