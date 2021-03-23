@@ -12,7 +12,7 @@ import java.util.List;
 import edu.mit.compilers.tk.*;
 import edu.mit.compilers.pt.*;
 import edu.mit.compilers.ast.*;
-import edu.mit.compilers.ir.*;
+import edu.mit.compilers.hl.*;
 
 class Main {
 
