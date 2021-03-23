@@ -4,6 +4,7 @@
 
 ```
 HLProgram {
+  importDeclarations: [HLImportDeclaration],
   scalarFieldDeclarations: [HLGlobalScalarFieldDeclaration],
   arrayFieldDeclarations: [HLGlobalArrayFieldDeclaration],
   stringLiteralDeclarations: [HLStringLiteralDeclaration],
@@ -14,14 +15,25 @@ HLProgram {
 ## Declarations
 
 ```
-<HLScalarFieldDeclaration>
-<HLArrayFieldDeclaration>
+HLImportDeclaration {
+  identifier: String,
+}
+
+<HLScalarFieldDeclaration> {
+  getType(): INTEGER | BOOLEAN,
+}
+
+<HLArrayFieldDeclaration> {
+  getType(): INTEGER | BOOLEAN,
+}
 
 HLGlobalScalarFieldDeclaration <- <HLScalarFieldDeclaration> {
+  type: INTEGER | BOOLEAN,
   identifier: String,
 }
 
 HLGlobalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
+  type: INTEGER | BOOLEAN,
   identifier: String,
   length: long,
 }
@@ -37,16 +49,18 @@ HLMethodDeclaration {
 }
 
 HLArgumentDeclaration <- <HLScalarFieldDeclaration> {
+  type: INTEGER | BOOLEAN,
   index: long,
 }
 
 HLLocalScalarFieldDeclaration <- <HLScalarFieldDeclaration> {
-  index: long,
+  type: INTEGER | BOOLEAN,
+  index: long, // location(): -(<NUM_ARGS> + <INDEX>)(%rbp)
 }
 
 HLLocalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
   index: long,
-  length: long,
+  length: long, // location(): -(<NUM_ARGS> + <NUM_SCALARS> + <SUM_OF_PREVIOUS>)(%rbp)
 }
 ```
 
@@ -92,7 +106,7 @@ HLIfStatement <- <HLStatement> {
 }
 
 HLForStatement <- <HLStatement> {
-  initial: <HLStoreStatement>,
+  initial: HLStoreScalarStatement,
   condition: <HLExpression>,
   update: <HLStoreStatement>,
   body: HLBlock,
@@ -150,8 +164,15 @@ HLLoadArrayExpression <- <HLExpression> {
   index: <HLExpression>,
 }
 
-HLCallExpression <- <HLExpression> {
+<HLCallExpression> <- <HLExpression>
+
+HLInternalCallExpression <- <HLCallExpression> {
   declaration: HLMethodDeclaration,
+  arguments: [<HLExpression>],
+}
+
+HLExternalCallExpression <- <HLCallExpression> {
+  declaration: HLImportDeclaration,
   arguments: [<HLArgument>],
 }
 

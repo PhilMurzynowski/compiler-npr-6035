@@ -4,6 +4,7 @@
 
 ```
 LLProgram {
+  importDeclarations: [LLImportDeclaration],
   scalarFieldDeclarations: [LLGlobalScalarFieldDeclaration],
   arrayFieldDeclarations: [LLGlobalArrayFieldDeclaration],
   stringLiteralDeclarations: [LLStringLiteralDeclaration],
@@ -14,14 +15,18 @@ LLProgram {
 ## Declarations
 
 ```
-<LLDeclaration> {
-  location(): String,
+<LLDeclaration> <- <LLNode> {
+  location(): String, // "label" or "-i(%rbp)"
+}
+
+LLImportDeclaration <- <LLDeclaration> {
+  identifier: String,
 }
 
 <LLScalarFieldDeclaration> <- <LLDeclaration>
 
 <LLArrayFieldDeclaration> <- <LLDeclaration> {
-  index(register: String): String,
+  index(register: String): String, // register: "%r10" -> "-i(%rbp,%r10,8)"
 }
 
 LLGlobalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
@@ -29,7 +34,7 @@ LLGlobalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
 }
 
 LLGlobalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
-  identifier: String,
+  identifier: String, // "<label>(,%r10,8)"
   length: long,
 }
 
@@ -62,6 +67,10 @@ LLLocalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
 LLAliasDeclaration <- <LLDeclaration> {
   index: long,
 }
+
+LLLabelDeclaration <- <LLDeclaration> {
+  index: long,
+}
 ```
 
 ## Control Flow Graph
@@ -74,7 +83,8 @@ LLControlFlowGraph {
 }
 
 LLBasicBlock {
-  instructions: [<LLNode>],
+  index: long,
+  instructions: [<LLNode>], // no labels, declarations, or jumps
   trueTarget: LLBasicBlock?,
   falseTarget: LLBasicBlock?,
   generate(): String,
@@ -101,6 +111,16 @@ LLStoreArray <- <LLNode> {
 
 LLReturn <- <LLNode> {
   expression: LLAliasDeclaration?,
+}
+
+LLBranch <- <LLNode> {
+  condition: LLAliasDeclaration,
+  trueTarget: LLLabelDeclaration,
+  falseTarget: LLLabelDeclaration,
+}
+
+LLJump <- <LLNode> {
+  target: LLLabelDeclaration,
 }
 ```
 
@@ -143,8 +163,14 @@ LLLoadArray <- <LLNode> {
   result: LLAliasDeclaration,
 }
 
-LLCall <- <LLNode> {
+LLInternalCall <- <LLNode> {
   declaration: LLMethodDeclaration,
+  arguments: [<LLAliasDeclaration>],
+  result: LLAliasDeclaration,
+}
+
+LLExternalCall <- <LLNode> {
+  declaration: LLImportDeclaration,
   arguments: [<LLAliasDeclaration>],
   result: LLAliasDeclaration,
 }
@@ -239,6 +265,12 @@ LLAliasDeclaration <- <LLDeclaration> {
   subq $8, %rsp
   movq $0, <location()>
 
+LLLabelDeclaration <- <LLDeclaration> {
+  index: long,
+}
+
+  <location()>:
+
 LLControlFlowGraph {
   entry: LLBasicBlock,
   exit: LLBasicBlock,
@@ -271,6 +303,7 @@ LLStoreArray <- <LLNode> {
 
   movq <index.location()>, %r10
   movq <expression.location()>, %rax
+  addq $8, %r10
   movq %rax, <declaration.index("%r10")>
 
 LLReturn <- <LLNode> {
@@ -279,6 +312,23 @@ LLReturn <- <LLNode> {
 
   movq <expression.location()>, %rax
   retq
+
+LLBranch <- <LLNode> {
+  condition: LLAliasDeclaration,
+  trueTarget: LLLabelDeclaration,
+  falseTarget: LLLabelDeclaration,
+}
+
+  movq <condition.location()>, %eax
+  cmpq $0, %eax
+  jne <trueTarget.location()>
+  jmp <falseTarget.location()>
+
+LLJump <- <LLNode> {
+  target: LLLabelDeclaration,
+}
+
+  jmp <target.location()>
 
 LLBinary <- <LLNode> {
   left: LLAliasDeclaration,
@@ -318,7 +368,7 @@ LLLoadScalar <- <LLNode> {
   result: LLAliasDeclaration,
 }
 
-  movq <declaration.location()>, %rax
+  movq <declaration.location()>, %rax // -i(%rbp) or label
   movq %rax, <result.location()>
 
 LLLoadArray <- <LLNode> {
@@ -328,11 +378,26 @@ LLLoadArray <- <LLNode> {
 }
   
   movq <index.location()>, %r10
-  movq <declaration.index("%r10")>, %rax
+  movq <declaration.index("%r10")>, %rax // -i(%rbp,%r10,8) or label(,%r10,8)
+  addq $8, %r10
   movq %rax, <result.location()>
 
-LLCall <- <LLNode> {
+LLInternalCall <- <LLNode> {
   declaration: LLMethodDeclaration,
+  arguments: [<LLAliasDeclaration>],
+  result: LLAliasDeclaration,
+}
+
+  movq <arguments[0].location()>, %edi
+  movq <arguments[1].location()>, %esi
+  ...
+  // TODO(rbd): complete prolog
+  ...
+  call <declaration.location()>
+  movq %rax, <result.location()>
+
+LLExternalCall <- <LLNode> {
+  declaration: LLImportDeclaration,
   arguments: [<LLAliasDeclaration>],
   result: LLAliasDeclaration,
 }
