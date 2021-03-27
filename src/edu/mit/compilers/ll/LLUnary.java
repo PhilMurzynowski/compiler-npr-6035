@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import edu.mit.compilers.common.UnaryExpressionType;
 
-public class LLUnary implements LLNode {
+public class LLUnary implements LLInstruction {
 
   private final UnaryExpressionType type;
   private final LLDeclaration expression;

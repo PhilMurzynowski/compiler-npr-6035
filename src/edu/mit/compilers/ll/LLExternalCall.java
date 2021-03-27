@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.List;
 
-public class LLExternalCall implements LLNode {
+public class LLExternalCall implements LLInstruction {
   
   private final LLImportDeclaration declaration;
   private final List<LLDeclaration> arguments;

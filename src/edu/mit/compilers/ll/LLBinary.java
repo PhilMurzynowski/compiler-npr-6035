@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import edu.mit.compilers.common.*;
 
-public class LLBinary implements LLNode {
+public class LLBinary implements LLInstruction {
 
   private final LLDeclaration left;
   private final BinaryExpressionType type;

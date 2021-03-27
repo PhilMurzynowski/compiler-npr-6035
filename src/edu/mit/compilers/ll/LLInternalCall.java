@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.List;
 
-public class LLInternalCall implements LLNode {
+public class LLInternalCall implements LLInstruction {
 
   private final LLMethodDeclaration declaration;
   private final List<LLDeclaration> arguments;

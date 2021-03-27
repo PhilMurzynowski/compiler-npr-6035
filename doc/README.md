@@ -4,6 +4,10 @@
 
 *Current Phase: 2*
 
+## Requirements for running:
+
+Our Decaf compiler requires Java 15 to compile.
+
 ## Status
 
 Our code passes all test cases, and there are no bugs/failures that we are currently aware of.

@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLLoadArray implements LLNode {
+public class LLLoadArray implements LLInstruction {
 
   private final LLArrayFieldDeclaration location;
   private final LLDeclaration index;
