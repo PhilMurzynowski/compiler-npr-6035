@@ -1,6 +1,5 @@
 package edu.mit.compilers.sem;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
@@ -13,7 +12,8 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
   private final SymbolTable symbolTable;
   private final boolean inLoop;
-  private final Optional<MethodType> returnType; private final List<ASTMethodDeclaration.Argument> arguments;
+  private final Optional<MethodType> returnType;
+  private final List<ASTMethodDeclaration.Argument> arguments;
   private final boolean inStatement;
   private final boolean isNegated;
 
