@@ -1,10 +1,12 @@
 package edu.mit.compilers.ll;
 
-public class LLReturn implements LLNode {
+public class LLLoadArray implements LLNode {
 
-  private final LLDeclaration expression;
+  private final LLArrayDeclaration location;
+  private final LLDeclaration index;
+  private final LLDeclaration result;
 
-  public LLReturn(LLDeclaration expression) {
+  public LLLoadArray(LLArrayDeclaration location, LLDeclaration index, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 

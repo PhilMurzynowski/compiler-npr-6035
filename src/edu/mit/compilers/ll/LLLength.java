@@ -1,10 +1,11 @@
 package edu.mit.compilers.ll;
 
-public class LLReturn implements LLNode {
+public class LLLength implements LLNode {
 
-  private final LLDeclaration expression;
+  private final LLArrayDeclaration declaration;
+  private final LLDeclaration result;
 
-  public LLReturn(LLDeclaration expression) {
+  public LLLength(LLArrayDeclaration declaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 

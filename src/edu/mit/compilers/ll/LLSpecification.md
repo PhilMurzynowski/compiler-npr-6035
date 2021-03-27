@@ -120,7 +120,6 @@ LLStoreArray <- <LLNode> {
   expression: <LLDeclaration>,
 }
 
-Robert
 LLReturn <- <LLNode> {
   expression: <LLDeclaration>?,
 }
@@ -141,7 +140,6 @@ LLJump <- <LLNode> {
 ## Expressions
 
 ```
-Robert
 LLBinary <- <LLNode> {
   left: <LLDeclaration>,
   type: OR
@@ -174,7 +172,6 @@ LLLoadScalar <- <LLNode> {
   result: <LLDeclaration>,
 }
 
-Robert
 LLLoadArray <- <LLNode> {
   location: <LLArrayDeclaration>,
   index: <LLDeclaration>,
@@ -195,7 +192,6 @@ LLExternalCall <- <LLNode> {
   result: <LLDeclaration>,
 }
 
-Robert
 LLLength <- <LLNode> {
   declaration: <LLArrayDeclaration>,
   result: <LLDeclaration>,
