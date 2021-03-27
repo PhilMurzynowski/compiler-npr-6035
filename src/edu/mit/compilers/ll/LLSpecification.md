@@ -3,6 +3,7 @@
 ## Program
 
 ```
+Robert
 LLProgram {
   importDeclarations: [LLImportDeclaration],
   scalarFieldDeclarations: [LLGlobalScalarFieldDeclaration],
@@ -15,34 +16,42 @@ LLProgram {
 ## Declarations
 
 ```
+Noah
 <LLDeclaration> <- <LLNode> {
   location(): String, // "label" or "-i(%rbp)"
 }
 
+Phil
 LLImportDeclaration <- <LLDeclaration> {
   identifier: String,
 }
 
+Noah
 <LLScalarFieldDeclaration> <- <LLDeclaration>
 
+Robert
 <LLArrayFieldDeclaration> <- <LLDeclaration> {
   index(register: String): String, // register: "%r10" -> "-i(%rbp,%r10,8)"
 }
 
+Phil
 LLGlobalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
   identifier: String,
 }
 
+Robert
 LLGlobalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
   identifier: String, // "<label>(,%r10,8)"
   length: long,
 }
 
+Noah
 LLStringLiteralDeclaration <- <LLDeclaration> {
   index: long,
   value: String,
 }
 
+Phil
 LLMethodDeclaration <- <LLDeclaration> {
   argumentDeclarations: [LLArgumentDeclaration],
   scalarFieldDeclarations: [LLLocalScalarFieldDeclaration],
@@ -51,23 +60,28 @@ LLMethodDeclaration <- <LLDeclaration> {
   body: LLControlFlowGraph,
 }
 
+Robert
 LLArgumentDeclaration <- <LLScalarFieldDeclaration> {
   index: long,
 }
 
+Noah
 LLLocalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
   index: long,
 }
 
+Phil
 LLLocalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
   index: long,
   length: long,
 }
 
+Robert
 LLAliasDeclaration <- <LLDeclaration> {
   index: long,
 }
 
+Noah
 LLLabelDeclaration <- <LLDeclaration> {
   index: long,
 }
@@ -94,31 +108,37 @@ LLBasicBlock {
 ## Statements
 
 ```
+Robert
 <LLNode> {
   generate(): String,
 }
 
+Noah
 LLStoreScalar <- <LLNode> {
   declaration: <LLScalarDeclaration>,
   expression: LLAliasDeclaration,
 }
 
+Phil
 LLStoreArray <- <LLNode> {
   declaration: <LLArrayDeclaration>,
   index: LLAliasDeclaration,
   expression: LLAliasDeclaration,
 }
 
+Robert
 LLReturn <- <LLNode> {
   expression: LLAliasDeclaration?,
 }
 
+Noah
 LLBranch <- <LLNode> {
   condition: LLAliasDeclaration,
   trueTarget: LLLabelDeclaration,
   falseTarget: LLLabelDeclaration,
 }
 
+Phil
 LLJump <- <LLNode> {
   target: LLLabelDeclaration,
 }
@@ -127,6 +147,7 @@ LLJump <- <LLNode> {
 ## Expressions
 
 ```
+Robert
 LLBinary <- <LLNode> {
   left: LLAliasDeclaration,
   type: OR
@@ -146,45 +167,53 @@ LLBinary <- <LLNode> {
   result: LLAliasDeclaration,
 }
 
+Noah
 LLUnary <- <LLNode> {
   type: NOT | NEGATE,
   expression: LLAliasDeclaration,
   result: LLAliasDeclaration,
 }
 
+Phil
 LLLoadScalar <- <LLNode> {
   declaration: <LLScalarDeclaration>,
   result: LLAliasDeclaration,
 }
 
+Robert
 LLLoadArray <- <LLNode> {
   declaration: <LLArrayDeclaration>,
   index: LLAliasDeclaration,
   result: LLAliasDeclaration,
 }
 
+Noah
 LLInternalCall <- <LLNode> {
   declaration: LLMethodDeclaration,
   arguments: [<LLAliasDeclaration>],
   result: LLAliasDeclaration,
 }
 
+Phil
 LLExternalCall <- <LLNode> {
   declaration: LLImportDeclaration,
   arguments: [<LLAliasDeclaration>],
   result: LLAliasDeclaration,
 }
 
+Robert
 LLLength <- <LLNode> {
   declaration: <LLArrayDeclaration>,
   result: LLAliasDeclaration,
 }
 
+Noah
 LLIntegerLiteral <- <LLNode> {
   value: long,
   result: LLAliasDeclaration,
 }
 
+Phil
 LLStringLiteral <- <LLNode> {
   declaration: LLStringLiteralDeclaration,
   result: LLStringAliasDeclaration,
