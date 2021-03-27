@@ -1,3 +1,10 @@
 package edu.mit.compilers.hl;
 
-interface HLNode { }
+interface HLNode { 
+
+  public String debugString(int depth);
+
+  @Override
+  public String toString();
+
+}
