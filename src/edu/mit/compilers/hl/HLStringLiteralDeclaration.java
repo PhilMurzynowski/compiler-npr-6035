@@ -5,7 +5,10 @@ public class HLStringLiteralDeclaration {
   private final int index;
   private final String value;
 
-  public HLStringLiteralDeclaration() {
+  public HLStringLiteralDeclaration(
+    private final int index,
+    private final String value)
+  {
     throw new UnsupportedOperationException("no implemented");
   }
 
