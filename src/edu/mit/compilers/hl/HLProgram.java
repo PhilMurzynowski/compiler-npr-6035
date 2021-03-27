@@ -10,4 +10,8 @@ class HLProgram implements HLNode {
   private final List<HLStringDeclaration> stringDeclarations;
   private final List<HLMethodDeclaration> methodDeclarations;
 
+  public HLProgram() {
+    throw new RuntimeException("not implemented");
+  }
+
 }

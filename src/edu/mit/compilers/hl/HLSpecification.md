@@ -3,7 +3,6 @@
 ## Program
 
 ```
-Rob
 HLProgram {
   importDeclarations: [HLImportDeclaration],
   scalarFieldDeclarations: [HLGlobalScalarFieldDeclaration],
@@ -16,28 +15,23 @@ HLProgram {
 ## Declarations
 
 ```
-Rob
 HLImportDeclaration {
   identifier: String,
 }
 
-Rob
 <HLScalarFieldDeclaration> {
   getType(): INTEGER | BOOLEAN,
 }
 
-Rob
 <HLArrayFieldDeclaration> {
   getType(): INTEGER | BOOLEAN,
 }
 
-Rob
 HLGlobalScalarFieldDeclaration <- <HLScalarFieldDeclaration> {
   type: INTEGER | BOOLEAN,
   identifier: String,
 }
 
-Rob
 HLGlobalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
   type: INTEGER | BOOLEAN,
   identifier: String,
@@ -46,7 +40,7 @@ HLGlobalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
 
 Noah
 HLStringLiteralDeclaration {
-  index: long,
+  index: int,
   value: String,
 }
 
@@ -56,29 +50,27 @@ HLMethodDeclaration {
   body: HLBlock,
 }
 
-Rob
 HLArgumentDeclaration <- <HLScalarFieldDeclaration> {
   type: INTEGER | BOOLEAN,
-  index: long,
+  index: int,
 }
 
 Noah
 HLLocalScalarFieldDeclaration <- <HLScalarFieldDeclaration> {
   type: INTEGER | BOOLEAN,
-  index: long, // location(): -(<NUM_ARGS> + <INDEX>)(%rbp)
+  index: int, // location(): -(<NUM_ARGS> + <INDEX>)(%rbp)
 }
 
 Phil
 HLLocalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
-  index: long,
-  length: long, // location(): -(<NUM_ARGS> + <NUM_SCALARS> + <SUM_OF_PREVIOUS>)(%rbp)
+  index: int,
+  length: int, // location(): -(<NUM_ARGS> + <NUM_SCALARS> + <SUM_OF_PREVIOUS>)(%rbp)
 }
 ```
 
 ## Block
 
 ```
-Rob
 HLBlock {
   argumentDeclarations: [HLArgumentDeclaration],
   scalarFieldDeclarations: [HLLocalScalarFieldDeclaration],
@@ -96,7 +88,6 @@ Noah
 Phil
 <HLStatement> <- <HLNode>
 
-Rob
 <HLStoreStatement> <- <HLStatement>
 
 Noah
@@ -112,7 +103,6 @@ HLStoreArrayStatement <- <HLStoreStatement> {
   expression: <HLExpression>,
 }
 
-Rob
 HLCallStatement <- <HLStatement> {
   call: HLCallExprression,
 }
@@ -132,7 +122,6 @@ HLForStatement <- <HLStatement> {
   body: HLBlock,
 }
 
-Rob
 HLWhileStatement <- <HLStatement> {
   condition: <HLExpression>,
   body: HLBlock,
@@ -146,7 +135,6 @@ HLReturnStatement <- <HLStatement> {
 Phil
 HLBreakStatement <- <HLStatement> { }
 
-Rob
 HLContinueStatement <- <HLStatement> { }
 ```
 
@@ -176,7 +164,6 @@ HLBinaryExpression <- <HLExpression> {
   right: <HLExpression>,
 }
 
-Rob
 HLUnaryExpression <- <HLExpression> {
   type: NOT | NEGATE,
   expression: <HLExpression>,
@@ -193,7 +180,6 @@ HLLoadArrayExpression <- <HLExpression> {
   index: <HLExpression>,
 }
 
-Rob
 <HLCallExpression> <- <HLExpression>
 
 Noah
@@ -208,7 +194,6 @@ HLExternalCallExpression <- <HLCallExpression> {
   arguments: [<HLArgument>],
 }
 
-Rob
 HLLengthExpression <- <HLExpression> {
   declaration: <HLArrayDeclaration>,
 }
