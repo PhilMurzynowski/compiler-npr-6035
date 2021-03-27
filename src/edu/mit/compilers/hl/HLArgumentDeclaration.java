@@ -2,12 +2,12 @@ package edu.mit.compilers.hl;
 
 import edu.mit.compilers.common.*;
 
-class HLGlobalScalarFieldDeclaration implements HLScalarFieldDeclaration {
+class HLArgumentDeclaration implements HLScalarFieldDeclaration {
 
   private final VariableType type;
-  private final String identifier;
+  private final int index;
 
-  public HLGlobalScalarFieldDeclaration() {
+  public HLArgumentDeclaration() {
     throw new RuntimeException("not implemented");
   }
 
