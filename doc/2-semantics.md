@@ -32,9 +32,9 @@ We used three visitors to perform semantic checks:
 - [ExpressionChecker][expr]: used by ProgramChecker to get the return type of a full expression.
 - [ArgumentChecker][arg]: used by ProgramChecker to validate arguments in a method call
 
-[prog]: ../src/edu/mit/compilers/ir/ProgramChecker.java
-[expr]: ../src/edu/mit/compilers/ir/ExpressionChecker.java
-[arg]:  ../src/edu/mit/compilers/ir/ArgumentChecker.java
+[prog]: ../src/edu/mit/compilers/sem/ProgramChecker.java
+[expr]: ../src/edu/mit/compilers/sem/ExpressionChecker.java
+[arg]:  ../src/edu/mit/compilers/sem/ArgumentChecker.java
 
 ## Symbol table ADT
 
@@ -48,7 +48,7 @@ Tables store multiple categories of symbols:
 
 When searching for a specific kind of symbol, there are methods to check for a symbol just in the current scope, as well as checking the hierarchy of scopes.
 
-[symboltable]: ../src/edu/mit/compilers/ir/SymbolTable.java
+[symboltable]: ../src/edu/mit/compilers/sem/SymbolTable.java
 
 ## Modifications for Later Phases
 
