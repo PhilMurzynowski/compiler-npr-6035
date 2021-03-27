@@ -1,5 +1,4 @@
-
-package edu.mit.compilers.hl;
+package edu.mit.compilers.sem;
 
 import edu.mit.compilers.ast.*;
 import edu.mit.compilers.common.*;

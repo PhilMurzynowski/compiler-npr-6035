@@ -1,4 +1,5 @@
-package edu.mit.compilers.hl;
+package edu.mit.compilers.sem;
+
 import java.util.*;
 
 import edu.mit.compilers.common.*;

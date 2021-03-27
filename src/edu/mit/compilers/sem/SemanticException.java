@@ -1,4 +1,4 @@
-package edu.mit.compilers.hl;
+package edu.mit.compilers.sem;
 
 import java.util.Objects;
 
