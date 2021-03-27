@@ -6,7 +6,7 @@ public class HLReturnStatement implements HLStatement {
 
   private final Optional<HLExpression> expression;
 
-  public HLReturnStatement() {
+  public HLReturnStatement(Optional<HLExpression> expression) {
     throw new UnsupportedOperationException("not implemented");
   }
 

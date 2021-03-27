@@ -10,7 +10,13 @@ class HLProgram implements HLNode {
   private final List<HLStringLiteralDeclaration> stringLiteralDeclarations;
   private final List<HLMethodDeclaration> methodDeclarations;
 
-  public HLProgram() {
+  public HLProgram(
+    final List<HLImportDeclaration> importDeclarations,
+    final List<HLGlobalScalarFieldDeclaration> scalarFieldDeclarations,
+    final List<HLGlobalArrayFieldDeclaration> arrayFieldDeclarations,
+    final List<HLStringLiteralDeclaration> stringLiteralDeclarations,
+    final List<HLMethodDeclaration> methodDeclarations)
+  {
     throw new RuntimeException("not implemented");
   }
 

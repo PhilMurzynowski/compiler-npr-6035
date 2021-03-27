@@ -8,7 +8,11 @@ class HLGlobalArrayFieldDeclaration implements HLArrayFieldDeclaration {
   private final String identifier;
   private final int length;
 
-  public HLGlobalArrayFieldDeclaration() {
+  public HLGlobalArrayFieldDeclaration(
+    final VariableType type,
+    final String identifier,
+    final int length)
+  {
     throw new RuntimeException("not implemented");
   }
 

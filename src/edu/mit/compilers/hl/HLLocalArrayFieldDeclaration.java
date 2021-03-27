@@ -4,9 +4,12 @@ class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration{
 
   // NOTE: may be changing with hoisting
   private final int index;
-  private final long length;
+  private final int length;
 
-  public HLLocalArrayFieldDeclaration() {
+  public HLLocalArrayFieldDeclaration(
+    final int index,
+    final int length)
+  {
     throw new RuntimeException("not implemented");
   }
 

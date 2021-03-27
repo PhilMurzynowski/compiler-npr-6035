@@ -4,7 +4,7 @@ class HLCallStatement implements HLStatement {
 
   private final HLCallExpression call;
 
-  public HLCallStatement() {
+  public HLCallStatement(final HLCallExpression call) {
     throw new RuntimeException("not implemented");
   }
 

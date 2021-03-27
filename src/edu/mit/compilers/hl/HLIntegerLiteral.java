@@ -4,7 +4,7 @@ public class HLIntegerLiteral implements HLExpression {
 
   private final long value;
 
-  public HLIntegerLiteral() {
+  public HLIntegerLiteral(long value) {
     throw new UnsupportedOperationException("not implemented");
   }
 

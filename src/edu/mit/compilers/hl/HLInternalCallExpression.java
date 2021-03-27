@@ -7,7 +7,7 @@ public class HLInternalCallExpression implements HLCallExpression {
   private final HLMethodDeclaration declaration;
   private final List<HLArgument> arguments;
 
-  public HLInternalCallExpression() {
+  public HLInternalCallExpression(HLMethodDeclaration declaration, List<HLArgument> arguments) {
     throw new UnsupportedOperationException("not implemented");
   }
 

@@ -4,7 +4,7 @@ class HLLengthExpression implements HLExpression {
 
   private final HLArrayFieldDeclaration declaration;
 
-  public HLLengthExpression() {
+  public HLLengthExpression(HLArrayFieldDeclaration declaration) {
     throw new RuntimeException("not implemented");
   }
 
