@@ -38,13 +38,11 @@ HLGlobalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
   length: long,
 }
 
-Noah
 HLStringLiteralDeclaration {
   index: int,
   value: String,
 }
 
-Phil
 HLMethodDeclaration {
   identifier: String,
   body: HLBlock,
@@ -55,13 +53,11 @@ HLArgumentDeclaration <- <HLScalarFieldDeclaration> {
   index: int,
 }
 
-Noah
 HLLocalScalarFieldDeclaration <- <HLScalarFieldDeclaration> {
   type: INTEGER | BOOLEAN,
   index: int, // location(): -(<NUM_ARGS> + <INDEX>)(%rbp)
 }
 
-Phil
 HLLocalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
   index: int,
   length: int, // location(): -(<NUM_ARGS> + <NUM_SCALARS> + <SUM_OF_PREVIOUS>)(%rbp)
@@ -82,21 +78,17 @@ HLBlock {
 ## Statements
 
 ```
-Noah
 <HLNode>
 
-Phil
 <HLStatement> <- <HLNode>
 
 <HLStoreStatement> <- <HLStatement>
 
-Noah
 HLStoreScalarStatement <- <HLStoreStatement> {
   declaration: <HLScalarFieldDeclaration>,
   expression: <HLExpression>,
 }
 
-Phil
 HLStoreArrayStatement <- <HLStoreStatement> {
   declaration: <HLArrayFieldDeclaration>,
   index: <HLExpression>,
@@ -107,14 +99,12 @@ HLCallStatement <- <HLStatement> {
   call: HLCallExprression,
 }
 
-Noah
 HLIfStatement <- <HLStatement> {
   condition: <HLExpression>,
   body: HLBlock,
   other: HLBlock?,
 }
 
-Phil
 HLForStatement <- <HLStatement> {
   initial: HLStoreScalarStatement,
   condition: <HLExpression>,
@@ -127,12 +117,10 @@ HLWhileStatement <- <HLStatement> {
   body: HLBlock,
 }
 
-Noah
 HLReturnStatement <- <HLStatement> {
   expression: <HLExpression>?,
 }
 
-Phil
 HLBreakStatement <- <HLStatement> { }
 
 HLContinueStatement <- <HLStatement> { }

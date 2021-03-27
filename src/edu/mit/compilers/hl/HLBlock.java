@@ -6,7 +6,7 @@ class HLBlock implements HLNode {
 
   private final List<HLArgumentDeclaration> argumentDeclarations;
   private final List<HLLocalScalarFieldDeclaration> scalarFieldDeclarations;
-  private final List<HLArrayArrayFieldDeclaration> arrayFieldDeclarations;
+  private final List<HLLocalArrayFieldDeclaration> arrayFieldDeclarations;
   private final List<HLStatement> statements;
 
   // NOTE: may want a builder
