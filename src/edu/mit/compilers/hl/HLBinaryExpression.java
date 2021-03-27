@@ -8,7 +8,7 @@ class HLBinaryExpression implements HLExpression {
   private final BinaryExpressionType type;
   private final HLExpression right;
 
-  public HLBinaryExpression() {
+  public HLBinaryExpression(HLExpression left, BinaryExpressionType type, HLExpression right) {
     throw new RuntimeException("not implemented");
   }
 

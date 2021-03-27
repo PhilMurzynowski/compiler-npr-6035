@@ -4,7 +4,7 @@ class HLStringLiteral implements HLArgument {
 
   private final HLStringLiteralDeclaration declaration;
 
-  public HLStringLiteral() {
+  public HLStringLiteral(HLStringLiteralDeclaration declaration) {
     throw new RuntimeException("not implemented");
   }
 

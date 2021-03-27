@@ -8,7 +8,7 @@ public class HLIfStatement implements HLStatement {
   private final HLBlock body;
   private final Optional<HLBlock> other;
 
-  public HLIfStatement() {
+  public HLIfStatement(HLExpression condition, HLBlock body, Optional<HLBlock> other) {
     throw new UnsupportedOperationException("not implemented");
   }
 
