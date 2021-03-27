@@ -2,7 +2,7 @@ package edu.mit.compilers.hl;
 
 import java.util.List;
 
-class HLExternalCallExpression implements HLCallExpression {
+public class HLExternalCallExpression implements HLCallExpression {
 
   private final HLImportDeclaration declaration;
   private final List<HLArgument> arguments;

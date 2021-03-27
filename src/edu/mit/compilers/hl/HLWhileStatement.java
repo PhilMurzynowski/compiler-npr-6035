@@ -1,6 +1,6 @@
 package edu.mit.compilers.hl;
 
-class HLWhileStatement implements HLStatement {
+public class HLWhileStatement implements HLStatement {
 
   private final HLExpression condition;
   private final HLBlock body;

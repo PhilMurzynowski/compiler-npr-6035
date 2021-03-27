@@ -1,3 +1,3 @@
 package edu.mit.compilers.hl;
 
-interface HLScalarFieldDeclaration extends HLNode { }
+public interface HLScalarFieldDeclaration extends HLNode { }

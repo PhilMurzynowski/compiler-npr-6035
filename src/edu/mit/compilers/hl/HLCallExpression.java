@@ -1,3 +1,3 @@
 package edu.mit.compilers.hl;
 
-interface HLCallExpression extends HLExpression { }
+public interface HLCallExpression extends HLExpression { }

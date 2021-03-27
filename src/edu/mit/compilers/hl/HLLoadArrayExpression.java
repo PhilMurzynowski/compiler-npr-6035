@@ -1,6 +1,6 @@
 package edu.mit.compilers.hl;
 
-class HLLoadArrayExpression implements HLExpression {
+public class HLLoadArrayExpression implements HLLoadExpression {
 
   private final HLArrayFieldDeclaration declaration;
   private final HLExpression index;

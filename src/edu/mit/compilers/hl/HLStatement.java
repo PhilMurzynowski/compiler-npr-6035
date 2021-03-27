@@ -1,3 +1,3 @@
 package edu.mit.compilers.hl;
 
-interface HLStatement extends HLNode { }
+public interface HLStatement extends HLNode { }

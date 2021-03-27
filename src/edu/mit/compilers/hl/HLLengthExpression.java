@@ -1,6 +1,6 @@
 package edu.mit.compilers.hl;
 
-class HLLengthExpression implements HLExpression {
+public class HLLengthExpression implements HLExpression {
 
   private final HLArrayFieldDeclaration declaration;
 

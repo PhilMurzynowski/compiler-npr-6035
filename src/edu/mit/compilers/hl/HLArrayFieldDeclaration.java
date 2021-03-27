@@ -1,3 +1,3 @@
 package edu.mit.compilers.hl;
 
-interface HLArrayFieldDeclaration extends HLNode { }
+public interface HLArrayFieldDeclaration extends HLNode { }

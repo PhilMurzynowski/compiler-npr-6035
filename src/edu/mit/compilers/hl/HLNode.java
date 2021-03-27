@@ -1,6 +1,6 @@
 package edu.mit.compilers.hl;
 
-interface HLNode { 
+public interface HLNode { 
 
   public String debugString(int depth);
 

@@ -19,7 +19,6 @@ LLProgram <- <LLNode> {
 ## Declarations
 
 ```
-Noah
 <LLDeclaration> <- <LLNode> {
   location(): String, // "label" or "-i(%rbp)"
 }
@@ -29,14 +28,12 @@ LLImportDeclaration <- <LLDeclaration> {
   identifier: String,
 }
 
-Noah
 <LLScalarFieldDeclaration> <- <LLDeclaration>
 
 <LLArrayFieldDeclaration> <- <LLDeclaration> {
   index(register: String): String, // register: "%r10" -> "-i(%rbp,%r10,8)"
 }
 
-Phil
 LLGlobalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
   identifier: String,
 }
@@ -46,13 +43,11 @@ LLGlobalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
   length: long,
 }
 
-Noah
 LLStringLiteralDeclaration <- <LLDeclaration> {
   index: long,
   value: String,
 }
 
-Phil
 LLMethodDeclaration <- <LLDeclaration> {
   argumentDeclarations: [LLArgumentDeclaration],
   scalarFieldDeclarations: [LLLocalScalarFieldDeclaration],
@@ -65,23 +60,16 @@ LLArgumentDeclaration <- <LLScalarFieldDeclaration> {
   index: long,
 }
 
-Noah
 LLLocalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
   index: long,
 }
 
-Phil
 LLLocalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
   index: long,
   length: long,
 }
 
 LLAliasDeclaration <- <LLDeclaration> {
-  index: long,
-}
-
-Noah
-LLLabelDeclaration <- <LLDeclaration> {
   index: long,
 }
 ```
@@ -108,13 +96,11 @@ LLBasicBlock <- <LLNode> {
 ```
 <LLInstruction> <- <LLNode>
 
-Noah
 LLStoreScalar <- <LLInstruction> {
   location: <LLScalarDeclaration>,
   expression: <LLDeclaration>,
 }
 
-Phil
 LLStoreArray <- <LLInstruction> {
   location: <LLArrayDeclaration>,
   index: <LLDeclaration>,
@@ -123,18 +109,6 @@ LLStoreArray <- <LLInstruction> {
 
 LLReturn <- <LLInstruction> {
   expression: <LLDeclaration>?,
-}
-
-Noah
-LLBranch <- <LLInstruction> {
-  condition: <LLDeclaration>,
-  trueTarget: LLLabelDeclaration,
-  falseTarget: LLLabelDeclaration,
-}
-
-Phil
-LLJump <- <LLInstruction> {
-  target: LLLabelDeclaration,
 }
 ```
 
@@ -160,14 +134,12 @@ LLBinary <- <LLInstruction> {
   result: <LLDeclaration>,
 }
 
-Noah
 LLUnary <- <LLInstruction> {
   type: NOT | NEGATE,
   expression: <LLDeclaration>,
   result: <LLDeclaration>,
 }
 
-Phil
 LLLoadScalar <- <LLInstruction> {
   location: <LLScalarDeclaration>,
   result: <LLDeclaration>,
@@ -179,14 +151,12 @@ LLLoadArray <- <LLInstruction> {
   result: <LLDeclaration>,
 }
 
-Noah
 LLInternalCall <- <LLInstruction> {
   declaration: LLMethodDeclaration,
   arguments: [<LLDeclaration>],
   result: <LLDeclaration>,
 }
 
-Phil
 LLExternalCall <- <LLInstruction> {
   declaration: LLImportDeclaration,
   arguments: [<LLDeclaration>],
@@ -198,13 +168,11 @@ LLLength <- <LLInstruction> {
   result: <LLDeclaration>,
 }
 
-Noah
 LLIntegerLiteral <- <LLInstruction> {
   value: long,
   result: <LLDeclaration>,
 }
 
-Phil
 LLStringLiteral <- <LLInstruction> {
   declaration: LLStringLiteralDeclaration,
   result: <LLDeclaration>,

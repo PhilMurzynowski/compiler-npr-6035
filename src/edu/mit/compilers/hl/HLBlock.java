@@ -2,7 +2,7 @@ package edu.mit.compilers.hl;
 
 import java.util.List;
 
-class HLBlock implements HLNode {
+public class HLBlock implements HLNode {
 
   private final List<HLArgumentDeclaration> argumentDeclarations;
   private final List<HLLocalScalarFieldDeclaration> scalarFieldDeclarations;

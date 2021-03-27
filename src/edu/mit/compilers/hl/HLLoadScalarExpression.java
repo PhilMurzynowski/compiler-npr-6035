@@ -1,6 +1,6 @@
 package edu.mit.compilers.hl;
 
-public class HLLoadScalarExpression implements HLExpression {
+public class HLLoadScalarExpression implements HLLoadExpression {
 
   private final HLScalarFieldDeclaration declaration;
 

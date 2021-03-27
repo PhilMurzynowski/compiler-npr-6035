@@ -13,6 +13,8 @@ import edu.mit.compilers.tk.*;
 import edu.mit.compilers.pt.*;
 import edu.mit.compilers.ast.*;
 import edu.mit.compilers.sem.*;
+import edu.mit.compilers.hl.*;
+import edu.mit.compilers.ll.*;
 
 class Main {
 
@@ -147,6 +149,37 @@ class Main {
     }
   }
 
+  private static void assemble(String filename, String input, PrintStream outputStream) {
+    Lexer.Result lexerResult = new Lexer().lexAll(input);
+    Parser.Result parserResult = new Parser().parseAll(lexerResult.getTokens());
+    ASTProgram program = new Abstracter().abstractProgram(parserResult.getParseTree());
+    List<SemanticException> semanticExceptions = program.accept(new ProgramChecker(new SymbolTable(), false, Optional.empty(), List.of(), false, false));
+
+    if (lexerResult.hasExceptions() || parserResult.hasExceptions() || !semanticExceptions.isEmpty()) {
+      System.err.println("\n*** ERRORS ***\n");
+
+      for (LexerException exception : lexerResult.getExceptions()) {
+        System.err.println(lexerExceptionString(filename, input, exception));
+      }
+
+      for (ParserException exception : parserResult.getExceptions()) {
+        System.err.println(parserExceptionString(filename, input, exception));
+      }
+
+      for (SemanticException exception : semanticExceptions) {
+        System.err.println(semanticExceptionString(filename, input, exception));
+      }
+
+      System.exit(1);
+    }
+
+    HLProgram hl = HLBuilder.buildProgram(new HLSymbolTable(), program);
+    LLProgram ll = LLBuilder.buildProgram(hl);
+    String assembly = LLGenerator.generateProgram(ll);
+
+    outputStream.print(assembly);
+  }
+
   // https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
   private static String streamToString(InputStream inputStream) throws IOException {
     ByteArrayOutputStream result = new ByteArrayOutputStream();
@@ -173,6 +206,8 @@ class Main {
         case INTER:
           check(CLI.infile == null ? "STDIN" : CLI.infile, input, outputStream);
           break;
+        case ASSEMBLY:
+          assemble(CLI.infile == null ? "STDIN" : CLI.infile, input, outputStream);
         default:
           break;
       }

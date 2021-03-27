@@ -1,6 +1,6 @@
 package edu.mit.compilers.hl;
 
-class HLForStatement implements HLStatement {
+public class HLForStatement implements HLStatement {
 
   private final HLStoreScalarStatement initial;
   private final HLExpression condition;
