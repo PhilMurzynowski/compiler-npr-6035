@@ -1,5 +1,3 @@
 package edu.mit.compilers.hl;
 
-public interface HLExpression extends HLArgument {
-
-}
+public interface HLExpression extends HLArgument { }

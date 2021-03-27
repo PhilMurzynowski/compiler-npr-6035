@@ -1,3 +1,3 @@
 package edu.mit.compilers.hl;
 
-class HLBreakStatement implements HLStatemen{}
+class HLBreakStatement implements HLStatement { }

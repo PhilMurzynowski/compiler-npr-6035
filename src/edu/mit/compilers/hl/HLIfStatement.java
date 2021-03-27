@@ -1,5 +1,7 @@
 package edu.mit.compilers.hl;
 
+import java.util.Optional;
+
 public class HLIfStatement implements HLStatement {
 
   private final HLExpression condition;
