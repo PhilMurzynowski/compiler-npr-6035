@@ -2,11 +2,11 @@ package edu.mit.compilers.ll;
 
 public class LLLoadArray implements LLNode {
 
-  private final LLArrayDeclaration location;
+  private final LLArrayFieldDeclaration location;
   private final LLDeclaration index;
   private final LLDeclaration result;
 
-  public LLLoadArray(LLArrayDeclaration location, LLDeclaration index, LLDeclaration result) {
+  public LLLoadArray(LLArrayFieldDeclaration location, LLDeclaration index, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 

@@ -1,5 +1,7 @@
 package edu.mit.compilers.ll;
 
+import edu.mit.compilers.common.*;
+
 public class LLBinary implements LLNode {
 
   private final LLDeclaration left;
@@ -7,7 +9,7 @@ public class LLBinary implements LLNode {
   private final LLDeclaration right;
   private final LLDeclaration result;
 
-  public LLResult(LLDeclaration left, BinaryExpressionType type, LLDeclaration right, LLDeclaration result) {
+  public LLBinary(LLDeclaration left, BinaryExpressionType type, LLDeclaration right, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 
