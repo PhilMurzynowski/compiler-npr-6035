@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLIntegerLiteral implements LLNode {
+public class LLIntegerLiteral implements LLInstruction {
 
   private final long value;
   private final LLDeclaration result;

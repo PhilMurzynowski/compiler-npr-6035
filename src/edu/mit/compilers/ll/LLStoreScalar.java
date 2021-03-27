@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLStoreScalar implements LLNode {
+public class LLStoreScalar implements LLInstruction {
 
   private final LLScalarFieldDeclaration declaration;
   private final LLDeclaration expression;

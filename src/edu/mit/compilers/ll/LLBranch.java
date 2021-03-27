@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLBranch implements LLNode {
+public class LLBranch implements LLInstruction {
 
   private final LLDeclaration condition;
   private final LLLabelDeclaration trueTarget;

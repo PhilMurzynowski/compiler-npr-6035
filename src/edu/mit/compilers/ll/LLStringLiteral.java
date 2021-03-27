@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLStringLiteral implements LLNode {
+public class LLStringLiteral implements LLInstruction {
 
   private final LLStringLiteralDeclaration declaration;
   private final LLDeclaration result;

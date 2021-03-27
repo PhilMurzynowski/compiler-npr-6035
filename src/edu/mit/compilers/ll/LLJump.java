@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLJump implements LLNode {
+public class LLJump implements LLInstruction {
 
   private final LLLabelDeclaration target;
 
