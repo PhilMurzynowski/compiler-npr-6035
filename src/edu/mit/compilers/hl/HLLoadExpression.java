@@ -1,3 +1,3 @@
 package edu.mit.compilers.hl;
 
-interface HLLoadExpression extends HLExpression { }
+public interface HLLoadExpression extends HLExpression { }
