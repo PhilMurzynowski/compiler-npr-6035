@@ -1,6 +1,6 @@
 package edu.mit.compilers.hl;
 
-public class HLStringLiteralDeclaration {
+public class HLStringLiteralDeclaration implements HLNode {
 
   private final int index;
   private final String value;
