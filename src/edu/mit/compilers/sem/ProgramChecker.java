@@ -434,7 +434,7 @@ public class ProgramChecker implements ASTNode.Visitor<List<SemanticException>> 
 
     final ASTExpression expression = unaryExpression.getExpression();
 
-    final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, unaryExpression.getType().equals(ASTUnaryExpression.Type.NEGATE)));
+    final List<SemanticException> expressionExceptions = expression.accept(new ProgramChecker(symbolTable, inLoop, returnType, List.of(), false, unaryExpression.getType().equals(UnaryExpressionType.NEGATE)));
     exceptions.addAll(expressionExceptions);
 
     if (expressionExceptions.isEmpty()) {

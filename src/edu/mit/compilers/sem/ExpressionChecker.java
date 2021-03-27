@@ -16,7 +16,7 @@ class ExpressionChecker implements ASTExpression.Visitor<VariableType> {
   }
 
   public VariableType visit(ASTUnaryExpression unaryExpression) {
-    if (unaryExpression.getType().equals(ASTUnaryExpression.Type.NOT)) {
+    if (unaryExpression.getType().equals(UnaryExpressionType.NOT)) {
       return VariableType.BOOLEAN;
     } else /* if (unaryExpression.getType().equals(ASTUnaryExpression.Type.NEGATE)) */ {
       return VariableType.INTEGER;

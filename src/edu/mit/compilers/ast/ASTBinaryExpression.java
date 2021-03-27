@@ -6,28 +6,12 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTBinaryExpression implements ASTExpression {
 
-  public enum Type {
-    OR,
-    AND,
-    EQUAL,
-    NOT_EQUAL,
-    LESS_THAN,
-    LESS_THAN_OR_EQUAL,
-    GREATER_THAN,
-    GREATER_THAN_OR_EQUAL,
-    ADD,
-    SUBTRACT,
-    MULTIPLY,
-    DIVIDE,
-    MODULUS,
-  }
-
   private final TextLocation textLocation;
   private final ASTExpression left;
-  private final Type type;
+  private final BinaryExpressionType type;
   private final ASTExpression right;
 
-  private ASTBinaryExpression(TextLocation textLocation, ASTExpression left, Type type, ASTExpression right) {
+  private ASTBinaryExpression(TextLocation textLocation, ASTExpression left, BinaryExpressionType type, ASTExpression right) {
     this.textLocation = textLocation;
     this.left = left;
     this.type = type;
@@ -49,7 +33,7 @@ public class ASTBinaryExpression implements ASTExpression {
       return this;
     }
 
-    public Builder withExpression(Type type, ASTExpression expression) {
+    public Builder withExpression(BinaryExpressionType type, ASTExpression expression) {
       assert this.expression != null;
 
       this.expression = new ASTBinaryExpression(textLocation, this.expression, type, expression);
@@ -71,29 +55,29 @@ public class ASTBinaryExpression implements ASTExpression {
 	  return right;
   }
 
-  public Type getType() {
+  public BinaryExpressionType getType() {
 	  return type;
   }
 
   private boolean acceptsInteger() {
-    return (type.equals(Type.EQUAL))
-      || (type.equals(Type.NOT_EQUAL))
-      || (type.equals(Type.LESS_THAN))
-      || (type.equals(Type.LESS_THAN_OR_EQUAL))
-      || (type.equals(Type.GREATER_THAN))
-      || (type.equals(Type.GREATER_THAN_OR_EQUAL))
-      || (type.equals(Type.ADD))
-      || (type.equals(Type.SUBTRACT))
-      || (type.equals(Type.MULTIPLY))
-      || (type.equals(Type.DIVIDE))
-      || (type.equals(Type.MODULUS));
+    return (type.equals(BinaryExpressionType.EQUAL))
+      || (type.equals(BinaryExpressionType.NOT_EQUAL))
+      || (type.equals(BinaryExpressionType.LESS_THAN))
+      || (type.equals(BinaryExpressionType.LESS_THAN_OR_EQUAL))
+      || (type.equals(BinaryExpressionType.GREATER_THAN))
+      || (type.equals(BinaryExpressionType.GREATER_THAN_OR_EQUAL))
+      || (type.equals(BinaryExpressionType.ADD))
+      || (type.equals(BinaryExpressionType.SUBTRACT))
+      || (type.equals(BinaryExpressionType.MULTIPLY))
+      || (type.equals(BinaryExpressionType.DIVIDE))
+      || (type.equals(BinaryExpressionType.MODULUS));
   }
 
   private boolean acceptsBoolean() {
-    return (type.equals(Type.OR))
-      || (type.equals(Type.AND))
-      || (type.equals(Type.EQUAL))
-      || (type.equals(Type.NOT_EQUAL));
+    return (type.equals(BinaryExpressionType.OR))
+      || (type.equals(BinaryExpressionType.AND))
+      || (type.equals(BinaryExpressionType.EQUAL))
+      || (type.equals(BinaryExpressionType.NOT_EQUAL));
   }
 
   public boolean acceptsType(VariableType type) {
@@ -105,23 +89,23 @@ public class ASTBinaryExpression implements ASTExpression {
   }
 
   private boolean returnsInteger() {
-    return (type.equals(Type.ADD))
-      || (type.equals(Type.SUBTRACT))
-      || (type.equals(Type.MULTIPLY))
-      || (type.equals(Type.DIVIDE))
-      || (type.equals(Type.MODULUS));
+    return (type.equals(BinaryExpressionType.ADD))
+      || (type.equals(BinaryExpressionType.SUBTRACT))
+      || (type.equals(BinaryExpressionType.MULTIPLY))
+      || (type.equals(BinaryExpressionType.DIVIDE))
+      || (type.equals(BinaryExpressionType.MODULUS));
   }
 
   @SuppressWarnings("unused")
   private boolean returnsBoolean() {
-    return (type.equals(Type.OR))
-      || (type.equals(Type.AND))
-      || (type.equals(Type.EQUAL))
-      || (type.equals(Type.NOT_EQUAL))
-      || (type.equals(Type.LESS_THAN))
-      || (type.equals(Type.LESS_THAN_OR_EQUAL))
-      || (type.equals(Type.GREATER_THAN))
-      || (type.equals(Type.GREATER_THAN_OR_EQUAL));
+    return (type.equals(BinaryExpressionType.OR))
+      || (type.equals(BinaryExpressionType.AND))
+      || (type.equals(BinaryExpressionType.EQUAL))
+      || (type.equals(BinaryExpressionType.NOT_EQUAL))
+      || (type.equals(BinaryExpressionType.LESS_THAN))
+      || (type.equals(BinaryExpressionType.LESS_THAN_OR_EQUAL))
+      || (type.equals(BinaryExpressionType.GREATER_THAN))
+      || (type.equals(BinaryExpressionType.GREATER_THAN_OR_EQUAL));
   }
 
   public VariableType returnType() {
@@ -157,31 +141,31 @@ public class ASTBinaryExpression implements ASTExpression {
     StringBuilder s = new StringBuilder();
     s.append("(");
     s.append(left.prettyString(depth));
-    if (type.equals(Type.OR)) {
+    if (type.equals(BinaryExpressionType.OR)) {
       s.append(" || ");
-    } else if (type.equals(Type.AND)) {
+    } else if (type.equals(BinaryExpressionType.AND)) {
       s.append(" && ");
-    } else if (type.equals(Type.EQUAL)) {
+    } else if (type.equals(BinaryExpressionType.EQUAL)) {
       s.append(" == ");
-    } else if (type.equals(Type.NOT_EQUAL)) {
+    } else if (type.equals(BinaryExpressionType.NOT_EQUAL)) {
       s.append(" != ");
-    } else if (type.equals(Type.LESS_THAN)) {
+    } else if (type.equals(BinaryExpressionType.LESS_THAN)) {
       s.append(" < ");
-    } else if (type.equals(Type.LESS_THAN_OR_EQUAL)) {
+    } else if (type.equals(BinaryExpressionType.LESS_THAN_OR_EQUAL)) {
       s.append(" <= ");
-    } else if (type.equals(Type.GREATER_THAN)) {
+    } else if (type.equals(BinaryExpressionType.GREATER_THAN)) {
       s.append(" > ");
-    } else if (type.equals(Type.GREATER_THAN_OR_EQUAL)) {
+    } else if (type.equals(BinaryExpressionType.GREATER_THAN_OR_EQUAL)) {
       s.append(" >= ");
-    } else if (type.equals(Type.ADD)) {
+    } else if (type.equals(BinaryExpressionType.ADD)) {
       s.append(" + ");
-    } else if (type.equals(Type.SUBTRACT)) {
+    } else if (type.equals(BinaryExpressionType.SUBTRACT)) {
       s.append(" - ");
-    } else if (type.equals(Type.MULTIPLY)) {
+    } else if (type.equals(BinaryExpressionType.MULTIPLY)) {
       s.append(" * ");
-    } else if (type.equals(Type.DIVIDE)) {
+    } else if (type.equals(BinaryExpressionType.DIVIDE)) {
       s.append(" / ");
-    } else /* if (type.equals(Type.MODULUS)) */ {
+    } else /* if (type.equals(BinaryExpressionType.MODULUS)) */ {
       s.append(" % ");
     }
     s.append(right.prettyString(depth));

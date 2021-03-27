@@ -540,7 +540,7 @@ public class Abstracter {
     while (nodes.peek().is(Token.Type.VERTICAL_VERTICAL)) {
       nodes.next();
 
-      builder.withExpression(ASTBinaryExpression.Type.OR, abstractAndExpression(nodes.next()));
+      builder.withExpression(BinaryExpressionType.OR, abstractAndExpression(nodes.next()));
     }
 
     assert !nodes.hasNext();
@@ -560,7 +560,7 @@ public class Abstracter {
     while (nodes.peek().is(Token.Type.AMPERSAND_AMPERSAND)) {
       nodes.next();
 
-      builder.withExpression(ASTBinaryExpression.Type.AND, abstractEqualityExpression(nodes.next()));
+      builder.withExpression(BinaryExpressionType.AND, abstractEqualityExpression(nodes.next()));
     }
 
     assert !nodes.hasNext();
@@ -581,11 +581,11 @@ public class Abstracter {
       if (nodes.peek().is(Token.Type.EQUAL_EQUAL)) {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.EQUAL, abstractRelationalExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.EQUAL, abstractRelationalExpression(nodes.next()));
       } else /* if (nodes.peek().is(Token.Type.BANG_EQUAL)) */ {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.NOT_EQUAL, abstractRelationalExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.NOT_EQUAL, abstractRelationalExpression(nodes.next()));
       }
     }
 
@@ -607,19 +607,19 @@ public class Abstracter {
       if (nodes.peek().is(Token.Type.LESS)) {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.LESS_THAN, abstractAdditiveExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.LESS_THAN, abstractAdditiveExpression(nodes.next()));
       } else if (nodes.peek().is(Token.Type.LESS_EQUAL)) {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.LESS_THAN_OR_EQUAL, abstractAdditiveExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.LESS_THAN_OR_EQUAL, abstractAdditiveExpression(nodes.next()));
       } else if (nodes.peek().is(Token.Type.GREATER)) {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.GREATER_THAN, abstractAdditiveExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.GREATER_THAN, abstractAdditiveExpression(nodes.next()));
       } else /* if (nodes.peek().is(Token.Type.GREATER_EQUAL)) */ {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.GREATER_THAN_OR_EQUAL, abstractAdditiveExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.GREATER_THAN_OR_EQUAL, abstractAdditiveExpression(nodes.next()));
       }
     }
 
@@ -641,11 +641,11 @@ public class Abstracter {
       if (nodes.peek().is(Token.Type.PLUS)) {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.ADD, abstractMultiplicativeExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.ADD, abstractMultiplicativeExpression(nodes.next()));
       } else /* if (nodes.peek().is(Token.Type.MINUS)) */ {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.SUBTRACT, abstractMultiplicativeExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.SUBTRACT, abstractMultiplicativeExpression(nodes.next()));
       }
     }
 
@@ -667,15 +667,15 @@ public class Abstracter {
       if (nodes.peek().is(Token.Type.STAR)) {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.MULTIPLY, abstractNotExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.MULTIPLY, abstractNotExpression(nodes.next()));
       } else if (nodes.peek().is(Token.Type.SLASH)) {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.DIVIDE, abstractNotExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.DIVIDE, abstractNotExpression(nodes.next()));
       } else /* if (nodes.peek().is(Token.Type.PERCENT)) */ {
         nodes.next();
 
-        builder.withExpression(ASTBinaryExpression.Type.MODULUS, abstractNotExpression(nodes.next()));
+        builder.withExpression(BinaryExpressionType.MODULUS, abstractNotExpression(nodes.next()));
       }
     }
 
@@ -692,7 +692,7 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptNotExpression.getChildren());
 
     while (nodes.peek().is(Token.Type.BANG)) {
-      builder.pushType(nodes.peek().getTextLocation(), ASTUnaryExpression.Type.NOT);
+      builder.pushType(nodes.peek().getTextLocation(), UnaryExpressionType.NOT);
       nodes.next();
     }
 
@@ -711,7 +711,7 @@ public class Abstracter {
     final Peekable nodes = Peekable.of(ptNegationExpression.getChildren());
 
     while (nodes.peek().is(Token.Type.MINUS)) {
-      builder.pushType(nodes.peek().getTextLocation(), ASTUnaryExpression.Type.NEGATE);
+      builder.pushType(nodes.peek().getTextLocation(), UnaryExpressionType.NEGATE);
       nodes.next();
     }
 

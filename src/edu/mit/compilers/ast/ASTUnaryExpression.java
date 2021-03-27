@@ -8,16 +8,11 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class ASTUnaryExpression implements ASTExpression {
 
-  public enum Type {
-    NOT,
-    NEGATE,
-  }
-
   private final TextLocation textLocation;
-  private final Type type;
+  private final UnaryExpressionType type;
   private final ASTExpression expression;
 
-  private ASTUnaryExpression(TextLocation textLocation, Type type, ASTExpression expression) {
+  private ASTUnaryExpression(TextLocation textLocation, UnaryExpressionType type, ASTExpression expression) {
     this.textLocation = textLocation;
     this.type = type;
     this.expression = expression;
@@ -26,7 +21,7 @@ public class ASTUnaryExpression implements ASTExpression {
   public static class Builder {
 
     private final Stack<TextLocation> textLocations;
-    private final Stack<Type> types;
+    private final Stack<UnaryExpressionType> types;
     private ASTExpression expression;
 
     public Builder() {
@@ -35,7 +30,7 @@ public class ASTUnaryExpression implements ASTExpression {
       expression = null;
     }
 
-    public Builder pushType(TextLocation textLocation, Type type) {
+    public Builder pushType(TextLocation textLocation, UnaryExpressionType type) {
       textLocations.push(textLocation);
       types.push(type);
       return this;
@@ -58,7 +53,7 @@ public class ASTUnaryExpression implements ASTExpression {
 
   }
 
-  public Type getType() {
+  public UnaryExpressionType getType() {
     return type;
   }
 
@@ -67,11 +62,11 @@ public class ASTUnaryExpression implements ASTExpression {
   }
 
   private boolean acceptsInteger() {
-    return type.equals(Type.NEGATE);
+    return type.equals(UnaryExpressionType.NEGATE);
   }
 
   private boolean acceptsBoolean() {
-    return type.equals(Type.NOT);
+    return type.equals(UnaryExpressionType.NOT);
   }
 
   public boolean acceptsType(VariableType type) {
@@ -83,12 +78,12 @@ public class ASTUnaryExpression implements ASTExpression {
   }
 
   private boolean returnsInteger() {
-    return type.equals(Type.NEGATE);
+    return type.equals(UnaryExpressionType.NEGATE);
   }
 
   @SuppressWarnings("unused")
   private boolean returnsBoolean() {
-    return type.equals(Type.NOT);
+    return type.equals(UnaryExpressionType.NOT);
   }
 
   public VariableType returnType() {
@@ -123,9 +118,9 @@ public class ASTUnaryExpression implements ASTExpression {
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("(");
-    if (type.equals(Type.NOT)) {
+    if (type.equals(UnaryExpressionType.NOT)) {
       s.append("!");
-    } else /* if (type.equals(Type.NEGATE)) */ {
+    } else /* if (type.equals(UnaryExpressionType.NEGATE)) */ {
       s.append("-");
     }
     s.append(expression.prettyString(depth));
