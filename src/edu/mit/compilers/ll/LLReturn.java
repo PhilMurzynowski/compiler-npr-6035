@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLReturn implements LLNode {
+public class LLReturn implements LLInstruction {
 
   private final LLDeclaration expression;
 

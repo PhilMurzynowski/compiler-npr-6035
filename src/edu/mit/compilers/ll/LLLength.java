@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLLength implements LLNode {
+public class LLLength implements LLInstruction {
 
   private final LLArrayFieldDeclaration declaration;
   private final LLDeclaration result;
