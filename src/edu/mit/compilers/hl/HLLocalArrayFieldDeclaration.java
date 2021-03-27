@@ -7,8 +7,8 @@ class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration{
   private final int length;
 
   public HLLocalArrayFieldDeclaration(
-    private final int index,
-    private final int length)
+    final int index,
+    final int length)
   {
     throw new RuntimeException("not implemented");
   }

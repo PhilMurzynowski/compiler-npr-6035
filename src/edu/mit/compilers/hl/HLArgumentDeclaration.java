@@ -8,9 +8,9 @@ class HLArgumentDeclaration implements HLScalarFieldDeclaration {
   private final int index;
 
   public HLArgumentDeclaration(
-    private final VariableType type,
-    private final int index)
-  }
+    final VariableType type,
+    final int index)
+  {
     throw new RuntimeException("not implemented");
   }
 

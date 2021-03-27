@@ -9,9 +9,9 @@ class HLGlobalArrayFieldDeclaration implements HLArrayFieldDeclaration {
   private final int length;
 
   public HLGlobalArrayFieldDeclaration(
-    private final VariableType type,
-    private final String identifier,
-    private final int length)
+    final VariableType type,
+    final String identifier,
+    final int length)
   {
     throw new RuntimeException("not implemented");
   }

@@ -6,8 +6,8 @@ class HLMethodDeclaration implements HLNode {
   private final HLBlock body;
 
   public HLMethodDeclaration(
-    private final String identifier,
-    private final HLBlock body)
+    final String identifier,
+    final HLBlock body)
   {
     throw new RuntimeException("not implemented");
   }
