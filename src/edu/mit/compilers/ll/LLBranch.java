@@ -10,7 +10,6 @@ public class LLBranch implements LLNode {
     throw new UnsupportedOperationException("not implemented");
   }
 
-
   @Override
   public String debugString(int depth) {
     throw new UnsupportedOperationException("not implemented");

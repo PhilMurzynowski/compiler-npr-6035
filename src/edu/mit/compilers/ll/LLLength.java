@@ -2,10 +2,10 @@ package edu.mit.compilers.ll;
 
 public class LLLength implements LLNode {
 
-  private final LLArrayDeclaration declaration;
+  private final LLArrayFieldDeclaration declaration;
   private final LLDeclaration result;
 
-  public LLLength(LLArrayDeclaration declaration, LLDeclaration result) {
+  public LLLength(LLArrayFieldDeclaration declaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 

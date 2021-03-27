@@ -9,7 +9,7 @@ public class LLGlobalScalarFieldDeclaration implements LLScalarFieldDeclaration 
   }
 
   @Override
-  public location() {
+  public String location() {
     throw new RuntimeException("not implemented");
   }
 

@@ -9,7 +9,7 @@ public class LLImportDeclaration implements LLDeclaration {
   }
 
   @Override
-  public location() {
+  public String location() {
     throw new RuntimeException("not implemented");
   }
 

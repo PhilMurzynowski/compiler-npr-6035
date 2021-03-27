@@ -5,10 +5,7 @@ public class LLStringLiteral implements LLNode {
   private final LLStringLiteralDeclaration declaration;
   private final LLDeclaration result;
 
-  public LLStringLiteral(
-    final LLStringLiteralDeclaration declaration,
-    final LLDeclaration result)
-  {
+  public LLStringLiteral(LLStringLiteralDeclaration declaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 

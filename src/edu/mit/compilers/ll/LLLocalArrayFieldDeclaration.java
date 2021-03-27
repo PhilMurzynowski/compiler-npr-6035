@@ -10,12 +10,12 @@ public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
   }
 
   @Override
-  public location() {
+  public String location() {
     throw new RuntimeException("not implemented");
   }
 
   @Override
-  public index() {
+  public String index(String register) {
     throw new RuntimeException("not implemented");
   }
 

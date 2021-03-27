@@ -1,9 +1,13 @@
 # Low-Level Intermediate Representation Specification
 
+```
+<LLNode>
+```
+
 ## Program
 
 ```
-LLProgram {
+LLProgram <- <LLNode> {
   importDeclarations: [LLImportDeclaration],
   scalarFieldDeclarations: [LLGlobalScalarFieldDeclaration],
   arrayFieldDeclarations: [LLGlobalArrayFieldDeclaration],
@@ -85,54 +89,51 @@ LLLabelDeclaration <- <LLDeclaration> {
 ## Control Flow Graph
 
 ```
-LLControlFlowGraph {
+LLControlFlowGraph <- <LLNode> {
   entry: LLBasicBlock,
   exit: LLBasicBlock,
   generate(): String,
 }
 
-LLBasicBlock {
+LLBasicBlock <- <LLNode> {
   index: long,
-  instructions: [<LLNode>], // no labels, declarations, or jumps
+  instructions: [<LLInstruction>], // no labels, declarations, or jumps
   trueTarget: LLBasicBlock?,
   falseTarget: LLBasicBlock?,
-  generate(): String,
 }
 ```
 
 ## Statements
 
 ```
-<LLNode> {
-  generate(): String,
-}
+<LLInstruction> <- <LLNode>
 
 Noah
-LLStoreScalar <- <LLNode> {
+LLStoreScalar <- <LLInstruction> {
   location: <LLScalarDeclaration>,
   expression: <LLDeclaration>,
 }
 
 Phil
-LLStoreArray <- <LLNode> {
+LLStoreArray <- <LLInstruction> {
   location: <LLArrayDeclaration>,
   index: <LLDeclaration>,
   expression: <LLDeclaration>,
 }
 
-LLReturn <- <LLNode> {
+LLReturn <- <LLInstruction> {
   expression: <LLDeclaration>?,
 }
 
 Noah
-LLBranch <- <LLNode> {
+LLBranch <- <LLInstruction> {
   condition: <LLDeclaration>,
   trueTarget: LLLabelDeclaration,
   falseTarget: LLLabelDeclaration,
 }
 
 Phil
-LLJump <- <LLNode> {
+LLJump <- <LLInstruction> {
   target: LLLabelDeclaration,
 }
 ```
@@ -140,7 +141,7 @@ LLJump <- <LLNode> {
 ## Expressions
 
 ```
-LLBinary <- <LLNode> {
+LLBinary <- <LLInstruction> {
   left: <LLDeclaration>,
   type: OR
     | AND
@@ -160,51 +161,51 @@ LLBinary <- <LLNode> {
 }
 
 Noah
-LLUnary <- <LLNode> {
+LLUnary <- <LLInstruction> {
   type: NOT | NEGATE,
   expression: <LLDeclaration>,
   result: <LLDeclaration>,
 }
 
 Phil
-LLLoadScalar <- <LLNode> {
+LLLoadScalar <- <LLInstruction> {
   location: <LLScalarDeclaration>,
   result: <LLDeclaration>,
 }
 
-LLLoadArray <- <LLNode> {
+LLLoadArray <- <LLInstruction> {
   location: <LLArrayDeclaration>,
   index: <LLDeclaration>,
   result: <LLDeclaration>,
 }
 
 Noah
-LLInternalCall <- <LLNode> {
+LLInternalCall <- <LLInstruction> {
   declaration: LLMethodDeclaration,
   arguments: [<LLDeclaration>],
   result: <LLDeclaration>,
 }
 
 Phil
-LLExternalCall <- <LLNode> {
+LLExternalCall <- <LLInstruction> {
   declaration: LLImportDeclaration,
   arguments: [<LLDeclaration>],
   result: <LLDeclaration>,
 }
 
-LLLength <- <LLNode> {
+LLLength <- <LLInstruction> {
   declaration: <LLArrayDeclaration>,
   result: <LLDeclaration>,
 }
 
 Noah
-LLIntegerLiteral <- <LLNode> {
+LLIntegerLiteral <- <LLInstruction> {
   value: long,
   result: <LLDeclaration>,
 }
 
 Phil
-LLStringLiteral <- <LLNode> {
+LLStringLiteral <- <LLInstruction> {
   declaration: LLStringLiteralDeclaration,
   result: <LLDeclaration>,
 }

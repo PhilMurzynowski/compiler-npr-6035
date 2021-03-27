@@ -2,13 +2,12 @@ package edu.mit.compilers.ll;
 
 public class LLStoreScalar implements LLNode {
 
-  private final LLScalarDeclaration declaration;
+  private final LLScalarFieldDeclaration declaration;
   private final LLDeclaration expression;
 
-  public LLStoreScalar(LLScalarDeclaration declaration, LLDeclaration expression) {
+  public LLStoreScalar(LLScalarFieldDeclaration declaration, LLDeclaration expression) {
     throw new UnsupportedOperationException("not implemented");
   }
-
 
   @Override
   public String debugString(int depth) {
