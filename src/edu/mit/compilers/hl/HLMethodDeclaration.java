@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import edu.mit.compilers.ll.*;
 
+// DONE: Noah
 public class HLMethodDeclaration implements HLNode {
 
   private final String identifier;
@@ -14,23 +15,31 @@ public class HLMethodDeclaration implements HLNode {
     final String identifier,
     final HLBlock body)
   {
-    throw new RuntimeException("not implemented");
+    this.identifier = identifier;
+    this.body = body;
   }
 
   public void setLL(LLMethodDeclaration ll) {
-    throw new RuntimeException("not implemented");
+    if (this.ll.isPresent()) {
+      throw new RuntimeException("ll has already been set");
+    } else {
+      this.ll = Optional.of(ll);
+    }
   }
 
   public LLMethodDeclaration getLL() {
-    throw new RuntimeException("not implemented");
+    if (ll.isPresent()) {
+      return ll.get();
+    }
+    throw new RuntimeException("ll is empty");
   }
 
   public String getIdentifier() {
-    throw new RuntimeException("not implemented");
+    return identifier;
   }
 
   public HLBlock getBody() {
-    throw new RuntimeException("not implemented");
+    return body;
   }
 
   @Override

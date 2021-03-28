@@ -61,9 +61,11 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLMethodDeclaration buildMethodDeclaration(HLSymbolTable symbolTable, ASTMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+    final String identifier = methodDeclaration.getIdentifier();
+    final HLBlock body = HLBuilder.buildBlock(symbolTable, methodDeclaration.getBlock(), methodDeclaration.getArguments());
+    return new HLMethodDeclaration(identifier, body);
   }
 
   public static HLArgumentDeclaration buildArgumentDeclaration(ASTMethodDeclaration.Argument argumentDeclaration, int index) {
@@ -119,9 +121,11 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLStoreScalarStatement buildIDAssignStatement(HLSymbolTable symbolTable, ASTIDAssignStatement idAssignStatement) {
-    throw new RuntimeException("not implemented");
+    final HLScalarFieldDeclaration declaration = symbolTable.getScalar(idAssignStatement.getIdentifier());
+    final HLExpression expression = HLBuilder.buildExpression(symbolTable, idAssignStatement.getExpression());
+    return new HLStoreScalarStatement(declaration, expression);
   }
 
   public static HLStoreStatement buildAssignStatement(HLSymbolTable symbolTable, ASTAssignStatement assignStatement) {
@@ -206,9 +210,18 @@ public class HLBuilder {
     }
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLLoadExpression buildLocationExpression(HLSymbolTable symbolTable, ASTLocationExpression locationExpression) {
-    throw new RuntimeException("not implemented");
+    // no offset => load scalar
+    if (locationExpression.getOffset().isEmpty()) {
+      final HLScalarFieldDeclaration declaration = symbolTable.getScalar(locationExpression.getIdentifier());
+      return new HLLoadScalarExpression(declaration);
+    // offset => load array
+    } else {
+      final HLArrayFieldDeclaration declaration = symbolTable.getArray(locationExpression.getIdentifier());
+      final HLExpression offset = HLBuilder.buildExpression(symbolTable, locationExpression.getOffset().get());
+      return new HLLoadArrayExpression(declaration, offset);
+    }
   }
 
   public static HLCallExpression buildMethodCallExpression(HLSymbolTable symbolTable, ASTMethodCallExpression methodCallExpression) {

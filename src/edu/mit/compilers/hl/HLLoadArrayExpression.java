@@ -6,7 +6,16 @@ public class HLLoadArrayExpression implements HLLoadExpression {
   private final HLExpression index;
 
   public HLLoadArrayExpression(HLArrayFieldDeclaration declaration, HLExpression index) {
-    throw new UnsupportedOperationException("not implemented");
+    this.declaration = declaration;
+    this.index = index;
+  }
+
+  public HLArrayFieldDeclaration getDeclaration() {
+    return declaration;
+  }
+
+  public HLExpression getIndex() {
+    return index;
   }
 
   @Override

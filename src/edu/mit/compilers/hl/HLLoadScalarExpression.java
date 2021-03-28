@@ -5,11 +5,11 @@ public class HLLoadScalarExpression implements HLLoadExpression {
   private final HLScalarFieldDeclaration declaration;
 
   public HLLoadScalarExpression(HLScalarFieldDeclaration declaration) {
-    throw new UnsupportedOperationException("not implemented");
+    this.declaration = declaration;
   }
 
   public HLScalarFieldDeclaration getDeclaration() {
-    throw new RuntimeException("not implemented");
+    return declaration;
   }
 
   @Override

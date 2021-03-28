@@ -1,12 +1,22 @@
 package edu.mit.compilers.hl;
 
+// DONE: Noah
 public class HLStoreScalarStatement implements HLStoreStatement {
 
   private final HLScalarFieldDeclaration declaration;
   private final HLExpression expression;
 
   public HLStoreScalarStatement(HLScalarFieldDeclaration declaration, HLExpression expression) {
-    throw new UnsupportedOperationException("not implemented");
+    this.declaration = declaration;
+    this.expression = expression;
+  }
+
+  public HLScalarFieldDeclaration getDeclaration() {
+    return declaration;
+  }
+
+  public HLExpression getExpression() {
+    return expression;
   }
 
   @Override
