@@ -10,6 +10,8 @@ public class LLAliasDeclaration implements LLDeclaration {
 
   @Override
   public String location() {
+    // TODO(rbd): Not quuuiiite right. Need to account for offsets of all other types of declarations.
+    // return "-" + (index * 8) + "(%rbp)";
     throw new RuntimeException("not implemented");
   }
 
