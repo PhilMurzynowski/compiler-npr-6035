@@ -1,3 +1,9 @@
 package edu.mit.compilers.hl;
 
-public interface HLScalarFieldDeclaration extends HLNode { }
+import edu.mit.compilers.ll.*;
+
+public interface HLScalarFieldDeclaration extends HLNode {
+
+  public LLScalarFieldDeclaration getLL();
+
+}

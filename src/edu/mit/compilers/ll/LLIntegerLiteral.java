@@ -9,6 +9,14 @@ public class LLIntegerLiteral implements LLInstruction {
     throw new UnsupportedOperationException("not implemented");
   }
 
+  public long getValue() {
+    throw new UnsupportedOperationException("not implemented");
+  }
+
+  public LLDeclaration getResult() {
+    throw new UnsupportedOperationException("not implemented");
+  }
+
   @Override
   public String debugString(int depth) {
     throw new UnsupportedOperationException("not implemented");

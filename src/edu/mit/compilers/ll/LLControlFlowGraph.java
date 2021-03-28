@@ -1,14 +1,36 @@
 package edu.mit.compilers.ll;
 
-import java.util.List;
-
 public class LLControlFlowGraph implements LLNode {
 
   private final LLBasicBlock entry;
   private final LLBasicBlock exit;
 
-  public LLControlFlowGraph(LLBasicBlock entry, LLBasicBlock exit) {
-    throw new RuntimeException("not implemented");
+  // NOTE(rbd): Please try not to add anything to this class. Let me know if you do. :)
+
+  private LLControlFlowGraph(LLBasicBlock entry, LLBasicBlock exit) {
+    this.entry = entry;
+    this.exit = exit;
+  }
+
+  public static LLControlFlowGraph single(LLBasicBlock basicBlock) {
+    return new LLControlFlowGraph(basicBlock, basicBlock);
+  }
+
+  public static LLControlFlowGraph empty() {
+    return single(new LLBasicBlock());
+  }
+
+  public LLControlFlowGraph concatenate(LLControlFlowGraph that) {
+    this.exit.setTrueTarget(that.entry);
+    return new LLControlFlowGraph(this.entry, that.exit);
+  }
+
+  public LLControlFlowGraph concatenate(LLBasicBlock basicBlock) {
+    return concatenate(LLControlFlowGraph.single(basicBlock));
+  }
+
+  public LLControlFlowGraph concatenate(LLInstruction ...instructions) {
+    return concatenate(LLControlFlowGraph.single(new LLBasicBlock(instructions)));
   }
 
   @Override

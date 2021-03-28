@@ -36,9 +36,15 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
-  public static LLMethodDeclaration buildMethodDeclaration(HLMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+  public static LLMethodDeclaration buildMethodDeclaration(HLMethodDeclaration hlMethodDeclaration) {
+    final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier());
+    hlMethodDeclaration.setLL(llMethodDeclaration);
+
+    // WARN(rbd): The lines above MUST be executed before the lines below. (Think recursive method calls.)
+
+    llMethodDeclaration.setBody(LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty()));
+
+    return llMethodDeclaration;
   }
 
   public static LLArgumentDeclaration buildArgumentDeclaration(HLArgumentDeclaration argumentDeclaration) {
@@ -66,9 +72,14 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
   public static LLControlFlowGraph buildStoreStatement(HLStoreStatement storeStatement, LLMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+    if (storeStatement instanceof HLStoreScalarStatement storeScalarStatement) {
+      return LLBuilder.buildStoreScalarStatement(storeScalarStatement, methodDeclaration);
+    } else if (storeStatement instanceof HLStoreArrayStatement storeArrayStatement) {
+      return LLBuilder.buildStoreArrayStatement(storeArrayStatement, methodDeclaration);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   // TODO: Phil
@@ -117,9 +128,22 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
   public static LLControlFlowGraph buildBinaryExpression(HLBinaryExpression binaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    final LLAliasDeclaration leftResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph leftCFG = LLBuilder.buildExpression(binaryExpression.getLeft(), methodDeclaration, leftResult);
+    resultCFG = resultCFG.concatenate(leftCFG);
+
+    final LLAliasDeclaration rightResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph rightCFG = LLBuilder.buildExpression(binaryExpression.getRight(), methodDeclaration, rightResult);
+    resultCFG = resultCFG.concatenate(rightCFG);
+
+    resultCFG = resultCFG.concatenate(
+      new LLBinary(leftResult, binaryExpression.getType(), rightResult, result)
+    );
+
+    return resultCFG;
   }
 
   // TODO: Phil
@@ -132,9 +156,14 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
   public static LLControlFlowGraph buildLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    resultCFG = resultCFG.concatenate(
+      new LLLoadScalar(loadScalarExpression.getDeclaration().getLL(), result)
+    );
+
+    return resultCFG;
   }
 
   public static LLControlFlowGraph buildLoadArrayExpression(HLLoadArrayExpression loadArrayExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {

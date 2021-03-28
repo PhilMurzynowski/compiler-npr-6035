@@ -25,6 +25,14 @@ public class HLMethodDeclaration implements HLNode {
     throw new RuntimeException("not implemented");
   }
 
+  public String getIdentifier() {
+    throw new RuntimeException("not implemented");
+  }
+
+  public HLBlock getBody() {
+    throw new RuntimeException("not implemented");
+  }
+
   @Override
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");

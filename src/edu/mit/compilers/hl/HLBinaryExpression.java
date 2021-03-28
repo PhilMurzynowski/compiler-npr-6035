@@ -12,6 +12,18 @@ public class HLBinaryExpression implements HLExpression {
     throw new RuntimeException("not implemented");
   }
 
+  public HLExpression getLeft() {
+    throw new RuntimeException("not implemented");
+  }
+
+  public BinaryExpressionType getType() {
+    throw new RuntimeException("not implemented");
+  }
+
+  public HLExpression getRight() {
+    throw new RuntimeException("not implemented");
+  }
+
   @Override
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");

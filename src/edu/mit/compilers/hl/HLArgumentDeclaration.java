@@ -22,6 +22,7 @@ public class HLArgumentDeclaration implements HLScalarFieldDeclaration {
     throw new RuntimeException("not implemented");
   }
 
+  @Override
   public LLArgumentDeclaration getLL() {
     throw new RuntimeException("not implemented");
   }

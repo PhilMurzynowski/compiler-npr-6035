@@ -22,6 +22,7 @@ public class HLLocalScalarFieldDeclaration implements HLScalarFieldDeclaration {
     throw new RuntimeException("not implemented");
   }
 
+  @Override
   public LLLocalScalarFieldDeclaration getLL() {
     throw new RuntimeException("not implemented");
   }

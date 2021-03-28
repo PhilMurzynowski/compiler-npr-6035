@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-public class LLArgumentDeclaration implements LLDeclaration {
+public class LLArgumentDeclaration implements LLScalarFieldDeclaration {
 
   private final int index;
 
