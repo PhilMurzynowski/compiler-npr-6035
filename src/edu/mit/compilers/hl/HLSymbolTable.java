@@ -2,6 +2,7 @@ package edu.mit.compilers.hl;
 
 import java.util.Optional;
 import java.util.Map;
+import java.util.List;
 
 public class HLSymbolTable {
 
@@ -46,6 +47,10 @@ public class HLSymbolTable {
   }
 
   public HLStringLiteralDeclaration getStringLiteral(String value) {
+    throw new RuntimeException("not implemented");
+  }
+
+  public List<HLStringLiteralDeclaration> getStringLiterals() {
     throw new RuntimeException("not implemented");
   }
 

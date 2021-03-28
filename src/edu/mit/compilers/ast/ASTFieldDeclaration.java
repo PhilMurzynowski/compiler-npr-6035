@@ -64,7 +64,7 @@ public class ASTFieldDeclaration implements ASTNode {
       return identifier;
     }
 
-    public Optional<ASTIntegerLiteral> getLength(){
+    public Optional<ASTIntegerLiteral> getLength() {
       return length;
     }
 

@@ -1,32 +1,63 @@
 package edu.mit.compilers.hl;
 
+import java.util.List;
+
+import edu.mit.compilers.common.*;
 import edu.mit.compilers.ast.*;
 
 public class HLBuilder {
 
-  // TODO: Robert
-  public static HLProgram buildProgram(HLSymbolTable symbolTable, ASTProgram program) {
-    throw new RuntimeException("not implemented");
+  public static HLProgram buildProgram(ASTProgram program) {
+    final HLProgram.Builder builder = new HLProgram.Builder();
+
+    final HLSymbolTable symbolTable = new HLSymbolTable();
+
+    for (ASTImportDeclaration astImportDeclaration : program.getImportDeclarations()) {
+      final HLImportDeclaration hlImportDeclaration = HLBuilder.buildImportDeclaration(astImportDeclaration);
+
+      symbolTable.addImport(astImportDeclaration.getIdentifier(), hlImportDeclaration);
+      builder.addImport(hlImportDeclaration);
+    }
+
+    for (ASTFieldDeclaration astFieldDeclaration : program.getFieldDeclarations()) {
+      for (ASTFieldDeclaration.Identifier identifier : astFieldDeclaration.getIdentifiers()) {
+        if (identifier.getLength().isPresent()) {
+          final HLGlobalArrayFieldDeclaration arrayDeclaration = HLBuilder.buildGlobalArrayFieldDeclaration(astFieldDeclaration, identifier);
+
+          symbolTable.addArray(identifier.getIdentifier(), arrayDeclaration);
+          builder.addArray(arrayDeclaration);
+        } else {
+          final HLGlobalScalarFieldDeclaration scalarDeclaration = HLBuilder.buildGlobalScalarFieldDeclaration(astFieldDeclaration, identifier);
+
+          symbolTable.addScalar(identifier.getIdentifier(), scalarDeclaration);
+          builder.addScalar(scalarDeclaration);
+        }
+      }
+    }
+
+    for (ASTMethodDeclaration astMethodDeclaration : program.getMethodDeclarations()) {
+      final HLMethodDeclaration hlMethodDeclaration = HLBuilder.buildMethodDeclaration(symbolTable, astMethodDeclaration);
+
+      symbolTable.addMethod(astMethodDeclaration.getIdentifier(), hlMethodDeclaration);
+      builder.addMethod(hlMethodDeclaration);
+    }
+
+    // NOTE(rbd): Kiiind of a hack, but I didn't want to pass HLProgram.Builder down to everyone...
+    builder.addStrings(symbolTable.getStringLiterals());
+
+    return builder.build();
   }
 
-  public static HLImportDeclaration buildImportDeclaration(HLSymbolTable symbolTable, ASTImportDeclaration importDeclaration) {
+  public static HLImportDeclaration buildImportDeclaration(ASTImportDeclaration importDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
   // TODO: Phil
-  public static HLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(HLSymbolTable symbolTable, ASTFieldDeclaration fieldDeclaration) {
+  public static HLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
     throw new RuntimeException("not implemented");
   }
 
-  public static HLGlobalArrayFieldDeclaration buildGlobalArrayFieldDeclaration(HLSymbolTable symbolTable, ASTFieldDeclaration fieldDeclaration) {
-    throw new RuntimeException("not implemented");
-  }
-
-  public static HLLocalScalarFieldDeclaration buildLocalScalarFieldDeclaration(HLSymbolTable symbolTable, ASTFieldDeclaration fieldDeclaration) {
-    throw new RuntimeException("not implemented");
-  }
-
-  public static HLLocalArrayFieldDeclaration buildLocalArrayFieldDeclaration(HLSymbolTable symbolTable, ASTFieldDeclaration fieldDeclaration) {
+  public static HLGlobalArrayFieldDeclaration buildGlobalArrayFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
     throw new RuntimeException("not implemented");
   }
 
@@ -35,9 +66,52 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
-  public static HLBlock buildBlock(HLSymbolTable symbolTable, ASTBlock block) {
+  public static HLArgumentDeclaration buildArgumentDeclaration(ASTMethodDeclaration.Argument argumentDeclaration, int index) {
     throw new RuntimeException("not implemented");
+  }
+
+  public static HLLocalScalarFieldDeclaration buildLocalScalarFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier, int index) {
+    throw new RuntimeException("not implemented");
+  }
+
+  public static HLLocalArrayFieldDeclaration buildLocalArrayFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier, int index) {
+    throw new RuntimeException("not implemented");
+  }
+
+  public static HLBlock buildBlock(HLSymbolTable symbolTable, ASTBlock block, List<ASTMethodDeclaration.Argument> astArguments) {
+    final HLBlock.Builder builder = new HLBlock.Builder();
+    symbolTable = new HLSymbolTable(symbolTable);
+
+    for (ASTMethodDeclaration.Argument astArgument : astArguments) {
+      final HLArgumentDeclaration hlArgument = HLBuilder.buildArgumentDeclaration(astArgument, builder.argumentIndex());
+
+      symbolTable.addScalar(astArgument.getIdentifier(), hlArgument);
+      builder.addArgument(hlArgument);
+    }
+
+    for (ASTFieldDeclaration astFieldDeclaration : block.getFieldDeclarations()) {
+      for (ASTFieldDeclaration.Identifier identifier : astFieldDeclaration.getIdentifiers()) {
+        if (identifier.getLength().isPresent()) {
+          final HLLocalArrayFieldDeclaration arrayDeclaration = HLBuilder.buildLocalArrayFieldDeclaration(astFieldDeclaration, identifier, builder.arrayIndex());
+
+          symbolTable.addArray(identifier.getIdentifier(), arrayDeclaration);
+          builder.addArray(arrayDeclaration);
+        } else {
+          final HLLocalScalarFieldDeclaration scalarDeclaration = HLBuilder.buildLocalScalarFieldDeclaration(astFieldDeclaration, identifier, builder.scalarIndex());
+
+          symbolTable.addScalar(identifier.getIdentifier(), scalarDeclaration);
+          builder.addScalar(scalarDeclaration);
+        }
+      }
+    }
+
+    for (ASTStatement astStatement : block.getStatements()) {
+      final HLStatement hlStatement = HLBuilder.buildStatement(symbolTable, astStatement);
+
+      builder.addStatement(hlStatement);
+    }
+
+    return builder.build();
   }
 
   // TODO: Phil
@@ -78,15 +152,14 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  public static HLBreakStatement buildBreakStatement(HLSymbolTable symbolTable, ASTBreakStatement breakStatement) {
+  public static HLBreakStatement buildBreakStatement(ASTBreakStatement breakStatement) {
     throw new RuntimeException("not implemented");
   }
 
-  public static HLContinueStatement buildContinueStatement(HLSymbolTable symbolTable, ASTContinueStatement continueStatement) {
+  public static HLContinueStatement buildContinueStatement(ASTContinueStatement continueStatement) {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
   public static HLArgument buildArgument(HLSymbolTable symbolTable, ASTArgument argument) {
     if (argument instanceof ASTExpression expression) {
       return buildExpression(symbolTable, expression);
@@ -97,9 +170,26 @@ public class HLBuilder {
     }
   }
 
-  // TODO: Robert
   public static HLExpression buildExpression(HLSymbolTable symbolTable, ASTExpression expression) {
-    throw new RuntimeException("not implemented");
+    if (expression instanceof ASTBinaryExpression binaryExpression) {
+      return HLBuilder.buildBinaryExpression(symbolTable, binaryExpression);
+    } else if (expression instanceof ASTUnaryExpression unaryExpression) {
+      return HLBuilder.buildUnaryExpression(symbolTable, unaryExpression);
+    } else if (expression instanceof ASTLocationExpression locationExpression) {
+      return HLBuilder.buildLocationExpression(symbolTable, locationExpression);
+    } else if (expression instanceof ASTMethodCallExpression methodCallExpression) {
+      return HLBuilder.buildMethodCallExpression(symbolTable, methodCallExpression);
+    } else if (expression instanceof ASTLengthExpression lengthExpression) {
+      return HLBuilder.buildLengthExpression(symbolTable, lengthExpression);
+    } else if (expression instanceof ASTIntegerLiteral integerLiteral) {
+      return HLBuilder.buildIntegerLiteral(integerLiteral, /* isNegated */ false);
+    } else if (expression instanceof ASTCharacterLiteral characterLiteral) {
+      return HLBuilder.buildCharacterLiteral(characterLiteral);
+    } else if (expression instanceof ASTBooleanLiteral booleanLiteral) {
+      return HLBuilder.buildBooleanLiteral(booleanLiteral);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   // TODO: Phil
@@ -107,9 +197,13 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
-  public static HLUnaryExpression buildUnaryExpression(HLSymbolTable symbolTable, ASTUnaryExpression unaryExpression) {
-    throw new RuntimeException("not implemented");
+  public static HLExpression buildUnaryExpression(HLSymbolTable symbolTable, ASTUnaryExpression unaryExpression) {
+    if (unaryExpression.getExpression() instanceof ASTIntegerLiteral integerLiteral) {
+      assert unaryExpression.getType().equals(UnaryExpressionType.NEGATE);
+      return HLBuilder.buildIntegerLiteral(integerLiteral, /* isNegated */ true);
+    } else {
+      return new HLUnaryExpression(unaryExpression.getType(), HLBuilder.buildExpression(symbolTable, unaryExpression.getExpression()));
+    }
   }
 
   // TODO: Noah
@@ -125,16 +219,19 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
-  public static HLIntegerLiteral buildIntegerLiteral(HLSymbolTable symbolTable, ASTIntegerLiteral integerLiteral) {
+  public static HLIntegerLiteral buildIntegerLiteral(ASTIntegerLiteral integerLiteral, boolean isNegated) {
+    if (isNegated) {
+      return new HLIntegerLiteral(integerLiteral.getValue().negate().longValue());
+    } else {
+      return new HLIntegerLiteral(integerLiteral.getValue().longValue());
+    }
+  }
+
+  public static HLIntegerLiteral buildCharacterLiteral(ASTCharacterLiteral characterLiteral) {
     throw new RuntimeException("not implemented");
   }
 
-  public static HLIntegerLiteral buildCharacterLiteral(HLSymbolTable symbolTable, ASTCharacterLiteral characterLiteral) {
-    throw new RuntimeException("not implemented");
-  }
-
-  public static HLIntegerLiteral buildBooleanLiteral(HLSymbolTable symbolTable, ASTBooleanLiteral booleanLiteral) {
+  public static HLIntegerLiteral buildBooleanLiteral(ASTBooleanLiteral booleanLiteral) {
     throw new RuntimeException("not implemented");
   }
 

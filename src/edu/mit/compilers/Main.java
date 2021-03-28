@@ -173,7 +173,7 @@ class Main {
       System.exit(1);
     }
 
-    HLProgram hl = HLBuilder.buildProgram(new HLSymbolTable(), program);
+    HLProgram hl = HLBuilder.buildProgram(program);
     LLProgram ll = LLBuilder.buildProgram(hl);
     String assembly = LLGenerator.generateProgram(ll);
 
