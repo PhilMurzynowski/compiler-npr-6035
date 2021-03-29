@@ -70,6 +70,10 @@ public class LLMethodDeclaration implements LLDeclaration {
     }
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
   @Override
   public String location() {
     return identifier;

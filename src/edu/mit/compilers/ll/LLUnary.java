@@ -12,6 +12,18 @@ public class LLUnary implements LLInstruction {
     throw new UnsupportedOperationException("not implemented");
   }
 
+  public UnaryExpressionType getType() {
+    return type;
+  }
+
+  public LLDeclaration getExpression() {
+    return expression;
+  }
+
+  public LLDeclaration getResult() {
+    return result;
+  }
+
   @Override
   public String debugString(int depth) {
     throw new UnsupportedOperationException("not implemented");

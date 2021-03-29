@@ -4,13 +4,17 @@ public class LLGlobalScalarFieldDeclaration implements LLScalarFieldDeclaration 
 
   private final String identifier;
 
-  public LLGlobalScalarFieldDeclaration (String identifie) {
-    throw new RuntimeException("not implemented");
+  public LLGlobalScalarFieldDeclaration (String identifier) {
+    this.identifier = identifier;
+  }
+
+  public String getIdentifier() {
+    return identifier;
   }
 
   @Override
   public String location() {
-    throw new RuntimeException("not implemented");
+    return identifier;
   }
 
   @Override

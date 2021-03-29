@@ -19,8 +19,16 @@ public class HLGlobalScalarFieldDeclaration implements HLScalarFieldDeclaration 
     this.identifier = identifier;
   }
 
+  public VariableType getType() {
+    return type;
+  }
+
+  public String getIdentifier() {
+    return identifier;
+  }
+
   public void setLL(LLGlobalScalarFieldDeclaration ll) {
-    if (ll.isPresent()) {
+    if (this.ll.isPresent()) {
       throw new RuntimeException("ll has already been set");
     } else {
       this.ll = Optional.of(ll);

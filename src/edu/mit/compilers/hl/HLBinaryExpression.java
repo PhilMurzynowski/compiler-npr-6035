@@ -11,7 +11,7 @@ public class HLBinaryExpression implements HLExpression {
   public HLBinaryExpression(HLExpression left, BinaryExpressionType type, HLExpression right) {
     this.left = left;
     this.type = type;
-    this.right = type;
+    this.right = right;
   }
 
   public HLExpression getLeft() {

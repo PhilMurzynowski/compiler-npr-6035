@@ -28,9 +28,50 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateProgram(LLProgram program) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    // strings
+    s.append("# string literal declarations");
+    for (LLStringLiteralDeclaration stringLiteralDeclaration : program.getStringLiteralDeclarations()) {
+      s.append(generateStringLiteralDeclaration(stringLiteralDeclaration));
+    }
+    s.append("\n");
+
+    // imports
+    s.append("# import declarations");
+    for (LLImportDeclaration importDeclaration : program.getImportDeclarations()) {
+      s.append(generateImportDeclaration(importDeclaration));
+    }
+    s.append("\n");
+
+    // global scalars
+    s.append("# global scalar fields");
+    for (LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration : program.getScalarFieldDeclarations()) {
+      s.append(generateGlobalScalarFieldDeclaration(globalScalarFieldDeclaration));
+    }
+    s.append("\n");
+
+    // global arrays
+    s.append("# global array fields");
+    for (LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration : program.getArrayFieldDeclarations()) {
+      s.append(generateGlobalArrayFieldDeclaration(globalArrayFieldDeclaration));
+    }
+    s.append("\n");
+
+    // methods
+    s.append("# methods");
+    for (LLMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
+      // add .globl for main method
+      if (methodDeclaration.getIdentifier().equals("main")) {
+        s.append(generateInstruction(".globl", "main"));
+      }
+      s.append(generateMethodDeclaration(methodDeclaration));
+      s.append("\n");
+    }
+
+    return s.toString();
   }
 
   // TODO: Phil
@@ -56,9 +97,18 @@ public class LLGenerator {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateGlobalScalarFieldDeclaration(LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
-    throw new RuntimeException("not implemented");
+    // <location()>:
+    //   .quad 0
+
+    StringBuilder s = new StringBuilder();
+
+    s.append(generateLabel(globalScalarFieldDeclaration.getIdentifier()));
+    // TODO (nmp): should we have a different way of generating these?
+    s.append(generateInstruction(".quad", "0"));
+
+    return s.toString();
   }
 
   public static String generateGlobalArrayFieldDeclaration(LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
@@ -95,9 +145,35 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateInstruction(LLInstruction instruction) {
-    throw new RuntimeException("not implemented");
+    if (instruction instanceof LLStoreScalar storeScalar) {
+      return LLGenerator.generateStoreScalar(storeScalar);
+    } else if (instruction instanceof LLStoreArray storeArray) {
+      return LLGenerator.generateStoreArray(storeArray);
+    } else if (instruction instanceof LLReturn llReturn) {
+      return LLGenerator.generateReturn(llReturn);
+    } else if (instruction instanceof LLBinary binary) {
+      return LLGenerator.generateBinary(binary);
+    } else if (instruction instanceof LLUnary unary) {
+      return LLGenerator.generateUnary(unary);
+    } else if (instruction instanceof LLLoadScalar loadScalar) {
+      return LLGenerator.generateLoadScalar(loadScalar);
+    } else if (instruction instanceof LLLoadArray loadArray) {
+      return LLGenerator.generateLoadArray(loadArray);
+    } else if (instruction instanceof LLInternalCall internalCall) {
+      return LLGenerator.generateInternalCall(internalCall);
+    } else if (instruction instanceof LLExternalCall externalCall) {
+      return LLGenerator.generateExternalCall(externalCall);
+    } else if (instruction instanceof LLLength length) {
+      return LLGenerator.generateLength(length);
+    } else if (instruction instanceof LLIntegerLiteral integerLiteral) {
+      return LLGenerator.generateIntegerLiteral(integerLiteral);
+    } else if (instruction instanceof LLStringLiteral stringLiteral) {
+      return LLGenerator.generateStringLiteral(stringLiteral);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   // TODO: Phil
@@ -129,9 +205,25 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateUnary(LLUnary unary) {
-    throw new RuntimeException("not implemented");
+    // movq <expression.location()>, %rax
+    // <type> %rax
+    // movq %rax, <result.location()>
+
+    StringBuilder s = new StringBuilder();
+
+    s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
+
+    if (unary.getType().equals(UnaryExpressionType.NEGATE)) {
+      s.append(generateInstruction("neg", "%rax"));
+    } else if (unary.getType().equals(UnaryExpressionType.NOT)) {
+      s.append(generateInstruction("not", "%rax"));
+    }
+
+    s.append(LLGenerator.generateInstruction("movq", "%rax", unary.getResult().location()));
+
+    return s.toString();
   }
 
   // TODO: Phil

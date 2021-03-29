@@ -20,6 +20,26 @@ public class LLProgram implements LLNode {
     throw new RuntimeException("not implemented");
   }
 
+  public List<LLImportDeclaration> getImportDeclarations() {
+    return importDeclarations;
+  }
+
+  public List<LLGlobalScalarFieldDeclaration> getScalarFieldDeclarations() {
+    return scalarFieldDeclarations;
+  }
+
+  public List<LLGlobalArrayFieldDeclaration> getArrayFieldDeclarations() {
+    return arrayFieldDeclarations;
+  }
+
+  public List<LLStringLiteralDeclaration> getStringLiteralDeclarations() {
+    return stringLiteralDeclarations;
+  }
+
+  public List<LLMethodDeclaration> getMethodDeclarations() {
+    return methodDeclarations;
+  }
+
   @Override
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");

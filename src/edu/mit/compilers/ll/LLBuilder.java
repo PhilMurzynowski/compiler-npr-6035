@@ -23,9 +23,11 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static LLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(HLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
-    throw new RuntimeException("not implemented");
+    final LLGlobalScalarFieldDeclaration llGlobalScalarFieldDeclaration = new LLGlobalScalarFieldDeclaration(globalScalarFieldDeclaration.getIdentifier());
+    globalScalarFieldDeclaration.setLL(llGlobalScalarFieldDeclaration);
+    return llGlobalScalarFieldDeclaration;
   }
 
   public static LLGlobalArrayFieldDeclaration buildGlobalArrayFieldDeclaration(HLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
@@ -67,9 +69,27 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static LLControlFlowGraph buildStatement(HLStatement statement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
-    throw new RuntimeException("not implemented");
+    if (statement instanceof HLStoreStatement storeStatement) {
+      return LLBuilder.buildStoreStatement(storeStatement, methodDeclaration);
+    } else if (statement instanceof HLCallStatement callStatement) {
+      return LLBuilder.buildCallStatement(callStatement, methodDeclaration);
+    } else if (statement instanceof HLIfStatement ifStatement) {
+      return LLBuilder.buildIfStatement(ifStatement, methodDeclaration, breakTarget, continueTarget);
+    } else if (statement instanceof HLForStatement forStatement) {
+      return LLBuilder.buildForStatement(forStatement, methodDeclaration);
+    } else if (statement instanceof HLWhileStatement whileStatement) {
+      return LLBuilder.buildWhileStatement(whileStatement, methodDeclaration);
+    } else if (statement instanceof HLReturnStatement returnStatement) {
+      return LLBuilder.buildReturnStatement(returnStatement, methodDeclaration);
+    } else if (statement instanceof HLBreakStatement breakStatement) {
+      return LLBuilder.buildBreakStatement(breakStatement, methodDeclaration, breakTarget, continueTarget);
+    } else if (statement instanceof  HLContinueStatement continueStatement) {
+      return LLBuilder.buildContinueStatement(continueStatement, methodDeclaration, breakTarget, continueTarget);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   public static LLControlFlowGraph buildStoreStatement(HLStoreStatement storeStatement, LLMethodDeclaration methodDeclaration) {
@@ -123,9 +143,21 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static LLControlFlowGraph buildExpression(HLExpression expression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    if (expression instanceof HLBinaryExpression binaryExpression) {
+      return LLBuilder.buildBinaryExpression(binaryExpression, methodDeclaration, result);
+    } else if (expression instanceof  HLUnaryExpression unaryExpression) {
+      return LLBuilder.buildUnaryExpression(unaryExpression, methodDeclaration, result);
+    } else if (expression instanceof HLLoadExpression loadExpression) {
+      return LLBuilder.buildLoadExpression(loadExpression, methodDeclaration, result);
+    } else if (expression instanceof HLCallExpression callExpression) {
+      return LLBuilder.buildCallExpression(callExpression, methodDeclaration, result);
+    } else if (expression instanceof HLLengthExpression lengthExpression) {
+      return LLBuilder.buildLengthExpression(lengthExpression, methodDeclaration, result);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   public static LLControlFlowGraph buildBinaryExpression(HLBinaryExpression binaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
@@ -151,9 +183,15 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
-  public static LLControlFlowGraph buildLoadExpression(HLLoadExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+  // DONE: Noah
+  public static LLControlFlowGraph buildLoadExpression(HLLoadExpression loadExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
+    if (loadExpression instanceof HLLoadScalarExpression loadScalarExpression) {
+      return LLBuilder.buildLoadScalarExpression(loadScalarExpression, methodDeclaration, result);
+    } else if (loadExpression instanceof HLLoadArrayExpression loadArrayExpression) {
+      return LLBuilder.buildLoadArrayExpression(loadArrayExpression, methodDeclaration, result);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   public static LLControlFlowGraph buildLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {

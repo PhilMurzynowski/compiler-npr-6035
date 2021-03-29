@@ -55,7 +55,7 @@ public class HLBuilder {
   // DONE: Phil
   public static HLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
     VariableType type = fieldDeclaration.getType();
-    return new HLGlobalScalarFieldDeclaration(type, identifier);
+    return new HLGlobalScalarFieldDeclaration(type, identifier.getIdentifier());
   }
 
   public static HLGlobalArrayFieldDeclaration buildGlobalArrayFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
@@ -122,23 +122,23 @@ public class HLBuilder {
     if (statement instanceof ASTIDAssignStatement idAssignStatement) {
       return buildIDAssignStatement(symbolTable, idAssignStatement);
     } else if (statement instanceof ASTAssignStatement assignStatement) {
-      return buildAssignStatment(symbolTable, assignStatement);
+      return buildAssignStatement(symbolTable, assignStatement);
     } else if (statement instanceof ASTCompoundAssignStatement compoundAssignStatement) {
       return buildCompoundAssignStatement(symbolTable, compoundAssignStatement);
     } else if (statement instanceof ASTMethodCallStatement methodCallStatement) {
-      return buildMethodCallStatement met(symbolTable, methodCallStatement);
-    } else if (statement instanceof ASTIfStatment ifStatement) {
-      return buildIfStatment(symbolTable, ifStatement);
+      return buildMethodCallStatement(symbolTable, methodCallStatement);
+    } else if (statement instanceof ASTIfStatement ifStatement) {
+      return buildIfStatement(symbolTable, ifStatement);
     } else if (statement instanceof ASTForStatement forStatement) {
       return buildForStatement(symbolTable, forStatement);
-    } else if (statement instanceof ASTWhileStatment whileStatement) {
-      return buildWhileStatment(symbolTable, whileStatement);
+    } else if (statement instanceof ASTWhileStatement whileStatement) {
+      return buildWhileStatement(symbolTable, whileStatement);
     } else if (statement instanceof ASTReturnStatement returnStatement) {
       return buildReturnStatement(symbolTable, returnStatement);
     } else if (statement instanceof ASTBreakStatement breakStatement) {
-      return buildBreakStatement(symbolTable, breakStatement);
+      return buildBreakStatement(breakStatement);
     } else if (statement instanceof ASTContinueStatement continueStatement) {
-      return buildContinueStatement(symbolTable, continueStatement);
+      return buildContinueStatement(continueStatement);
     } else {
       throw new RuntimeException("unreachable");
     }
