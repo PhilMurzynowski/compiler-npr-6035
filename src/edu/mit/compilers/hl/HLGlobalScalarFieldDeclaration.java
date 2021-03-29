@@ -15,11 +15,16 @@ public class HLGlobalScalarFieldDeclaration implements HLScalarFieldDeclaration 
     final VariableType type,
     final String identifier)
   {
-    throw new RuntimeException("not implemented");
+    this.type = type;
+    this.identifier = identifier;
   }
 
   public void setLL(LLGlobalScalarFieldDeclaration ll) {
-    throw new RuntimeException("not implemented");
+    if (ll.isPresent()) {
+      throw new RuntimeException("ll has already been set");
+    } else {
+      this.ll = Optional.of(ll);
+    }
   }
 
   @Override

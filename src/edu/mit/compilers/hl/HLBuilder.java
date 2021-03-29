@@ -52,9 +52,10 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
-    throw new RuntimeException("not implemented");
+    VariableType type = fieldDeclaration.getType();
+    return new HLGlobalScalarFieldDeclaration(type, identifier);
   }
 
   public static HLGlobalArrayFieldDeclaration buildGlobalArrayFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
@@ -116,9 +117,31 @@ public class HLBuilder {
     return builder.build();
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLStatement buildStatement(HLSymbolTable symbolTable, ASTStatement statement) {
-    throw new RuntimeException("not implemented");
+    if (statement instanceof ASTIDAssignStatement idAssignStatement) {
+      return buildIDAssignStatement(symbolTable, idAssignStatement);
+    } else if (statement instanceof ASTAssignStatement assignStatement) {
+      return buildAssignStatment(symbolTable, assignStatement);
+    } else if (statement instanceof ASTCompoundAssignStatement compoundAssignStatement) {
+      return buildCompoundAssignStatement(symbolTable, compoundAssignStatement);
+    } else if (statement instanceof ASTMethodCallStatement methodCallStatement) {
+      return buildMethodCallStatement met(symbolTable, methodCallStatement);
+    } else if (statement instanceof ASTIfStatment ifStatement) {
+      return buildIfStatment(symbolTable, ifStatement);
+    } else if (statement instanceof ASTForStatement forStatement) {
+      return buildForStatement(symbolTable, forStatement);
+    } else if (statement instanceof ASTWhileStatment whileStatement) {
+      return buildWhileStatment(symbolTable, whileStatement);
+    } else if (statement instanceof ASTReturnStatement returnStatement) {
+      return buildReturnStatement(symbolTable, returnStatement);
+    } else if (statement instanceof ASTBreakStatement breakStatement) {
+      return buildBreakStatement(symbolTable, breakStatement);
+    } else if (statement instanceof ASTContinueStatement continueStatement) {
+      return buildContinueStatement(symbolTable, continueStatement);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   // DONE: Noah
@@ -196,9 +219,12 @@ public class HLBuilder {
     }
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLBinaryExpression buildBinaryExpression(HLSymbolTable symbolTable, ASTBinaryExpression binaryExpression) {
-    throw new RuntimeException("not implemented");
+    HLExpression left = HLBuilder.buildExpression(symbolTable, binaryExpression.getleft());
+    HLExpression right = HLBuilder.buildExpression(symbolTable, binaryExpression.getright());
+    BinaryExpressionType type = binaryExpression.getType();
+    return new HLBinaryExpression(left, type, right);
   }
 
   public static HLExpression buildUnaryExpression(HLSymbolTable symbolTable, ASTUnaryExpression unaryExpression) {

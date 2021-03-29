@@ -9,19 +9,21 @@ public class HLBinaryExpression implements HLExpression {
   private final HLExpression right;
 
   public HLBinaryExpression(HLExpression left, BinaryExpressionType type, HLExpression right) {
-    throw new RuntimeException("not implemented");
+    this.left = left;
+    this.type = type;
+    this.right = type;
   }
 
   public HLExpression getLeft() {
-    throw new RuntimeException("not implemented");
+    return this.left;
   }
 
   public BinaryExpressionType getType() {
-    throw new RuntimeException("not implemented");
+    return this.type;
   }
 
   public HLExpression getRight() {
-    throw new RuntimeException("not implemented");
+    return this.right;
   }
 
   @Override
