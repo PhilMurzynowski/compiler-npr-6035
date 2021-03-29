@@ -47,7 +47,7 @@ public class HLMethodDeclaration implements HLNode {
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append("HLMethodDeclaration {\n");
+    s.append(indent(depth) + "HLMethodDeclaration {\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth + 1) + "body: " + body.debugString(depth + 1) + ",\n");
     s.append(indent(depth) + "}");

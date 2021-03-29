@@ -22,7 +22,7 @@ public class LLGlobalScalarFieldDeclaration implements LLScalarFieldDeclaration 
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append("LLGlobalScalarFieldDeclaration {\n");
+    s.append(indent(depth) + "LLGlobalScalarFieldDeclaration {\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth) + "}");
     return s.toString();

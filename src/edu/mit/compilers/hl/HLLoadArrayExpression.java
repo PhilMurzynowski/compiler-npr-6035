@@ -23,7 +23,7 @@ public class HLLoadArrayExpression implements HLLoadExpression {
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append("HLLoadArrayExpression {\n");
+    s.append(indent(depth) + "HLLoadArrayExpression {\n");
     s.append(indent(depth + 1) + "declaration: " + declaration.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "index: " + index.debugString(depth + 1) + ",\n");
     s.append(indent(depth) + "}");
