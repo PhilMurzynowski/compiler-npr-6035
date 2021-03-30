@@ -1,5 +1,7 @@
 package edu.mit.compilers.ll;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class LLControlFlowGraph implements LLNode {
 
   private final LLBasicBlock entry;
@@ -47,7 +49,12 @@ public class LLControlFlowGraph implements LLNode {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append(indent(depth) + "LLControlFlowGraph {\n");
+    s.append(indent(depth + 1) + "entry: " + entry.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "exit: " + exit.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

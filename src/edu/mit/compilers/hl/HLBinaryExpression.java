@@ -2,6 +2,8 @@ package edu.mit.compilers.hl;
 
 import edu.mit.compilers.common.*;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class HLBinaryExpression implements HLExpression {
 
   private final HLExpression left;
@@ -28,7 +30,13 @@ public class HLBinaryExpression implements HLExpression {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLBinaryExpression {\n");
+    s.append(indent(depth + 1) + "left: " + left.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "type: " + type + ",\n");
+    s.append(indent(depth + 1) + "right: " + right.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

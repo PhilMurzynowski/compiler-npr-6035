@@ -2,6 +2,8 @@ package edu.mit.compilers.ll;
 
 import edu.mit.compilers.common.UnaryExpressionType;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class LLUnary implements LLInstruction {
 
   private final UnaryExpressionType type;
@@ -28,7 +30,13 @@ public class LLUnary implements LLInstruction {
 
   @Override
   public String debugString(int depth) {
-    throw new UnsupportedOperationException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("LLUnary {\n");
+    s.append(indent(depth + 1) + "type: " + type + ",\n");
+    s.append(indent(depth + 1) + "expression: " + expression.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "result: " + result.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

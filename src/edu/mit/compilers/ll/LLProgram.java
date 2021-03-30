@@ -3,6 +3,8 @@ package edu.mit.compilers.ll;
 import java.util.List;
 import java.util.ArrayList;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class LLProgram implements LLNode {
 
   private final List<LLImportDeclaration> importDeclarations;
@@ -94,7 +96,35 @@ public class LLProgram implements LLNode {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("LLProgram {\n");
+    s.append(indent(depth + 1) + "importDeclarations: [\n");
+    for (LLImportDeclaration importDeclaration : importDeclarations) {
+      s.append(indent(depth + 2) + importDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth + 1) + "scalarFieldDeclarations: [\n");
+    for (LLScalarFieldDeclaration scalarFieldDeclaration : scalarFieldDeclarations) {
+      s.append(indent(depth + 2) + scalarFieldDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth + 1) + "arrayFieldDeclarations: [\n");
+    for (LLArrayFieldDeclaration arrayFieldDeclaration : arrayFieldDeclarations) {
+      s.append(indent(depth + 2) + arrayFieldDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth + 1) + "stringLiteralDeclarations: [\n");
+    for (LLStringLiteralDeclaration stringLiteralDeclaration : stringLiteralDeclarations) {
+      s.append(indent(depth + 2) + stringLiteralDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth + 1) + "methodDeclarations: [\n");
+    for (LLMethodDeclaration methodDeclaration : methodDeclarations) {
+      s.append(indent(depth + 2) + methodDeclaration.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

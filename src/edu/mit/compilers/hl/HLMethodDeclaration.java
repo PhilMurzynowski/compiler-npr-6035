@@ -50,6 +50,9 @@ public class HLMethodDeclaration implements HLNode {
     s.append(indent(depth) + "HLMethodDeclaration {\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth + 1) + "body: " + body.debugString(depth + 1) + ",\n");
+    if (ll.isPresent()) {
+      s.append(indent(depth + 1) + "ll: " + ll.get().debugString(depth + 1) + ",\n");
+    }
     s.append(indent(depth) + "}");
     return s.toString();
   }

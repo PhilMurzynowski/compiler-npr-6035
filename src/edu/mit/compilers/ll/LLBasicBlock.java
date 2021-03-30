@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.Arrays;
 import java.util.ArrayList;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class LLBasicBlock implements LLDeclaration {
 
   private static int count = 0;
@@ -118,7 +120,23 @@ public class LLBasicBlock implements LLDeclaration {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append(indent(depth) + "LLBasicBlock {\n");
+    s.append(indent(depth + 1) + "index: " + index + ",\n");
+    s.append(indent(depth + 1) + "instructions: [\n");
+    for (LLInstruction instruction : instructions) {
+      s.append(indent(depth + 2) + instruction.debugString(depth + 2) + ",\n");
+    }
+    s.append(indent(depth + 1) + "],\n");
+    if (trueTarget.isPresent()) {
+      s.append(indent(depth + 1) + "trueTarget: " + trueTarget.get().debugString(depth + 1) + ",\n");
+    }
+    if (falseTarget.isPresent()) {
+      s.append(indent(depth + 1) + "falseTarget: " + falseTarget.get().debugString(depth + 1) + ",\n");
+    }
+    s.append(indent(depth + 1) + "generated: " + generated + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override
