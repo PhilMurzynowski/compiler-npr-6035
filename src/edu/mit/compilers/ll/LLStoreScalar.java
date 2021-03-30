@@ -6,7 +6,8 @@ public class LLStoreScalar implements LLInstruction {
   private final LLDeclaration expression;
 
   public LLStoreScalar(LLScalarFieldDeclaration declaration, LLDeclaration expression) {
-    throw new UnsupportedOperationException("not implemented");
+    this.declaration = declaration;
+    this.expression = expression;
   }
 
   @Override

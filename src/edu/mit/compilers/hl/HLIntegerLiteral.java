@@ -10,6 +10,10 @@ public class HLIntegerLiteral implements HLExpression {
     this.value = value;
   }
 
+  public long getValue() {
+    return this.value;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

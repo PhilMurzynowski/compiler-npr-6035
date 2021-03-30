@@ -14,6 +14,14 @@ public class HLUnaryExpression implements HLExpression {
     this.expression = expression;
   }
 
+  public UnaryExpressionType getType() {
+    return this.type;
+  }
+
+  public HLExpression getExpression() {
+    return this.expression;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

@@ -6,15 +6,16 @@ public class LLIntegerLiteral implements LLInstruction {
   private final LLDeclaration result;
 
   public LLIntegerLiteral(long value, LLDeclaration result) {
-    throw new UnsupportedOperationException("not implemented");
+    this.value = value;
+    this.result = result;
   }
 
   public long getValue() {
-    throw new UnsupportedOperationException("not implemented");
+    return this.value;
   }
 
   public LLDeclaration getResult() {
-    throw new UnsupportedOperationException("not implemented");
+    return this.result;
   }
 
   @Override

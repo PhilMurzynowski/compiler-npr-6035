@@ -125,9 +125,19 @@ public class LLBuilder {
     }
   }
 
-  // TODO: Phil
-  public static LLControlFlowGraph buildStoreScalarStatement(HLStoreScalarStatement scalarStoreStatement, LLMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+  // DONE: Phil
+  public static LLControlFlowGraph buildStoreScalarStatement(HLStoreScalarStatement storeScalarStatement, LLMethodDeclaration methodDeclaration) {
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph expressionCFG = LLBuilder.buildExpression(storeScalarStatement.getExpression(), methodDeclaration, expressionResult);
+    resultCFG = resultCFG.concatenate(expressionCFG);
+
+    resultCFG = resultCFG.concatenate(
+      new LLStoreScalar(storeScalarStatement.getDeclaration().getLL(), expressionResult)
+    );
+
+    return resultCFG;
   }
 
   public static LLControlFlowGraph buildStoreArrayStatement(HLStoreArrayStatement arrayStoreStatement, LLMethodDeclaration methodDeclaration) {
@@ -201,15 +211,25 @@ public class LLBuilder {
     return resultCFG;
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static LLControlFlowGraph buildUnaryExpression(HLUnaryExpression unaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    final LLAliasDeclaration unaryResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph unaryCFG = LLBuilder.buildExpression(unaryExpression.getExpression(), methodDeclaration, unaryResult);
+    resultCFG = resultCFG.concatenate(unaryCFG);
+
+    resultCFG = resultCFG.concatenate(
+      new LLUnary(unaryExpression.getType(), unaryResult, result)
+    );
+
+    return resultCFG;
   }
 
   // DONE: Noah
   public static LLControlFlowGraph buildLoadExpression(HLLoadExpression loadExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     if (loadExpression instanceof HLLoadScalarExpression loadScalarExpression) {
-      return LLBuilder.buildLoadScalarExpression(loadScalarExpression, methodDeclaration, result);
+      return LLBuilder.buildLoadScalarExpression(loadScalarExpression, result);
     } else if (loadExpression instanceof HLLoadArrayExpression loadArrayExpression) {
       return LLBuilder.buildLoadArrayExpression(loadArrayExpression, methodDeclaration, result);
     } else {
@@ -217,7 +237,7 @@ public class LLBuilder {
     }
   }
 
-  public static LLControlFlowGraph buildLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
+  public static LLControlFlowGraph buildLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLDeclaration result) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     resultCFG = resultCFG.concatenate(
@@ -247,9 +267,15 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static LLControlFlowGraph buildIntegerLiteral(HLIntegerLiteral integerLiteral, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    resultCFG = resultCFG.concatenate(
+      new LLIntegerLiteral(integerLiteral.getValue(), result)
+    );
+
+    return resultCFG;
   }
 
   public static LLControlFlowGraph buildStringLiteral(HLStringLiteral stringLiteral, LLMethodDeclaration methodDeclaration, LLDeclaration result) {

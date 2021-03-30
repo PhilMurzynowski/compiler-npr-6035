@@ -9,7 +9,9 @@ public class LLUnary implements LLInstruction {
   private final LLDeclaration result;
 
   public LLUnary(UnaryExpressionType type, LLDeclaration expression, LLDeclaration result) {
-    throw new UnsupportedOperationException("not implemented");
+    this.type = type;
+    this.expression = expression;
+    this.result = result;
   }
 
   public UnaryExpressionType getType() {
