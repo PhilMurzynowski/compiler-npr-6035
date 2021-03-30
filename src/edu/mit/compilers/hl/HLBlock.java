@@ -76,6 +76,22 @@ public class HLBlock implements HLNode {
 
   }
 
+  public List<HLArgumentDeclaration> getArgumentDeclarations() {
+    return this.argumentDeclarations;
+  }
+
+  public List<HLLocalScalarFieldDeclaration> getScalarFieldDeclarations() {
+    return this.scalarFieldDeclarations;
+  }
+  
+  public List<HLLocalArrayFieldDeclaration> getArrayFieldDeclarations() {
+    return this.arrayFieldDeclarations;
+  }
+
+  public List<HLStatement> getStatements() {
+    return this.statements;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

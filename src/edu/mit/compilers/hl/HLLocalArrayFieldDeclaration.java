@@ -26,6 +26,10 @@ public class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration {
     throw new RuntimeException("not implemented");
   }
 
+  public int getLength() {
+    return this.length;
+  }
+
   @Override
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");

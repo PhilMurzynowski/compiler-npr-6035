@@ -19,12 +19,19 @@ public class HLArgumentDeclaration implements HLScalarFieldDeclaration {
   }
 
   public void setLL(LLArgumentDeclaration ll) {
-    throw new RuntimeException("not implemented");
+    if (this.ll.isPresent()) {
+      throw new RuntimeException("ll has already been set");
+    } else {
+      this.ll = Optional.of(ll);
+    }
   }
 
   @Override
   public LLArgumentDeclaration getLL() {
-    throw new RuntimeException("not implemented");
+    if (ll.isPresent()) {
+      return ll.get();
+    }
+    throw new RuntimeException("ll is empty");
   }
 
   @Override

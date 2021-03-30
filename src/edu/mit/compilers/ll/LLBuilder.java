@@ -72,24 +72,78 @@ public class LLBuilder {
     return llMethodDeclaration;
   }
 
-  public static LLArgumentDeclaration buildArgumentDeclaration(HLArgumentDeclaration argumentDeclaration) {
+  // NOTE(phil): Takes in LLMethodDeclaration for hoisting
+  public static LLArgumentDeclaration buildArgumentDeclaration(HLArgumentDeclaration argumentDeclaration, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  public static LLLocalScalarFieldDeclaration buildLocalScalarFieldDeclaration(HLLocalScalarFieldDeclaration globalScalarFieldDeclaration) {
+  // NOTE(phil): Takes in LLMethodDeclaration for hoisting
+  public static LLLocalScalarFieldDeclaration buildLocalScalarFieldDeclaration(HLLocalScalarFieldDeclaration localScalarFieldDeclaration, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  public static LLLocalArrayFieldDeclaration buildLocalArrayFieldDeclaration(HLLocalArrayFieldDeclaration globalArrayFieldDeclaration) {
+  // NOTE(phil): Takes in LLMethodDeclaration for hoisting
+  public static LLLocalArrayFieldDeclaration buildLocalArrayFieldDeclaration(HLLocalArrayFieldDeclaration localArrayFieldDeclaration, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Phil
+  // DONE?: Phil
   public static LLControlFlowGraph buildBlock(HLBlock block, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
+
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
     // NOTE(rbd): mutate methodDeclaration for hoisting from HLBlock
     // NOTE(rbd): be sure to update indices for field declaration descriptors (must mutate the HL with forwarding to LL)
+    // -> NOTE(phil): handled recursively
     // NOTE(rbd): reset to zero all declarations
-    throw new RuntimeException("not implemented");
+    //
+    for (HLArgumentDeclaration hlArgumentDeclaration : block.getArgumentDeclarations()) {
+      final LLArgumentDeclaration llArgumentDeclaration = LLBuilder.buildArgumentDeclaration(hlArgumentDeclaration, methodDeclaration);
+      hlArgumentDeclaration.setLL(llArgumentDeclaration);
+
+      // NOTE(phil): can optimize away zeroing arguments as arguments will overwrite when method is called
+      resultCFG = resultCFG.concatenate(
+        new LLStoreZero(hlArgumentDeclaration.getLL())
+      );
+    }
+
+    for (HLLocalScalarFieldDeclaration hlLocalScalarFieldDeclaration : block.getScalarFieldDeclarations()) {
+      final LLLocalScalarFieldDeclaration llLocalScalarFieldDeclaration =
+        LLBuilder.buildLocalScalarFieldDeclaration(hlLocalScalarFieldDeclaration, methodDeclaration);
+      hlLocalScalarFieldDeclaration.setLL(llLocalScalarFieldDeclaration);
+
+      resultCFG = resultCFG.concatenate(
+        new LLStoreZero(hlLocalScalarFieldDeclaration.getLL())
+      );
+    }
+
+    for (HLLocalArrayFieldDeclaration hlLocalArrayFieldDeclaration : block.getArrayFieldDeclarations()) {
+      final LLLocalArrayFieldDeclaration llLocalArrayFieldDeclaration =
+        LLBuilder.buildLocalArrayFieldDeclaration(hlLocalArrayFieldDeclaration, methodDeclaration);
+      hlLocalArrayFieldDeclaration.setLL(llLocalArrayFieldDeclaration);
+
+      resultCFG = resultCFG.concatenate(
+        new LLStoreArrayZero(hlLocalArrayFieldDeclaration.getLL(), hlLocalArrayFieldDeclaration.getLength())
+      );
+    }
+
+    for (HLStatement statement : block.getStatements()) {
+      resultCFG = resultCFG.concatenate(
+        LLBuilder.buildStatement(statement, methodDeclaration, breakTarget, continueTarget)
+      );
+
+      // NOTE(phil): are breaks sufficient here?
+      if (statement instanceof HLReturnStatement returnStatement) {
+        break;
+      } else if (statement instanceof HLBreakStatement breakStatement) {
+        break;
+      } else if (statement instanceof  HLContinueStatement continueStatement) {
+        break;
+      }
+    }
+
+    return resultCFG;
+
   }
 
   // DONE: Noah
