@@ -16,6 +16,18 @@ public class HLIfStatement implements HLStatement {
     this.other = other;
   }
 
+  public HLExpression getCondition() {
+    return condition;
+  }
+
+  public HLBlock getBody() {
+    return body;
+  }
+
+  public Optional<HLBlock> getOther() {
+    return other;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

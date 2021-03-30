@@ -43,11 +43,6 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
-  public static LLArrayFieldDeclaration buildArrayFieldDeclaration(HLArrayFieldDeclaration arrayFieldDeclaration) {
-    throw new RuntimeException("not implemented");
-  }
-
   public static LLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(HLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
     final LLGlobalScalarFieldDeclaration llGlobalScalarFieldDeclaration = new LLGlobalScalarFieldDeclaration(globalScalarFieldDeclaration.getIdentifier());
     globalScalarFieldDeclaration.setLL(llGlobalScalarFieldDeclaration);
@@ -68,16 +63,18 @@ public class LLBuilder {
     final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier());
     hlMethodDeclaration.setLL(llMethodDeclaration);
 
-    // WARN(rbd): The lines above MUST be executed before the lines below. (Think recursive method calls.)
+    // WARN(rbd): The lines above MUST be executed before the lines below. (Think: Recursive method calls.)
 
     llMethodDeclaration.setBody(LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty()));
 
     return llMethodDeclaration;
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static LLArgumentDeclaration buildArgumentDeclaration(HLArgumentDeclaration argumentDeclaration, LLMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+    final LLArgumentDeclaration llArgumentDeclaration = new LLArgumentDeclaration(argumentDeclaration.getIndex());
+    argumentDeclaration.setLL(llArgumentDeclaration);
+    return llArgumentDeclaration;
   }
 
   // TODO: Phil
@@ -198,9 +195,24 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static LLControlFlowGraph buildIfStatement(HLIfStatement ifStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
-    throw new RuntimeException("not implemented");
+    final LLBasicBlock exitBB = new LLBasicBlock();
+
+    LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget);
+    bodyCFG = bodyCFG.concatenate(exitBB);
+
+    LLControlFlowGraph otherCFG;
+    if (ifStatement.getOther().isPresent()) {
+      otherCFG = LLBuilder.buildBlock(ifStatement.getOther().get(), methodDeclaration, breakTarget, continueTarget);
+    } else {
+      otherCFG = LLControlFlowGraph.empty();
+    }
+    otherCFG = otherCFG.concatenate(exitBB);
+
+    final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), bodyCFG.getEntry(), otherCFG.getEntry());
+
+    return new LLControlFlowGraph(entryBB, exitBB);
   }
 
   // TODO: Noah
@@ -214,7 +226,6 @@ public class LLBuilder {
   }
 
   public static LLControlFlowGraph buildReturnStatement(HLReturnStatement returnStatement, LLMethodDeclaration methodDeclaration) {
-
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     Optional<HLExpression> hlExpression = returnStatement.getExpression();
@@ -234,9 +245,17 @@ public class LLBuilder {
     return resultCFG;
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static LLControlFlowGraph buildBreakStatement(HLBreakStatement breakStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    if (breakTarget.isEmpty()) {
+      throw new RuntimeException("break target does not exist");
+    }
+
+    resultCFG = resultCFG.concatenate(breakTarget.get());
+
+    return resultCFG;
   }
 
   // TODO: Noah
@@ -319,9 +338,19 @@ public class LLBuilder {
     return resultCFG;
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static LLControlFlowGraph buildLoadArrayExpression(HLLoadArrayExpression loadArrayExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph indexCFG = LLBuilder.buildExpression(loadArrayExpression.getIndex(), methodDeclaration, indexResult);
+    resultCFG = resultCFG.concatenate(indexCFG);
+
+    resultCFG = resultCFG.concatenate(
+      new LLLoadArray(loadArrayExpression.getDeclaration().getLL(), indexResult, result)
+    );
+
+    return resultCFG;
   }
 
   // TODO: Noah
@@ -334,9 +363,26 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static LLControlFlowGraph buildExternalCallExpression(HLExternalCallExpression externalCallExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    final LLImportDeclaration declaration = externalCallExpression.getDeclaration().getLL();
+    final LLExternalCall.Builder builder = new LLExternalCall.Builder(declaration, result);
+
+    for (HLArgument argument : externalCallExpression.getArguments()) {
+      final LLAliasDeclaration argumentResult = methodDeclaration.newAlias();
+      final LLControlFlowGraph argumentCFG = LLBuilder.buildArgument(argument, methodDeclaration, argumentResult);
+      resultCFG = resultCFG.concatenate(argumentCFG);
+
+      builder.addArgument(argumentResult);
+    }
+
+    resultCFG = resultCFG.concatenate(
+      builder.build()
+    );
+
+    return resultCFG;
   }
 
   // TODO: Noah

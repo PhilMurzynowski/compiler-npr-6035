@@ -22,6 +22,7 @@ public class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration {
     throw new RuntimeException("not implemented");
   }
 
+  @Override
   public LLLocalArrayFieldDeclaration getLL() {
     throw new RuntimeException("not implemented");
   }

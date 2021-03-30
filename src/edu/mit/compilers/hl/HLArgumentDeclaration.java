@@ -22,6 +22,10 @@ public class HLArgumentDeclaration implements HLScalarFieldDeclaration {
     ll = Optional.empty();
   }
 
+  public int getIndex() {
+    return index;
+  }
+
   public void setLL(LLArgumentDeclaration ll) {
     if (this.ll.isPresent()) {
       throw new RuntimeException("ll has already been set");

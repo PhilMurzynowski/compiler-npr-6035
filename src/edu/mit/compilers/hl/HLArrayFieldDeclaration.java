@@ -1,3 +1,9 @@
 package edu.mit.compilers.hl;
 
-public interface HLArrayFieldDeclaration extends HLNode { }
+import edu.mit.compilers.ll.*;
+
+public interface HLArrayFieldDeclaration extends HLNode {
+
+  public LLArrayFieldDeclaration getLL();
+
+}

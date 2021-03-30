@@ -9,7 +9,7 @@ public class LLControlFlowGraph implements LLNode {
 
   // NOTE(rbd): Please try not to add anything to this class. Let me know if you do. :)
 
-  private LLControlFlowGraph(LLBasicBlock entry, LLBasicBlock exit) {
+  public LLControlFlowGraph(LLBasicBlock entry, LLBasicBlock exit) {
     this.entry = entry;
     this.exit = exit;
   }
