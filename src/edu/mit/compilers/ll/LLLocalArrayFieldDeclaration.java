@@ -1,22 +1,46 @@
 package edu.mit.compilers.ll;
 
+import java.util.Optional;
+
 public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
 
   private final int index;
   private final int length;
+  private Optional<Integer> stackIndex;
 
   public LLLocalArrayFieldDeclaration(int index, int length) {
+    this.stackIndex = Optional.empty();
     throw new RuntimeException("not implemented");
+  }
+
+  public void setStackIndex(int stackIndex) {
+    if (this.stackIndex.isPresent()) {
+      throw new RuntimeException("stackIndex has already been set");
+    } else {
+      this.stackIndex = Optional.of(stackIndex);
+    }
+  }
+
+  public int getLength() {
+    return length;
   }
 
   @Override
   public String location() {
-    throw new RuntimeException("not implemented");
+    if (this.stackIndex.isEmpty()) {
+      throw new RuntimeException("stackIndex has not been set");
+    } else {
+      return stackIndex.get() + "(%rbp)";
+    }
   }
 
   @Override
   public String index(String register) {
-    throw new RuntimeException("not implemented");
+    if (this.stackIndex.isEmpty()) {
+      throw new RuntimeException("stackIndex has not been set");
+    } else {
+      return stackIndex.get() + "(%rbp," + register + ",8)";
+    }
   }
 
   @Override

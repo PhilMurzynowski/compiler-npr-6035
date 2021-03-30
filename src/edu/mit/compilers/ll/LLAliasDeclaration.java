@@ -1,18 +1,32 @@
 package edu.mit.compilers.ll;
 
+import java.util.Optional;
+
 public class LLAliasDeclaration implements LLDeclaration {
 
   private final int index;
+  private Optional<Integer> stackIndex;
 
   public LLAliasDeclaration(int index) {
+    stackIndex = Optional.empty();
     throw new RuntimeException("not implemented");
+  }
+
+  public void setStackIndex(int stackIndex) {
+    if (this.stackIndex.isPresent()) {
+      throw new RuntimeException("stackIndex has already been set");
+    } else {
+      this.stackIndex = Optional.of(stackIndex);
+    }
   }
 
   @Override
   public String location() {
-    // TODO(rbd): Not quuuiiite right. Need to account for offsets of all other types of declarations.
-    // return "-" + (index * 8) + "(%rbp)";
-    throw new RuntimeException("not implemented");
+    if (this.stackIndex.isEmpty()) {
+      throw new RuntimeException("stackIndex has not been set");
+    } else {
+      return stackIndex.get() + "(%rbp)";
+    }
   }
 
   @Override

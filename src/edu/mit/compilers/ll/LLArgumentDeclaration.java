@@ -10,7 +10,21 @@ public class LLArgumentDeclaration implements LLScalarFieldDeclaration {
 
   @Override
   public String location() {
-    throw new RuntimeException("not implemented");
+    if (index == 0) {
+      return "%rdi";
+    } else if (index == 1) {
+      return "%rsi";
+    } else if (index == 2) {
+      return "%rdx";
+    } else if (index == 3) {
+      return "%rcx";
+    } else if (index == 4) {
+      return "%r8";
+    } else if (index == 5) {
+      return "%r9";
+    } else { 
+      return (16 + (index - 6) * 8) + "(%rbp)";
+    }
   }
 
   @Override
