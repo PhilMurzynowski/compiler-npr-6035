@@ -319,11 +319,11 @@ public class SymbolTable {
     if (parent.isPresent()) {
       s.append(indent(depth + 1) + "parent: " + parent.get().debugString(depth + 1) + ",\n");
     }
-    s.append(indent(depth + 1) + "importDeclarations: {\n");
+    s.append(indent(depth + 1) + "importDeclarations: [\n");
     for (String importDeclaration : importDeclarations) {
       s.append(indent(depth + 2) + importDeclaration + ",\n");
     }
-    s.append(indent(depth + 1) + "},\n");
+    s.append(indent(depth + 1) + "],\n");
     s.append(indent(depth + 1) + "methodDeclarations: {\n");
     for (Map.Entry<String, MethodDeclaration> methodDeclarationEntry : methodDeclarations.entrySet()) {
       s.append(indent(depth + 2) + methodDeclarationEntry.getKey() + " => " + methodDeclarationEntry.getValue().debugString(depth + 2) + ",\n");

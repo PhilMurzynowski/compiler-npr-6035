@@ -96,13 +96,14 @@ public class LLGenerator {
     throw new RuntimeException("not implemented");
   }
 
+  // DONE: Robert
   public static String generateScalarFieldDeclaration(LLScalarFieldDeclaration scalarFieldDeclaration) {
     if (scalarFieldDeclaration instanceof LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
       return LLGenerator.generateGlobalScalarFieldDeclaration(globalScalarFieldDeclaration);
     } else if (scalarFieldDeclaration instanceof LLLocalScalarFieldDeclaration localScalarFieldDeclaration) {
       return LLGenerator.generateLocalScalarFieldDeclaration(localScalarFieldDeclaration);
     } else {
-      throw new RuntimeException("not implemented");
+      throw new RuntimeException("unreachable");
     }
   }
 
@@ -117,7 +118,7 @@ public class LLGenerator {
 
     StringBuilder s = new StringBuilder();
 
-    s.append(generateLabel(globalScalarFieldDeclaration.getIdentifier()));
+    s.append(generateLabel(globalScalarFieldDeclaration.location()));
     // TODO (nmp): should we have a different way of generating these?
     s.append(generateInstruction(".quad", "0"));
 
@@ -132,8 +133,46 @@ public class LLGenerator {
     throw new RuntimeException("not implemented");
   }
 
+  // DONE: Robert
+  public static String generateBasicBlock(LLBasicBlock basicBlock) {
+    StringBuilder s = new StringBuilder();
+
+    if (!basicBlock.isGenerated()) {
+      s.append(LLGenerator.generateLabel(basicBlock.location()));
+
+      for (LLInstruction instruction : basicBlock.getInstructions()) {
+        s.append(LLGenerator.generateInstruction(instruction));
+      }
+
+      basicBlock.setGenerated();
+
+      if (basicBlock.hasFalseTarget()) {
+        s.append(LLGenerator.generateInstruction("je", basicBlock.getFalseTarget().location()));
+        s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
+
+        s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
+        s.append(LLGenerator.generateBasicBlock(basicBlock.getFalseTarget()));
+      } else if (basicBlock.hasTrueTarget()) {
+        s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
+
+        s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
+      }
+    }
+
+    return s.toString();
+  }
+
+  // DONE: Robert
   public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    s.append(LLGenerator.generateBasicBlock(controlFlowGraph.getEntry()));
+
+    if (!controlFlowGraph.getExit().isGenerated()) {
+      throw new RuntimeException("failed to generate controlFlowGraph");
+    }
+
+    return s.toString();
   }
 
   // TODO: Phil
@@ -196,6 +235,7 @@ public class LLGenerator {
   }
 
   // NOTE(phil): this may not be necessary due to hoisting, and will always overwrite alias before reading
+  // DONE: Robert
   public static String generateAliasDeclaration(LLAliasDeclaration aliasDeclaration) {
     StringBuilder s = new StringBuilder();
 
@@ -266,6 +306,7 @@ public class LLGenerator {
     //retq
   }
 
+  // DONE: Robert
   public static String generateBinary(LLBinary binary) {
     StringBuilder s = new StringBuilder();
 
@@ -339,6 +380,7 @@ public class LLGenerator {
     throw new RuntimeException("not implemented");
   }
 
+  // DONE: Robert
   public static String generateIntegerLiteral(LLIntegerLiteral integerLiteral) {
     StringBuilder s = new StringBuilder();
 
