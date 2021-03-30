@@ -31,7 +31,6 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // DONE: Noah
   public static String generateProgram(LLProgram program) {
     StringBuilder s = new StringBuilder();
 
@@ -81,7 +80,6 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // DONE: Phil
   public static String generateDeclaration(LLDeclaration declaration) {
     if (declaration instanceof LLScalarFieldDeclaration scalarFieldDeclaration) {
       return LLGenerator.generateScalarFieldDeclaration(scalarFieldDeclaration);
@@ -98,11 +96,11 @@ public class LLGenerator {
     }
   }
 
+  // TODO: Noah
   public static String generateImportDeclaration(LLImportDeclaration importDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Robert
   public static String generateScalarFieldDeclaration(LLScalarFieldDeclaration scalarFieldDeclaration) {
     if (scalarFieldDeclaration instanceof LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
       return LLGenerator.generateGlobalScalarFieldDeclaration(globalScalarFieldDeclaration);
@@ -113,11 +111,11 @@ public class LLGenerator {
     }
   }
 
+  // TODO: Phil
   public static String generateArrayFieldDeclaration(LLArrayFieldDeclaration arrayFieldDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Noah
   public static String generateGlobalScalarFieldDeclaration(LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
     // <location()>:
     //   .quad 0
@@ -131,15 +129,16 @@ public class LLGenerator {
     return s.toString();
   }
 
+  // TODO: Robert
   public static String generateGlobalArrayFieldDeclaration(LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static String generateStringLiteralDeclaration(LLStringLiteralDeclaration stringLiteralDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Robert
   public static String generateBasicBlock(LLBasicBlock basicBlock) {
     StringBuilder s = new StringBuilder();
 
@@ -168,7 +167,6 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // DONE: Robert
   public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph) {
     StringBuilder s = new StringBuilder();
 
@@ -199,11 +197,15 @@ public class LLGenerator {
       "%rsp",
       "%rbp"
     ));
-    s.append(generateInstruction(
-      "subq",
-      "$"+methodDeclaration.setStackIndices(),
-      "%rsp"
-    ));
+
+    int stackSize = methodDeclaration.setStackIndices();
+    if (stackSize > 0) {
+      s.append(generateInstruction(
+        "subq",
+        "$"+stackSize,
+        "%rsp"
+      ));
+    }
 
     // NOTE(phil): arguments handled by caller
     // NOTE(phil): declarations should already be handled by block hoisting
@@ -230,30 +232,28 @@ public class LLGenerator {
 
   }
 
+  // TODO: Robert
   public static String generateArgumentDeclaration(LLArgumentDeclaration argumentDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static String generateLocalScalarFieldDeclaration(LLLocalScalarFieldDeclaration globalScalarFieldDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Phil
   public static String generateLocalArrayFieldDeclaration(LLLocalArrayFieldDeclaration globalArrayFieldDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
   // NOTE(phil): this may not be necessary due to hoisting, and will always overwrite alias before reading
-  // DONE: Robert
   public static String generateAliasDeclaration(LLAliasDeclaration aliasDeclaration) {
     StringBuilder s = new StringBuilder();
-
-    s.append(LLGenerator.generateInstruction("subq", "$8", "%rsp"));
-    s.append(LLGenerator.generateInstruction("movq", "$0", aliasDeclaration.location()));
 
     return s.toString();
   }
 
-  // DONE: Noah
   public static String generateInstruction(LLInstruction instruction) {
     if (instruction instanceof LLStoreScalar storeScalar) {
       return LLGenerator.generateStoreScalar(storeScalar);
@@ -284,7 +284,6 @@ public class LLGenerator {
     }
   }
 
-  // DONE: Phil
   public static String generateStoreScalar(LLStoreScalar storeScalar) {
     StringBuilder s = new StringBuilder();
 
@@ -303,6 +302,7 @@ public class LLGenerator {
     return s.toString();
   }
 
+  // TODO: Robert
   public static String generateStoreArray(LLStoreArray storeArray) {
     throw new RuntimeException("not implemented");
   }
@@ -322,7 +322,7 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // DONE: Robert
+  // TODO: Robert (continue from last time)
   public static String generateBinary(LLBinary binary) {
     StringBuilder s = new StringBuilder();
 
@@ -339,7 +339,6 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // DONE: Noah
   public static String generateUnary(LLUnary unary) {
     // movq <expression.location()>, %rax
     // <type> %rax
@@ -360,7 +359,6 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // DONE: Phil
   public static String generateLoadScalar(LLLoadScalar loadScalar) {
 
     StringBuilder s = new StringBuilder();
@@ -380,23 +378,26 @@ public class LLGenerator {
     return s.toString();
   }
 
+  // TODO: Noah
   public static String generateLoadArray(LLLoadArray loadArray) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Phil
   public static String generateInternalCall(LLInternalCall internalCall) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Robert
   public static String generateExternalCall(LLExternalCall externalCall) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static String generateLength(LLLength length) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Robert
   public static String generateIntegerLiteral(LLIntegerLiteral integerLiteral) {
     StringBuilder s = new StringBuilder();
 
@@ -406,6 +407,7 @@ public class LLGenerator {
     return s.toString();
   }
 
+  // TODO: Phil
   public static String generateStringLiteral(LLStringLiteral stringLiteral) {
     throw new RuntimeException("not implemented");
   }

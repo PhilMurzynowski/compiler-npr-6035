@@ -6,7 +6,6 @@ import edu.mit.compilers.hl.*;
 
 public class LLBuilder {
 
-  // DONE: Phil
   public static LLProgram buildProgram(HLProgram program) {
     final LLProgram.Builder builder = new LLProgram.Builder();
 
@@ -34,29 +33,33 @@ public class LLBuilder {
     return builder.build();
   }
 
+  // TODO: Phil
   public static LLImportDeclaration buildImportDeclaration(HLImportDeclaration importDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static LLScalarFieldDeclaration buildScalarFieldDeclaration(HLScalarFieldDeclaration scalarFieldDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Robert
   public static LLArrayFieldDeclaration buildArrayFieldDeclaration(HLArrayFieldDeclaration arrayFieldDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Noah
   public static LLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(HLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
     final LLGlobalScalarFieldDeclaration llGlobalScalarFieldDeclaration = new LLGlobalScalarFieldDeclaration(globalScalarFieldDeclaration.getIdentifier());
     globalScalarFieldDeclaration.setLL(llGlobalScalarFieldDeclaration);
     return llGlobalScalarFieldDeclaration;
   }
 
+  // TODO: Phil
   public static LLGlobalArrayFieldDeclaration buildGlobalArrayFieldDeclaration(HLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static LLStringLiteralDeclaration buildStringLiteralDeclaration(HLStringLiteralDeclaration stringLiteralDeclaration) {
     throw new RuntimeException("not implemented");
   }
@@ -72,41 +75,29 @@ public class LLBuilder {
     return llMethodDeclaration;
   }
 
-  // NOTE(phil): Takes in LLMethodDeclaration for hoisting
+  // TODO: Robert
   public static LLArgumentDeclaration buildArgumentDeclaration(HLArgumentDeclaration argumentDeclaration, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // NOTE(phil): Takes in LLMethodDeclaration for hoisting
+  // TODO: Phil
   public static LLLocalScalarFieldDeclaration buildLocalScalarFieldDeclaration(HLLocalScalarFieldDeclaration localScalarFieldDeclaration, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // NOTE(phil): Takes in LLMethodDeclaration for hoisting
+  // TODO: Noah
   public static LLLocalArrayFieldDeclaration buildLocalArrayFieldDeclaration(HLLocalArrayFieldDeclaration localArrayFieldDeclaration, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE?: Phil
+  // TODO: Robert
   public static LLControlFlowGraph buildBlock(HLBlock block, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
 
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    // NOTE(rbd): mutate methodDeclaration for hoisting from HLBlock
-    // NOTE(rbd): be sure to update indices for field declaration descriptors (must mutate the HL with forwarding to LL)
-    // -> NOTE(phil): handled recursively
-    // NOTE(rbd): reset to zero all declarations
-    //
     for (HLArgumentDeclaration hlArgumentDeclaration : block.getArgumentDeclarations()) {
       final LLArgumentDeclaration llArgumentDeclaration = LLBuilder.buildArgumentDeclaration(hlArgumentDeclaration, methodDeclaration);
       hlArgumentDeclaration.setLL(llArgumentDeclaration);
-
-      // NOTE(phil): can optimize away zeroing arguments as arguments will overwrite when method is called
-      final LLAliasDeclaration zeroAlias = methodDeclaration.newAlias();
-      resultCFG = resultCFG.concatenate(
-        new LLIntegerLiteral(0, zeroAlias),
-        new LLStoreScalar(hlArgumentDeclaration.getLL(), zeroAlias)
-      );
     }
 
     for (HLLocalScalarFieldDeclaration hlLocalScalarFieldDeclaration : block.getScalarFieldDeclarations()) {
@@ -151,7 +142,6 @@ public class LLBuilder {
 
   }
 
-  // DONE: Noah
   public static LLControlFlowGraph buildStatement(HLStatement statement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
     if (statement instanceof HLStoreStatement storeStatement) {
       return LLBuilder.buildStoreStatement(storeStatement, methodDeclaration);
@@ -184,7 +174,6 @@ public class LLBuilder {
     }
   }
 
-  // DONE: Phil
   public static LLControlFlowGraph buildStoreScalarStatement(HLStoreScalarStatement storeScalarStatement, LLMethodDeclaration methodDeclaration) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
@@ -199,27 +188,31 @@ public class LLBuilder {
     return resultCFG;
   }
 
+  // TODO: Noah
   public static LLControlFlowGraph buildStoreArrayStatement(HLStoreArrayStatement arrayStoreStatement, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Phil
   public static LLControlFlowGraph buildCallStatement(HLCallStatement callStatement, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Robert
   public static LLControlFlowGraph buildIfStatement(HLIfStatement ifStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static LLControlFlowGraph buildForStatement(HLForStatement forStatement, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Phil
   public static LLControlFlowGraph buildWhileStatement(HLWhileStatement whileStatement, LLMethodDeclaration methodDeclaration) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Phil
   public static LLControlFlowGraph buildReturnStatement(HLReturnStatement returnStatement, LLMethodDeclaration methodDeclaration) {
 
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
@@ -241,19 +234,21 @@ public class LLBuilder {
     return resultCFG;
   }
 
+  // TODO: Robert
   public static LLControlFlowGraph buildBreakStatement(HLBreakStatement breakStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static LLControlFlowGraph buildContinueStatement(HLContinueStatement continueStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Phil
   public static LLControlFlowGraph buildArgument(HLArgument argument, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Noah
   public static LLControlFlowGraph buildExpression(HLExpression expression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     if (expression instanceof HLBinaryExpression binaryExpression) {
       return LLBuilder.buildBinaryExpression(binaryExpression, methodDeclaration, result);
@@ -290,7 +285,6 @@ public class LLBuilder {
     return resultCFG;
   }
 
-  // DONE: Phil
   public static LLControlFlowGraph buildUnaryExpression(HLUnaryExpression unaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
@@ -305,7 +299,6 @@ public class LLBuilder {
     return resultCFG;
   }
 
-  // DONE: Noah
   public static LLControlFlowGraph buildLoadExpression(HLLoadExpression loadExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     if (loadExpression instanceof HLLoadScalarExpression loadScalarExpression) {
       return LLBuilder.buildLoadScalarExpression(loadScalarExpression, result);
@@ -326,27 +319,31 @@ public class LLBuilder {
     return resultCFG;
   }
 
+  // TODO: Robert
   public static LLControlFlowGraph buildLoadArrayExpression(HLLoadArrayExpression loadArrayExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static LLControlFlowGraph buildCallExpression(HLCallExpression callExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Phil
   public static LLControlFlowGraph buildInternalCallExpression(HLInternalCallExpression internalCallExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Robert
   public static LLControlFlowGraph buildExternalCallExpression(HLExternalCallExpression externalCallExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 
+  // TODO: Noah
   public static LLControlFlowGraph buildLengthExpression(HLLengthExpression lengthExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
 
-  // DONE: Phil
   public static LLControlFlowGraph buildIntegerLiteral(HLIntegerLiteral integerLiteral, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
@@ -357,6 +354,7 @@ public class LLBuilder {
     return resultCFG;
   }
 
+  // TODO: Phil
   public static LLControlFlowGraph buildStringLiteral(HLStringLiteral stringLiteral, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     throw new RuntimeException("not implemented");
   }
