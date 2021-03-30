@@ -181,8 +181,7 @@ public class HLBuilder {
     if (astExpression.isPresent()) {
       return new HLReturnStatement(Optional.of(HLBuilder.buildExpression(symbolTable, astExpression.get())));
     } else {
-      Optional<HLExpression> optionalHLExpression = Optional.empty();
-      return new HLReturnStatement(optionalHLExpression);
+      return new HLReturnStatement(Optional.empty());
     }
   }
 

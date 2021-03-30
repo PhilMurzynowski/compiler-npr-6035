@@ -1,5 +1,7 @@
 package edu.mit.compilers.ll;
 
+import java.util.Optional;
+
 import edu.mit.compilers.common.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
@@ -33,40 +35,44 @@ public class LLGenerator {
   public static String generateProgram(LLProgram program) {
     StringBuilder s = new StringBuilder();
 
+    s.append(".data\n\n");
+
     // strings
-    s.append("# string literal declarations");
+    s.append("# string literal declarations\n");
     for (LLStringLiteralDeclaration stringLiteralDeclaration : program.getStringLiteralDeclarations()) {
       s.append(generateStringLiteralDeclaration(stringLiteralDeclaration));
     }
     s.append("\n");
 
     // imports
-    s.append("# import declarations");
+    s.append("# import declarations\n");
     for (LLImportDeclaration importDeclaration : program.getImportDeclarations()) {
       s.append(generateImportDeclaration(importDeclaration));
     }
     s.append("\n");
 
     // global scalars
-    s.append("# global scalar fields");
+    s.append("# global scalar fields\n");
     for (LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration : program.getScalarFieldDeclarations()) {
       s.append(generateGlobalScalarFieldDeclaration(globalScalarFieldDeclaration));
     }
     s.append("\n");
 
     // global arrays
-    s.append("# global array fields");
+    s.append("# global array fields\n");
     for (LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration : program.getArrayFieldDeclarations()) {
       s.append(generateGlobalArrayFieldDeclaration(globalArrayFieldDeclaration));
     }
     s.append("\n");
 
+    s.append(".text\n\n");
+
     // methods
-    s.append("# methods");
+    s.append("# methods\n");
     for (LLMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
       // add .globl for main method
       if (methodDeclaration.getIdentifier().equals("main")) {
-        s.append(generateInstruction(".globl", "main"));
+        s.append(".globl main\n");
       }
       s.append(generateMethodDeclaration(methodDeclaration));
       s.append("\n");
@@ -193,7 +199,7 @@ public class LLGenerator {
     ));
     s.append(generateInstruction(
       "subq",
-      ""+methodDeclaration.setStackIndices(),
+      "$"+methodDeclaration.setStackIndices(),
       "%rsp"
     ));
 
@@ -300,10 +306,18 @@ public class LLGenerator {
   }
 
   public static String generateReturn(LLReturn ret) {
-    throw new RuntimeException("not implemented");
-    //movq %rbp, %rsp
-    //popq %rbp
-    //retq
+    StringBuilder s = new StringBuilder();
+
+    Optional<LLDeclaration> returnExpression = ret.getExpression();
+    if (returnExpression.isPresent()) {
+      s.append(LLGenerator.generateInstruction("movq", returnExpression.get().location(), "%rax"));
+    }
+    
+    s.append(LLGenerator.generateInstruction("movq", "%rbp", "%rsp"));
+    s.append(LLGenerator.generateInstruction("popq", "%rbp"));
+    s.append(LLGenerator.generateInstruction("retq"));
+
+    return s.toString();
   }
 
   // DONE: Robert
@@ -384,7 +398,7 @@ public class LLGenerator {
   public static String generateIntegerLiteral(LLIntegerLiteral integerLiteral) {
     StringBuilder s = new StringBuilder();
 
-    s.append(LLGenerator.generateInstruction("movq", integerLiteral.getValue()+"", "%rax"));
+    s.append(LLGenerator.generateInstruction("movq", "$"+integerLiteral.getValue(), "%rax"));
     s.append(LLGenerator.generateInstruction("movq", "%rax", integerLiteral.getResult().location()));
 
     return s.toString();

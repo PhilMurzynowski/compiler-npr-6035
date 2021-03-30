@@ -19,19 +19,19 @@ public class LLBinary implements LLInstruction {
   }
 
   public LLDeclaration getLeft() {
-    throw new RuntimeException("not implemented");
+    return left;
   }
 
   public BinaryExpressionType getType() {
-    throw new RuntimeException("not implemented");
+    return type;
   }
 
   public LLDeclaration getRight() {
-    throw new RuntimeException("not implemented");
+    return right;
   }
 
   public LLDeclaration getResult() {
-    throw new RuntimeException("not implemented");
+    return result;
   }
 
   @Override

@@ -10,8 +10,8 @@ public class LLAliasDeclaration implements LLDeclaration {
   private Optional<Integer> stackIndex;
 
   public LLAliasDeclaration(int index) {
+    this.index = index;
     stackIndex = Optional.empty();
-    throw new RuntimeException("not implemented");
   }
 
   public void setStackIndex(int stackIndex) {

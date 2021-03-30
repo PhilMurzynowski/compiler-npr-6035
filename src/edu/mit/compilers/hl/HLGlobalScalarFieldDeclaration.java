@@ -19,6 +19,7 @@ public class HLGlobalScalarFieldDeclaration implements HLScalarFieldDeclaration 
   {
     this.type = type;
     this.identifier = identifier;
+    ll = Optional.empty();
   }
 
   public VariableType getType() {

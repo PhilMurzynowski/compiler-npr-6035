@@ -233,9 +233,8 @@ public class LLBuilder {
         new LLReturn(Optional.of(expressionResult))
       );
     } else {
-      Optional<LLDeclaration> optionalLLDeclaration = Optional.empty();
       resultCFG = resultCFG.concatenate(
-        new LLReturn(optionalLLDeclaration)
+        new LLReturn(Optional.empty())
       );
     }
 
@@ -258,7 +257,7 @@ public class LLBuilder {
   public static LLControlFlowGraph buildExpression(HLExpression expression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     if (expression instanceof HLBinaryExpression binaryExpression) {
       return LLBuilder.buildBinaryExpression(binaryExpression, methodDeclaration, result);
-    } else if (expression instanceof  HLUnaryExpression unaryExpression) {
+    } else if (expression instanceof HLUnaryExpression unaryExpression) {
       return LLBuilder.buildUnaryExpression(unaryExpression, methodDeclaration, result);
     } else if (expression instanceof HLLoadExpression loadExpression) {
       return LLBuilder.buildLoadExpression(loadExpression, methodDeclaration, result);
@@ -266,6 +265,8 @@ public class LLBuilder {
       return LLBuilder.buildCallExpression(callExpression, methodDeclaration, result);
     } else if (expression instanceof HLLengthExpression lengthExpression) {
       return LLBuilder.buildLengthExpression(lengthExpression, methodDeclaration, result);
+    } else if (expression instanceof HLIntegerLiteral integerLiteral) {
+      return LLBuilder.buildIntegerLiteral(integerLiteral, methodDeclaration, result);
     } else {
       throw new RuntimeException("unreachable");
     }
