@@ -44,7 +44,10 @@ public class LLControlFlowGraph implements LLNode {
   }
 
   public LLControlFlowGraph simplify() {
-    throw new RuntimeException("not implemented");
+    LLBasicBlock simplifiedEntry = entry.simplify();
+    LLBasicBlock simplifiedExit = simplifiedEntry.getExit();
+
+    return new LLControlFlowGraph(simplifiedEntry, simplifiedExit);
   }
 
   @Override

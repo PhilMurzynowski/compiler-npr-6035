@@ -172,9 +172,11 @@ public class LLGenerator {
   public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph) {
     StringBuilder s = new StringBuilder();
 
-    s.append(LLGenerator.generateBasicBlock(controlFlowGraph.getEntry()));
+    LLControlFlowGraph simplifiedCFG = controlFlowGraph.simplify();
 
-    if (!controlFlowGraph.getExit().isGenerated()) {
+    s.append(LLGenerator.generateBasicBlock(simplifiedCFG.getEntry()));
+
+    if (!simplifiedCFG.getExit().isGenerated()) {
       throw new RuntimeException("failed to generate controlFlowGraph");
     }
 

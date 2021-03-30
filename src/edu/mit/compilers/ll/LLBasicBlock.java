@@ -113,6 +113,21 @@ public class LLBasicBlock implements LLDeclaration {
     }
   }
 
+  public LLBasicBlock getExit() {
+    if (falseTarget.isPresent()) {
+      LLBasicBlock trueExit = trueTarget.get().getExit();
+      LLBasicBlock falseExit = falseTarget.get().getExit();
+
+      assert trueExit == falseExit : "true and false target exits do not *reference* the same basic block";
+
+      return trueExit;
+    } else if (trueTarget.isPresent()) {
+      return trueTarget.get().getExit();
+    } else {
+      return this;
+    }
+  }
+
   @Override
   public String location() {
     return "BB" + index;
@@ -121,7 +136,7 @@ public class LLBasicBlock implements LLDeclaration {
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append(indent(depth) + "LLBasicBlock {\n");
+    s.append("LLBasicBlock {\n");
     s.append(indent(depth + 1) + "index: " + index + ",\n");
     s.append(indent(depth + 1) + "instructions: [\n");
     for (LLInstruction instruction : instructions) {
