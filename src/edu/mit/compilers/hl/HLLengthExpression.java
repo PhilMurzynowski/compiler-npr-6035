@@ -1,16 +1,22 @@
 package edu.mit.compilers.hl;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class HLLengthExpression implements HLExpression {
 
   private final HLArrayFieldDeclaration declaration;
 
   public HLLengthExpression(HLArrayFieldDeclaration declaration) {
-    throw new RuntimeException("not implemented");
+    this.declaration = declaration;
   }
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLLengthExpression {\n");
+    s.append(indent(depth + 1) + "declaration: " + declaration + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

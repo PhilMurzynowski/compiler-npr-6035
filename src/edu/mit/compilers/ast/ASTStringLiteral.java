@@ -14,6 +14,10 @@ public class ASTStringLiteral implements ASTArgument {
     this.value = value;
   }
 
+  public String getValue() {
+    return value;
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;

@@ -65,6 +65,11 @@ public class HLSymbolTable {
     }
   }
 
+  public boolean stringLiteralExists(String value) {
+    return stringLiteralDeclarations.containsKey(value)
+      || (parent.isPresent() && parent.get().stringLiteralExists(value));
+  }
+
   public HLStringLiteralDeclaration getStringLiteral(String value) {
     if (stringLiteralDeclarations.containsKey(value)) {
       return stringLiteralDeclarations.get(value);

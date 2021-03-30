@@ -70,9 +70,9 @@ public class HLBuilder {
     return new HLMethodDeclaration(identifier, body);
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static HLArgumentDeclaration buildArgumentDeclaration(ASTMethodDeclaration.Argument argumentDeclaration, int index) {
-    throw new RuntimeException("not implemented");
+    return new HLArgumentDeclaration(argumentDeclaration.getType(), index);
   }
 
   // TODO: Phil
@@ -153,9 +153,19 @@ public class HLBuilder {
     return new HLStoreScalarStatement(declaration, expression);
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static HLStoreStatement buildAssignStatement(HLSymbolTable symbolTable, ASTAssignStatement assignStatement) {
-    throw new RuntimeException("not implemented");
+    final ASTLocationExpression location = assignStatement.getLocation();
+    if (location.getOffset().isPresent()) {
+      final HLArrayFieldDeclaration declaration = symbolTable.getArray(location.getIdentifier());
+      final HLExpression index = HLBuilder.buildExpression(symbolTable, location.getOffset().get());
+      final HLExpression expression = HLBuilder.buildExpression(symbolTable, assignStatement.getExpression());
+      return new HLStoreArrayStatement(declaration, index, expression);
+    } else {
+      final HLScalarFieldDeclaration declaration = symbolTable.getScalar(location.getIdentifier());
+      final HLExpression expression = HLBuilder.buildExpression(symbolTable, assignStatement.getExpression());
+      return new HLStoreScalarStatement(declaration, expression);
+    }
   }
 
   // TODO: Phil
@@ -168,9 +178,15 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static HLIfStatement buildIfStatement(HLSymbolTable symbolTable, ASTIfStatement ifStatement) {
-    throw new RuntimeException("not implemented");
+    final HLExpression condition = HLBuilder.buildExpression(symbolTable, ifStatement.getCondition());
+    final HLBlock body = HLBuilder.buildBlock(symbolTable, ifStatement.getBody(), List.of());
+    Optional<HLBlock> other = Optional.empty();
+    if (ifStatement.getOther().isPresent()) {
+      other = Optional.of(HLBuilder.buildBlock(symbolTable, ifStatement.getBody(), List.of()));
+    }
+    return new HLIfStatement(condition, body, other);
   }
 
   // TODO: Phil
@@ -192,9 +208,9 @@ public class HLBuilder {
     }
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static HLBreakStatement buildBreakStatement(ASTBreakStatement breakStatement) {
-    throw new RuntimeException("not implemented");
+    return new HLBreakStatement();
   }
 
   // TODO: Phil
@@ -268,9 +284,10 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static HLLengthExpression buildLengthExpression(HLSymbolTable symbolTable, ASTLengthExpression lengthExpression) {
-    throw new RuntimeException("not implemented");
+    final HLArrayFieldDeclaration declaration = symbolTable.getArray(lengthExpression.getIdentifier());
+    return new HLLengthExpression(declaration);
   }
 
   public static HLIntegerLiteral buildIntegerLiteral(ASTIntegerLiteral integerLiteral, boolean isNegated) {
@@ -291,9 +308,16 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static HLStringLiteral buildStringLiteral(HLSymbolTable symbolTable, ASTStringLiteral stringLiteral) {
-    throw new RuntimeException("not implemented");
+    HLStringLiteralDeclaration declaration;
+    if (!symbolTable.stringLiteralExists(stringLiteral.getValue())) {
+      declaration = new HLStringLiteralDeclaration(stringLiteral.getValue());
+      symbolTable.addStringLiteral(stringLiteral.getValue(), declaration);
+    } else {
+      declaration = symbolTable.getStringLiteral(stringLiteral.getValue());
+    }
+    return new HLStringLiteral(declaration);
   }
 
 }
