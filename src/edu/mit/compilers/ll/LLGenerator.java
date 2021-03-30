@@ -132,6 +132,10 @@ public class LLGenerator {
     throw new RuntimeException("not implemented");
   }
 
+  public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph) {
+    throw new RuntimeException("not implemented");
+  }
+
   // TODO: Phil
   public static String generateMethodDeclaration(LLMethodDeclaration methodDeclaration) {
 
