@@ -1,11 +1,12 @@
 package edu.mit.compilers.ll;
+import java.util.Optional;
 
 public class LLReturn implements LLInstruction {
 
-  private final LLDeclaration expression;
+  private final Optional<LLDeclaration> expression;
 
-  public LLReturn(LLDeclaration expression) {
-    throw new RuntimeException("not implemented");
+  public LLReturn(Optional<LLDeclaration> expression) {
+    this.expression = expression;
   }
 
   @Override
