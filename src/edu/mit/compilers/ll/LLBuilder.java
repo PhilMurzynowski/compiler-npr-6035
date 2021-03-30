@@ -6,9 +6,32 @@ import edu.mit.compilers.hl.*;
 
 public class LLBuilder {
 
-  // TODO: Phil
+  // DONE: Phil
   public static LLProgram buildProgram(HLProgram program) {
-    throw new RuntimeException("not implemented");
+    final LLProgram.Builder builder = new LLProgram.Builder();
+
+    for (HLImportDeclaration hlImportDeclaration : program.getImportDeclarations()) {
+      final LLImportDeclaration llImportDeclaration = LLBuilder.buildImportDeclaration(hlImportDeclaration);
+      builder.addImport(llImportDeclaration);
+    }
+    for (HLGlobalScalarFieldDeclaration hlGlobalScalarFieldDeclaration : program.getGlobalScalarFieldDeclarations()) {
+      final LLGlobalScalarFieldDeclaration llGlobalScalarFieldDeclaration = LLBuilder.buildGlobalScalarFieldDeclaration(hlGlobalScalarFieldDeclaration);
+      builder.addScalar(llGlobalScalarFieldDeclaration);
+    }
+    for (HLGlobalArrayFieldDeclaration hlGlobalArrayFieldDeclaration : program.getGlobalArrayFieldDeclarations()) {
+      final LLGlobalArrayFieldDeclaration llGlobalArrayFieldDeclaration = LLBuilder.buildGlobalArrayFieldDeclaration(hlGlobalArrayFieldDeclaration);
+      builder.addArray(llGlobalArrayFieldDeclaration);
+    }
+    for (HLStringLiteralDeclaration hlStringLiteralDeclaration : program.getStringLiteralDeclarations()) {
+      final LLStringLiteralDeclaration llStringLiteralDeclaration = LLBuilder.buildStringLiteralDeclaration(hlStringLiteralDeclaration);
+      builder.addString(llStringLiteralDeclaration);
+    }
+    for (HLMethodDeclaration hlMethodDeclaration : program.getMethodDeclarations()) {
+      final LLMethodDeclaration llMethodDeclaration = LLBuilder.buildMethodDeclaration(hlMethodDeclaration);
+      builder.addMethod(llMethodDeclaration);
+    }
+
+    return builder.build();
   }
 
   public static LLImportDeclaration buildImportDeclaration(HLImportDeclaration importDeclaration) {
