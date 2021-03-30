@@ -74,11 +74,34 @@ public class LLMethodDeclaration implements LLDeclaration {
     return identifier;
   }
 
+  public int setStackIndices() {
+    int index = -8;
+
+    for (LLLocalScalarFieldDeclaration scalar : scalarFieldDeclarations) {
+      scalar.setStackIndex(index);
+      index -= 8;
+    }
+
+    for (LLLocalArrayFieldDeclaration array : arrayFieldDeclarations) {
+      index -= array.getLength() * 8;
+      array.setStackIndex(index);
+      index -= 8;
+    }
+
+    for (LLAliasDeclaration alias : aliasDeclarations) {
+      alias.setStackIndex(index);
+      index -= 8;
+    }
+
+    return -index - 8;
+  }
+
   @Override
   public String location() {
     return identifier;
   }
 
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLMethodDeclaration {\n");

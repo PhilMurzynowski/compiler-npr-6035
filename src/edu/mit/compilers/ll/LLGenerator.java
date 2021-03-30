@@ -25,6 +25,7 @@ public class LLGenerator {
         s.append(operands[i]);
       }
     }
+    s.append("\n");
     return s.toString();
   }
 
@@ -216,9 +217,9 @@ public class LLGenerator {
     s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
 
     if (unary.getType().equals(UnaryExpressionType.NEGATE)) {
-      s.append(generateInstruction("neg", "%rax"));
+      s.append(generateInstruction("negq", "%rax"));
     } else if (unary.getType().equals(UnaryExpressionType.NOT)) {
-      s.append(generateInstruction("not", "%rax"));
+      s.append(generateInstruction("notq", "%rax"));
     }
 
     s.append(LLGenerator.generateInstruction("movq", "%rax", unary.getResult().location()));
