@@ -19,6 +19,7 @@ public class HLMethodDeclaration implements HLNode {
   {
     this.identifier = identifier;
     this.body = body;
+    ll = Optional.empty();
   }
 
   public void setLL(LLMethodDeclaration ll) {
