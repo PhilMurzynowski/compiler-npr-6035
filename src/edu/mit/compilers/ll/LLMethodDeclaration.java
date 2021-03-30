@@ -70,8 +70,36 @@ public class LLMethodDeclaration implements LLDeclaration {
     }
   }
 
+  public boolean hasBody() {
+    return this.body.isPresent();
+  }
+  
+  public LLControlFlowGraph getBody() {
+    if (this.body.isPresent()) {
+      return this.body.get();
+    } else {
+      throw new RuntimeException("no body has been set");
+    }
+  }
+
   public String getIdentifier() {
     return identifier;
+  }
+
+  public List<LLArgumentDeclaration> getArgumentDeclarations() {
+    return this.argumentDeclarations;
+  }
+
+  public List<LLLocalScalarFieldDeclaration> getScalarFieldDeclarations() {
+    return this.scalarFieldDeclarations;
+  }
+
+  public List<LLLocalArrayFieldDeclaration> getArrayFieldDeclarations() {
+    return this.arrayFieldDeclarations;
+  }
+
+  public List<LLAliasDeclaration> getAliasDeclarations() {
+    return this.aliasDeclarations;
   }
 
   public int setStackIndices() {

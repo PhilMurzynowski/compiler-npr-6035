@@ -10,6 +10,14 @@ public class LLStoreScalar implements LLInstruction {
     this.expression = expression;
   }
 
+  public LLDeclaration getExpression() {
+    return this.expression;
+  }
+
+  public LLScalarFieldDeclaration getDeclaration() {
+    return this.declaration;
+  }
+
   @Override
   public String debugString(int depth) {
     throw new UnsupportedOperationException("not implemented");

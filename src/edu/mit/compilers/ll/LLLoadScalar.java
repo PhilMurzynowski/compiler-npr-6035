@@ -12,6 +12,14 @@ public class LLLoadScalar implements LLInstruction {
     this.result = result;
   }
 
+  public LLScalarFieldDeclaration getDeclaration() {
+    return this.declaration;
+  }
+
+  public LLDeclaration getResult() {
+    return this.result;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
