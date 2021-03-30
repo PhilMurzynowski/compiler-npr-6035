@@ -179,6 +179,8 @@ public class LLGenerator {
     //  Add one if method is of type void?
     //  Otherwise add runtime exception
 
+    return s.toString();
+
   }
 
   public static String generateArgumentDeclaration(LLArgumentDeclaration argumentDeclaration) {
