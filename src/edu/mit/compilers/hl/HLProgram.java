@@ -74,6 +74,22 @@ public class HLProgram implements HLNode {
 
   }
 
+  public List<HLImportDeclaration> getImportDeclarations() {
+    return this.importDeclarations;
+  }
+  public List<HLGlobalScalarFieldDeclaration> getGlobalScalarFieldDeclarations() {
+    return this.scalarFieldDeclarations;
+  }
+  public List<HLGlobalArrayFieldDeclaration> getGlobalArrayFieldDeclarations() {
+    return this.arrayFieldDeclarations;
+  }
+  public List<HLStringLiteralDeclaration> getStringLiteralDeclarations() {
+    return this.stringLiteralDeclarations;
+  }
+  public List<HLMethodDeclaration> getMethodDeclarations() {
+    return this.methodDeclarations;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
