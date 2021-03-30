@@ -75,9 +75,21 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static String generateDeclaration(LLDeclaration declaration) {
-    throw new RuntimeException("not implemented");
+    if (declaration instanceof LLScalarFieldDeclaration scalarFieldDeclaration) {
+      return LLGenerator.generateScalarFieldDeclaration(scalarFieldDeclaration);
+    } else if (declaration instanceof LLArrayFieldDeclaration arrayFieldDeclaration) {
+      return LLGenerator.generateArrayFieldDeclaration(arrayFieldDeclaration);
+    } else if (declaration instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
+      return LLGenerator.generateStringLiteralDeclaration(stringLiteralDeclaration);
+    } else if (declaration instanceof LLMethodDeclaration methodDeclaration) {
+      return LLGenerator.generateMethodDeclaration(methodDeclaration);
+    } else if (declaration instanceof LLAliasDeclaration aliasDeclaration) {
+      return LLGenerator.generateAliasDeclaration(aliasDeclaration);
+    } else {
+      throw new RuntimeException("not implemented");
+    }
   }
 
   public static String generateImportDeclaration(LLImportDeclaration importDeclaration) {
@@ -165,7 +177,49 @@ public class LLGenerator {
 
   // TODO: Phil
   public static String generateMethodDeclaration(LLMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+
+    StringBuilder s = new StringBuilder();
+    s.append(generateLabel(methodDeclaration.location()));
+
+    // Prologue
+    s.append(generateInstruction(
+      "pushq",
+      "%rbp"
+    ));
+    s.append(generateInstruction(
+      "movq",
+      "%rsp",
+      "%rbp"
+    ));
+    s.append(generateInstruction(
+      "subq",
+      ""+methodDeclaration.setStackIndices(),
+      "%rsp"
+    ));
+
+    // NOTE(phil): arguments handled by caller
+    // NOTE(phil): declarations should already be handled by block hoisting
+    /*
+    for (LLLocalScalarFieldDeclarations scalarFieldDeclaration : methodDeclaration.getScalarFieldDeclarations()) {
+    }
+    for (LLLocalArrayFieldDeclaration arrayFieldDeclaration : methodDeclaration.getArrayFieldDeclarations()) {
+    }
+    // NOTE(phil): will allocate differently once using registers instead of temps
+    for (LLAliasDeclaration aliasDeclaration : methodDeclaration.getAliasDeclarations()) {
+    }
+    */
+  
+    if (methodDeclaration.hasBody()) {
+      LLControlFlowGraph body = methodDeclaration.getBody();
+      s.append(generateControlFlowGraph(body));
+    }
+
+    // NOTE(phil): deal with potential lack of return statement here?
+    //  Add one if method is of type void?
+    //  Otherwise add runtime exception
+
+    return s.toString();
+
   }
 
   public static String generateArgumentDeclaration(LLArgumentDeclaration argumentDeclaration) {
@@ -221,9 +275,23 @@ public class LLGenerator {
     }
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static String generateStoreScalar(LLStoreScalar storeScalar) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    s.append(LLGenerator.generateInstruction(
+      "movq",
+      storeScalar.getExpression().location(),
+      "%rax"
+    )); 
+
+    s.append(LLGenerator.generateInstruction(
+      "movq",
+      "%rax",
+      storeScalar.getDeclaration().location()
+    ));
+
+    return s.toString();
   }
 
   public static String generateStoreArray(LLStoreArray storeArray) {
@@ -232,6 +300,9 @@ public class LLGenerator {
 
   public static String generateReturn(LLReturn ret) {
     throw new RuntimeException("not implemented");
+    //movq %rbp, %rsp
+    //popq %rbp
+    //retq
   }
 
   // DONE: Robert
@@ -272,9 +343,24 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static String generateLoadScalar(LLLoadScalar loadScalar) {
-    throw new RuntimeException("not implemented");
+
+    StringBuilder s = new StringBuilder();
+
+    s.append(generateInstruction(
+      "movq",
+      loadScalar.getDeclaration().location(),
+      "%rax"
+    ));
+
+    s.append(generateInstruction(
+      "movq",
+      "%rax",
+      loadScalar.getResult().location()
+    ));
+
+    return s.toString();
   }
 
   public static String generateLoadArray(LLLoadArray loadArray) {
