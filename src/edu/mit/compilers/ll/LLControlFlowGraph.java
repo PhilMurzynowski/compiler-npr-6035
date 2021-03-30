@@ -20,6 +20,14 @@ public class LLControlFlowGraph implements LLNode {
     return single(new LLBasicBlock());
   }
 
+  public LLBasicBlock getEntry() {
+    return entry;
+  }
+
+  public LLBasicBlock getExit() {
+    return exit;
+  }
+
   public LLControlFlowGraph concatenate(LLControlFlowGraph that) {
     this.exit.setTrueTarget(that.entry);
     return new LLControlFlowGraph(this.entry, that.exit);
@@ -31,6 +39,10 @@ public class LLControlFlowGraph implements LLNode {
 
   public LLControlFlowGraph concatenate(LLInstruction ...instructions) {
     return concatenate(LLControlFlowGraph.single(new LLBasicBlock(instructions)));
+  }
+
+  public LLControlFlowGraph simplify() {
+    throw new RuntimeException("not implemented");
   }
 
   @Override
