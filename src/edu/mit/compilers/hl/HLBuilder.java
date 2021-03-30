@@ -1,6 +1,7 @@
 package edu.mit.compilers.hl;
 
 import java.util.List;
+import java.util.Optional;
 
 import edu.mit.compilers.common.*;
 import edu.mit.compilers.ast.*;
@@ -176,7 +177,13 @@ public class HLBuilder {
   }
 
   public static HLReturnStatement buildReturnStatement(HLSymbolTable symbolTable, ASTReturnStatement returnStatement) {
-    throw new RuntimeException("not implemented");
+    Optional<ASTExpression> astExpression = returnStatement.getExpression();
+    if (astExpression.isPresent()) {
+      return new HLReturnStatement(Optional.of(HLBuilder.buildExpression(symbolTable, astExpression.get())));
+    } else {
+      Optional<HLExpression> optionalHLExpression = Optional.empty();
+      return new HLReturnStatement(optionalHLExpression);
+    }
   }
 
   public static HLBreakStatement buildBreakStatement(ASTBreakStatement breakStatement) {

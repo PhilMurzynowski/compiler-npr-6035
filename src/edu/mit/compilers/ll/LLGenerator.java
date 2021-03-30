@@ -234,6 +234,7 @@ public class LLGenerator {
     throw new RuntimeException("not implemented");
   }
 
+  // NOTE(phil): this may not be necessary due to hoisting, and will always overwrite alias before reading
   // DONE: Robert
   public static String generateAliasDeclaration(LLAliasDeclaration aliasDeclaration) {
     StringBuilder s = new StringBuilder();

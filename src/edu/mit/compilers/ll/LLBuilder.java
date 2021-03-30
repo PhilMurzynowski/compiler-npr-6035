@@ -219,8 +219,27 @@ public class LLBuilder {
     throw new RuntimeException("not implemented");
   }
 
+  // DONE: Phil
   public static LLControlFlowGraph buildReturnStatement(HLReturnStatement returnStatement, LLMethodDeclaration methodDeclaration) {
-    throw new RuntimeException("not implemented");
+
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    Optional<HLExpression> hlExpression = returnStatement.getExpression();
+    if (hlExpression.isPresent()) {
+      final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
+      final LLControlFlowGraph expressionCFG = LLBuilder.buildExpression(hlExpression.get(), methodDeclaration, expressionResult);
+      resultCFG = resultCFG.concatenate(expressionCFG);
+      resultCFG = resultCFG.concatenate(
+        new LLReturn(Optional.of(expressionResult))
+      );
+    } else {
+      Optional<LLDeclaration> optionalLLDeclaration = Optional.empty();
+      resultCFG = resultCFG.concatenate(
+        new LLReturn(optionalLLDeclaration)
+      );
+    }
+
+    return resultCFG;
   }
 
   public static LLControlFlowGraph buildBreakStatement(HLBreakStatement breakStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {

@@ -7,8 +7,12 @@ public class HLReturnStatement implements HLStatement {
   private final Optional<HLExpression> expression;
 
   public HLReturnStatement(Optional<HLExpression> expression) {
-    throw new UnsupportedOperationException("not implemented");
+    this.expression = expression;
   }
+
+	public Optional<HLExpression> getExpression() {
+		return expression;
+	}
 
   @Override
   public String debugString(int depth) {
