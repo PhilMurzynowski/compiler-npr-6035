@@ -102,18 +102,23 @@ public class LLBuilder {
       hlArgumentDeclaration.setLL(llArgumentDeclaration);
 
       // NOTE(phil): can optimize away zeroing arguments as arguments will overwrite when method is called
+      final LLAliasDeclaration zeroAlias = methodDeclaration.newAlias();
       resultCFG = resultCFG.concatenate(
-        new LLStoreZero(hlArgumentDeclaration.getLL())
+        new LLIntegerLiteral(0, zeroAlias),
+        new LLStoreScalar(hlArgumentDeclaration.getLL(), zeroAlias)
       );
     }
 
     for (HLLocalScalarFieldDeclaration hlLocalScalarFieldDeclaration : block.getScalarFieldDeclarations()) {
+
       final LLLocalScalarFieldDeclaration llLocalScalarFieldDeclaration =
         LLBuilder.buildLocalScalarFieldDeclaration(hlLocalScalarFieldDeclaration, methodDeclaration);
       hlLocalScalarFieldDeclaration.setLL(llLocalScalarFieldDeclaration);
 
+      final LLAliasDeclaration zeroAlias = methodDeclaration.newAlias();
       resultCFG = resultCFG.concatenate(
-        new LLStoreZero(hlLocalScalarFieldDeclaration.getLL())
+        new LLIntegerLiteral(0, zeroAlias),
+        new LLStoreScalar(hlLocalScalarFieldDeclaration.getLL(), zeroAlias)
       );
     }
 
@@ -122,9 +127,9 @@ public class LLBuilder {
         LLBuilder.buildLocalArrayFieldDeclaration(hlLocalArrayFieldDeclaration, methodDeclaration);
       hlLocalArrayFieldDeclaration.setLL(llLocalArrayFieldDeclaration);
 
-      resultCFG = resultCFG.concatenate(
-        new LLStoreArrayZero(hlLocalArrayFieldDeclaration.getLL(), hlLocalArrayFieldDeclaration.getLength())
-      );
+      // NOTE(phil): Create a loop here
+      throw new RuntimeException("not implemented");
+      //
     }
 
     for (HLStatement statement : block.getStatements()) {
