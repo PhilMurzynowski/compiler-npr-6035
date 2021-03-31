@@ -210,7 +210,7 @@ public class LLBuilder {
     }
     otherCFG = otherCFG.concatenate(exitBB);
 
-    final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), bodyCFG.getEntry(), otherCFG.getEntry());
+    final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), otherCFG.getEntry());
 
     return new LLControlFlowGraph(entryBB, exitBB);
   }

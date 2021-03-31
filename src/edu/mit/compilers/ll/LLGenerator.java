@@ -272,6 +272,8 @@ public class LLGenerator {
       return LLGenerator.generateBinary(binary);
     } else if (instruction instanceof LLUnary unary) {
       return LLGenerator.generateUnary(unary);
+    } else if (instruction instanceof LLCompare compare) {
+      return LLGenerator.generateCompare(compare);
     } else if (instruction instanceof LLLoadScalar loadScalar) {
       return LLGenerator.generateLoadScalar(loadScalar);
     } else if (instruction instanceof LLLoadArray loadArray) {
@@ -427,8 +429,17 @@ public class LLGenerator {
     return s.toString();
   }
 
-  public static String generateLoadScalar(LLLoadScalar loadScalar) {
+  // DONE: Robert
+  public static String generateCompare(LLCompare compare) {
+    StringBuilder s = new StringBuilder();
 
+    s.append(generateInstruction("movq", compare.getLeft().location(), "%rax"));
+    s.append(generateInstruction("cmpq", compare.getRight().location(), "%rax"));
+
+    return s.toString();
+  }
+
+  public static String generateLoadScalar(LLLoadScalar loadScalar) {
     StringBuilder s = new StringBuilder();
 
     s.append(generateInstruction(
