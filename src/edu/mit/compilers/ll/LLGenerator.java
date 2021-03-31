@@ -456,7 +456,7 @@ public class LLGenerator {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static String generateExternalCall(LLExternalCall externalCall) {
     StringBuilder s = new StringBuilder();
 
@@ -467,11 +467,16 @@ public class LLGenerator {
       s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
     }
 
-    if (arguments.size() > registers.size()) {
-      throw new RuntimeException("not implemented");
+    for (int i = arguments.size() - 1; i > 5; --i) {
+      s.append(generateInstruction("pushq", arguments.get(i).location()));
     }
 
     s.append(generateInstruction("callq", externalCall.getDeclaration().location()));
+
+    if (arguments.size() > registers.size()) {
+      s.append(generateInstruction("addq", "$"+((arguments.size() - registers.size()) * 8), "%rsp"));
+    }
+
     s.append(generateInstruction("movq", "%rax", externalCall.getResult().location()));
 
     return s.toString();
