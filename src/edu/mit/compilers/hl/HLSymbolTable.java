@@ -55,6 +55,11 @@ public class HLSymbolTable {
     methodDeclarations.put(identifier, declaration);
   }
 
+  public boolean importExists(String value) {
+    return importDeclarations.containsKey(value)
+        || (parent.isPresent() && parent.get().importExists(value));
+  }
+
   public HLImportDeclaration getImport(String identifier) {
     if (importDeclarations.containsKey(identifier)) {
       return importDeclarations.get(identifier);
@@ -102,6 +107,11 @@ public class HLSymbolTable {
     } else {
       throw new RuntimeException("array does not exist in the symbol table");
     }
+  }
+
+  public boolean methodExists(String value) {
+    return methodDeclarations.containsKey(value)
+        || (parent.isPresent() && parent.get().methodExists(value));
   }
 
   public HLMethodDeclaration getMethod(String identifier) {
