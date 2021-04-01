@@ -1,12 +1,22 @@
 package edu.mit.compilers.hl;
 
+// TODO: Noah (debugString)
 public class HLWhileStatement implements HLStatement {
 
   private final HLExpression condition;
   private final HLBlock body;
 
   public HLWhileStatement(HLExpression condition, HLBlock body) {
-    throw new RuntimeException("not implemented");
+    this.condition = condition;
+    this.body = body;
+  }
+
+  public HLExpression getCondition() {
+    return condition;
+  }
+
+  public HLBlock getBody() {
+    return body;
   }
 
   @Override

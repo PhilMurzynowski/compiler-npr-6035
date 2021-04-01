@@ -36,6 +36,14 @@ public class HLInternalCallExpression implements HLCallExpression {
 
   }
 
+  public HLMethodDeclaration getDeclaration() {
+    return declaration;
+  }
+
+  public List<HLArgument> getArguments() {
+    return arguments;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

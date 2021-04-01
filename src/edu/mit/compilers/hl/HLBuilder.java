@@ -59,9 +59,13 @@ public class HLBuilder {
     return new HLGlobalScalarFieldDeclaration(type, identifier.getIdentifier());
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLGlobalArrayFieldDeclaration buildGlobalArrayFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
-    throw new RuntimeException("not implemented");
+    return new HLGlobalArrayFieldDeclaration(
+        fieldDeclaration.getType(),
+        identifier.getIdentifier(),
+        buildIntegerLiteral(identifier.getLength().get(), false)
+    );
   }
 
   public static HLMethodDeclaration buildMethodDeclaration(HLSymbolTable symbolTable, ASTMethodDeclaration methodDeclaration) {
@@ -80,9 +84,12 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLLocalArrayFieldDeclaration buildLocalArrayFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier, int index) {
-    throw new RuntimeException("not implemented");
+    return new HLLocalArrayFieldDeclaration(
+        index,
+        buildIntegerLiteral(identifier.getLength().get(), false)
+    );
   }
 
   public static HLBlock buildBlock(HLSymbolTable symbolTable, ASTBlock block, List<ASTMethodDeclaration.Argument> astArguments) {
@@ -173,9 +180,11 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLCallStatement buildMethodCallStatement(HLSymbolTable symbolTable, ASTMethodCallStatement methodCallStatement) {
-    throw new RuntimeException("not implemented");
+    return new HLCallStatement(
+        buildMethodCallExpression(symbolTable, methodCallStatement.getCall())
+    );
   }
 
   // DONE: Robert
@@ -194,9 +203,12 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLWhileStatement buildWhileStatement(HLSymbolTable symbolTable, ASTWhileStatement whileStatement) {
-    throw new RuntimeException("not implemented");
+    return new HLWhileStatement(
+        buildExpression(symbolTable, whileStatement.getCondition()),
+        buildBlock(symbolTable, whileStatement.getBody(), List.of())  // empty list for args (since this is not function block)?
+    );
   }
 
   public static HLReturnStatement buildReturnStatement(HLSymbolTable symbolTable, ASTReturnStatement returnStatement) {
@@ -279,9 +291,29 @@ public class HLBuilder {
     }
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLCallExpression buildMethodCallExpression(HLSymbolTable symbolTable, ASTMethodCallExpression methodCallExpression) {
-    throw new RuntimeException("not implemented");
+    final String identifier = methodCallExpression.getIdentifier();
+
+    // internal call
+    if (symbolTable.methodExists(identifier)) {
+      HLInternalCallExpression.Builder builder = new HLInternalCallExpression.Builder(symbolTable.getMethod(identifier));
+      for (ASTArgument arg : methodCallExpression.getArguments()) {
+        builder.addArgument(buildArgument(symbolTable, arg));
+      }
+      return builder.build();
+
+    // external call
+    } else if (symbolTable.importExists(identifier)) {
+      HLExternalCallExpression.Builder builder = new HLExternalCallExpression.Builder(symbolTable.getImport(identifier));
+      for (ASTArgument arg : methodCallExpression.getArguments()) {
+        builder.addArgument(buildArgument(symbolTable, arg));
+      }
+      return builder.build();
+
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   // DONE: Robert
@@ -303,9 +335,12 @@ public class HLBuilder {
     throw new RuntimeException("not implemented");
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static HLIntegerLiteral buildBooleanLiteral(ASTBooleanLiteral booleanLiteral) {
-    throw new RuntimeException("not implemented");
+    if (booleanLiteral.getValue())
+      return new HLIntegerLiteral(1);
+    else
+      return new HLIntegerLiteral(0);
   }
 
   // DONE: Robert

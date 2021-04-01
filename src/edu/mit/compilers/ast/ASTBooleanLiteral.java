@@ -14,6 +14,10 @@ public class ASTBooleanLiteral implements ASTExpression {
     this.value = value;
   }
 
+  public boolean getValue() {
+    return value;
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;

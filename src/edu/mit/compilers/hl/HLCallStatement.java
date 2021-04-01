@@ -1,11 +1,16 @@
 package edu.mit.compilers.hl;
 
+// TODO: Noah (debugString)
 public class HLCallStatement implements HLStatement {
 
   private final HLCallExpression call;
 
   public HLCallStatement(final HLCallExpression call) {
-    throw new RuntimeException("not implemented");
+    this.call = call;
+  }
+
+  public HLCallExpression getCall() {
+    return call;
   }
 
   @Override
