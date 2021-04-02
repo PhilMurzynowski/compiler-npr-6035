@@ -20,6 +20,14 @@ public class HLStringLiteralDeclaration implements HLNode {
     ll = Optional.empty();
   }
 
+  public int getIndex() {
+    return index;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
   public void setLL(LLStringLiteralDeclaration ll) {
     if (this.ll.isPresent()) {
       throw new RuntimeException("ll has already been set");

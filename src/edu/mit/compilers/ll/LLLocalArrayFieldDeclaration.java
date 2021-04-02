@@ -5,12 +5,13 @@ import java.util.Optional;
 public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
 
   private final int index;
-  private final int length;
+  private final long length;
   private Optional<Integer> stackIndex;
 
-  public LLLocalArrayFieldDeclaration(int index, int length) {
+  public LLLocalArrayFieldDeclaration(int index, long length) {
+    this.index = index;
+    this.length = length;
     this.stackIndex = Optional.empty();
-    throw new RuntimeException("not implemented");
   }
 
   public void setStackIndex(int stackIndex) {
@@ -21,7 +22,7 @@ public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
     }
   }
 
-  public int getLength() {
+  public long getLength() {
     return length;
   }
 

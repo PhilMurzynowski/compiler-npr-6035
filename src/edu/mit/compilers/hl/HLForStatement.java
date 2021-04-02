@@ -1,5 +1,6 @@
 package edu.mit.compilers.hl;
 
+// DONE: Noah
 public class HLForStatement implements HLStatement {
 
   private final HLStoreScalarStatement initial;
@@ -14,6 +15,22 @@ public class HLForStatement implements HLStatement {
       HLBlock body)
   {
     throw new RuntimeException("not implemented");
+  }
+
+  public HLStoreScalarStatement getInitial() {
+    return initial;
+  }
+
+  public HLExpression getCondition() {
+    return condition;
+  }
+
+  public HLStoreStatement getUpdate() {
+    return update;
+  }
+
+  public HLBlock getBody() {
+    return body;
   }
 
   @Override

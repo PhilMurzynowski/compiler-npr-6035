@@ -10,6 +10,10 @@ public class HLLengthExpression implements HLExpression {
     this.declaration = declaration;
   }
 
+  public HLArrayFieldDeclaration getDeclaration() {
+    return declaration;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

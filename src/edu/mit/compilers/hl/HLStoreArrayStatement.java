@@ -14,6 +14,18 @@ public class HLStoreArrayStatement implements HLStoreStatement {
     this.expression = expression;
   }
 
+  public HLArrayFieldDeclaration getDeclaration() {
+    return declaration;
+  }
+
+  public HLExpression getIndex() {
+    return index;
+  }
+
+  public HLExpression getExpression() {
+    return expression;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
