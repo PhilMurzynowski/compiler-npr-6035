@@ -97,9 +97,12 @@ public class LLGenerator {
     }
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateImportDeclaration(LLImportDeclaration importDeclaration) {
-    throw new RuntimeException("not implemented");
+    // gcc takes care of this for us, so just leaving comments
+    final StringBuilder s = new StringBuilder();
+    s.append(indent(1)).append("# imported ").append(importDeclaration.getIdentifier()).append("\n");
+    return s.toString();
   }
 
   public static String generateScalarFieldDeclaration(LLScalarFieldDeclaration scalarFieldDeclaration) {
@@ -124,7 +127,6 @@ public class LLGenerator {
     StringBuilder s = new StringBuilder();
 
     s.append(generateLabel(globalScalarFieldDeclaration.location()));
-    // TODO (nmp): should we have a different way of generating these?
     s.append(generateInstruction(".quad", "0"));
 
     return s.toString();
@@ -141,9 +143,15 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateStringLiteralDeclaration(LLStringLiteralDeclaration stringLiteralDeclaration) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    s.append(generateLabel(stringLiteralDeclaration.location()));
+    s.append(generateInstruction(".string \"" + stringLiteralDeclaration.getValue() + "\""));
+    s.append(generateInstruction(".align", "16"));
+
+    return s.toString();
   }
 
   public static String generateBasicBlock(LLBasicBlock basicBlock) {
@@ -245,9 +253,10 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateLocalScalarFieldDeclaration(LLLocalScalarFieldDeclaration globalScalarFieldDeclaration) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    return s.toString();
   }
 
   // TODO: Phil
@@ -457,9 +466,16 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateLoadArray(LLLoadArray loadArray) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    s.append(generateInstruction("movq", loadArray.getIndex().location(), "%r10"));
+    s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), "%rax"));
+    s.append(generateInstruction("addq", "$8", "%r10"));
+    s.append(generateInstruction("movq", "%rax", loadArray.getResult().location()));
+
+    return s.toString();
   }
 
   // TODO: Phil
@@ -493,9 +509,14 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static String generateLength(LLLength length) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    s.append(LLGenerator.generateInstruction("movq", length.getDeclaration().location(), "%rax"));
+    s.append(LLGenerator.generateInstruction("movq", "%rax", length.getResult().location()));
+
+    return s.toString();
   }
 
   public static String generateIntegerLiteral(LLIntegerLiteral integerLiteral) {

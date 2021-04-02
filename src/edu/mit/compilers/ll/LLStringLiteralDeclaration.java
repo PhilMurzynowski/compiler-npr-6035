@@ -21,7 +21,7 @@ public class LLStringLiteralDeclaration implements LLDeclaration {
 
   @Override
   public String location() {
-    throw new UnsupportedOperationException("not implemented");
+    return "string_literal_" + index;
   }
 
   @Override

@@ -14,6 +14,18 @@ public class LLLoadArray implements LLInstruction {
     this.result = result;
   }
 
+  public LLArrayFieldDeclaration getLocation() {
+    return location;
+  }
+
+  public LLDeclaration getIndex() {
+    return index;
+  }
+
+  public LLDeclaration getResult() {
+    return result;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

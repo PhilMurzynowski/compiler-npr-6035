@@ -8,6 +8,10 @@ public class LLImportDeclaration implements LLDeclaration {
     throw new RuntimeException("not implemented");
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
   @Override
   public String location() {
     throw new RuntimeException("not implemented");

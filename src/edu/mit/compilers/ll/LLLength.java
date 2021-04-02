@@ -9,6 +9,14 @@ public class LLLength implements LLInstruction {
     throw new RuntimeException("not implemented");
   }
 
+  public LLArrayFieldDeclaration getDeclaration() {
+    return declaration;
+  }
+
+  public LLDeclaration getResult() {
+    return result;
+  }
+
   @Override
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");
