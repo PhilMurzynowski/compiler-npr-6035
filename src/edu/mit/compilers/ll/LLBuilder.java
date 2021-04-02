@@ -261,8 +261,7 @@ public class LLBuilder {
 
     // connect all the different pieces
     updateCFG = updateCFG.concatenate(conditionBB);
-    // NOTE (nmp): is checking for existing trueTarget sufficient?
-    if (!bodyCFG.getExit().hasTrueTarget()) {
+    if (bodyCFG.getExit() == updateCFG.getEntry() || bodyCFG.getExit() == exitBB) {
       bodyCFG = bodyCFG.concatenate(updateCFG);
     }
     conditionBB.setTrueTarget(bodyCFG.getEntry());

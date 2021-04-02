@@ -1,9 +1,8 @@
 package edu.mit.compilers.ll;
 
-// TODO: Noah
+// DONE: Noah
 public class LLStringLiteralDeclaration implements LLDeclaration {
 
-  // why an index for a string literal?
   private final int index;
   private final String value;
 
