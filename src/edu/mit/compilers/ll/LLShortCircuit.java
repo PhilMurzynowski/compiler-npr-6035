@@ -26,10 +26,14 @@ public class LLShortCircuit {
     }
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static LLBasicBlock shortUnaryExpression(HLUnaryExpression unaryExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
-    // NOTE(rbd): assert NOT unary expression
-    throw new RuntimeException("not implemented");
+    if (unaryExpression.getType().equals(UnaryExpressionType.NOT)) {
+      return shortExpression(unaryExpression.getExpression(), methodDeclaration, trueTarget, falseTarget);
+    } else {
+      throw new RuntimeException("cannot short-circuit unary of type " + unaryExpression.getType().name());
+    }
+
   }
 
   // TODO: Phil
@@ -63,9 +67,13 @@ public class LLShortCircuit {
     return resultCFG.getEntry();
   }
 
-  // TODO: Noah
+  // DONE: Noah
   public static LLBasicBlock shortCallExpression(HLCallExpression callExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
-    throw new RuntimeException("not implemented");
+    if (callExpression instanceof HLInternalCallExpression internalCallExpression) {
+      return shortInternalCallExpression(internalCallExpression, methodDeclaration, trueTarget, falseTarget);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   // TODO: Phil
