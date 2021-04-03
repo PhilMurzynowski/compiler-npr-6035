@@ -26,8 +26,10 @@ public class LLBuilder {
       final LLStringLiteralDeclaration llStringLiteralDeclaration = LLBuilder.buildStringLiteralDeclaration(hlStringLiteralDeclaration);
       builder.addString(llStringLiteralDeclaration);
     }
+
     for (HLMethodDeclaration hlMethodDeclaration : program.getMethodDeclarations()) {
       final LLMethodDeclaration llMethodDeclaration = LLBuilder.buildMethodDeclaration(hlMethodDeclaration);
+
       builder.addMethod(llMethodDeclaration);
     }
 
@@ -75,7 +77,17 @@ public class LLBuilder {
 
     // WARN(rbd): The lines above MUST be executed before the lines below. (Think: Recursive method calls.)
 
-    llMethodDeclaration.setBody(LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty()));
+    LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty());
+
+    if (llMethodDeclaration.getMethodType() == MethodType.VOID) {
+      bodyCFG = bodyCFG.concatenate(
+        new LLReturn(Optional.empty())
+      );
+    } else {
+      // TODO(rbd): Need to throw exception here
+    }
+
+    llMethodDeclaration.setBody(bodyCFG);
 
     return llMethodDeclaration;
   }
@@ -110,14 +122,12 @@ public class LLBuilder {
 
     for (HLArgumentDeclaration hlArgumentDeclaration : block.getArgumentDeclarations()) {
       final LLArgumentDeclaration llArgumentDeclaration = LLBuilder.buildArgumentDeclaration(hlArgumentDeclaration, methodDeclaration);
-      hlArgumentDeclaration.setLL(llArgumentDeclaration); // TODO(rbd): This is a double-set.
 
       methodDeclaration.addArgument(llArgumentDeclaration);
     }
 
     for (HLLocalScalarFieldDeclaration hlLocalScalarFieldDeclaration : block.getScalarFieldDeclarations()) {
       final LLLocalScalarFieldDeclaration llLocalScalarFieldDeclaration = LLBuilder.buildLocalScalarFieldDeclaration(hlLocalScalarFieldDeclaration, methodDeclaration);
-      hlLocalScalarFieldDeclaration.setLL(llLocalScalarFieldDeclaration); // TODO(rbd): This is a double-set.
 
       methodDeclaration.addScalar(llLocalScalarFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
 
@@ -130,7 +140,6 @@ public class LLBuilder {
 
     for (HLLocalArrayFieldDeclaration hlLocalArrayFieldDeclaration : block.getArrayFieldDeclarations()) {
       final LLLocalArrayFieldDeclaration llLocalArrayFieldDeclaration = LLBuilder.buildLocalArrayFieldDeclaration(hlLocalArrayFieldDeclaration, methodDeclaration);
-      hlLocalArrayFieldDeclaration.setLL(llLocalArrayFieldDeclaration); // TODO(rbd): This is a double-set.
 
       methodDeclaration.addArray(llLocalArrayFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
 
@@ -285,7 +294,9 @@ public class LLBuilder {
 
     otherCFG.getExit().setTrueTarget(exitBB);
 
-    return new LLControlFlowGraph(entryBB, exitBB);
+    final LLControlFlowGraph cfg = new LLControlFlowGraph(entryBB, exitBB);
+
+    return cfg;
   }
 
   // DONE: Noah

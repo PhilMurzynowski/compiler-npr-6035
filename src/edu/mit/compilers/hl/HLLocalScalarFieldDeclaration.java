@@ -18,6 +18,7 @@ public class HLLocalScalarFieldDeclaration implements HLScalarFieldDeclaration {
   {
     this.type = type;
     this.index = index;
+    this.ll = Optional.empty();
   }
 
   public int getIndex() {

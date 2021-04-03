@@ -40,7 +40,11 @@ public class HLSymbolTable {
   }
 
   public void addStringLiteral(String value, HLStringLiteralDeclaration declaration) {
-    stringLiteralDeclarations.put(value, declaration);
+    if (parent.isPresent()) {
+      parent.get().addStringLiteral(value, declaration);
+    } else {
+      stringLiteralDeclarations.put(value, declaration);
+    }
   }
 
   public void addScalar(String identifier, HLScalarFieldDeclaration declaration) {

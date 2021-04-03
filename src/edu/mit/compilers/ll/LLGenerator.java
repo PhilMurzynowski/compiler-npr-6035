@@ -191,7 +191,9 @@ public class LLGenerator {
   public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph) {
     StringBuilder s = new StringBuilder();
 
-    LLControlFlowGraph simplifiedCFG = controlFlowGraph.simplify();
+    LLControlFlowGraph simplifiedCFG = controlFlowGraph/*.simplify()*/;
+
+    //System.out.println(simplifiedCFG.debugString(0));
 
     s.append(LLGenerator.generateBasicBlock(simplifiedCFG.getEntry()));
 
@@ -236,21 +238,7 @@ public class LLGenerator {
       s.append(generateControlFlowGraph(body));
     }
 
-    if (methodDeclaration.getMethodType() != MethodType.VOID) {
-      // runtime exception
-      // hack divide by 0 for runtime error
-      s.append(generateInstruction(
-        "divq",
-        "$0"
-      ));
-
-    } else /* VOID */ {
-      // don't need to have return statements if void
-      s.append(generateReturn(new LLReturn(Optional.empty())));
-    }
-
     return s.toString();
-
   }
 
   // DONE: Robert (these could probably be removed...)
@@ -564,7 +552,7 @@ public class LLGenerator {
   public static String generateStringLiteral(LLStringLiteral stringLiteral) {
     StringBuilder s = new StringBuilder();
 
-    s.append(LLGenerator.generateInstruction("movq", stringLiteral.getDeclaration().location(), "%rax"));
+    s.append(LLGenerator.generateInstruction("leaq", stringLiteral.getDeclaration().location()+"(%rip)", "%rax"));
     s.append(LLGenerator.generateInstruction("movq", "%rax", stringLiteral.getResult().location()));
 
     return s.toString();

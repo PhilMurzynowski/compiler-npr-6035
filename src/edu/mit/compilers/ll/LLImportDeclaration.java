@@ -16,7 +16,7 @@ public class LLImportDeclaration implements LLDeclaration {
 
   @Override
   public String location() {
-    throw new RuntimeException("not implemented");
+    return identifier;
   }
 
   @Override
