@@ -106,14 +106,16 @@ public class LLBuilder {
 
     for (HLArgumentDeclaration hlArgumentDeclaration : block.getArgumentDeclarations()) {
       final LLArgumentDeclaration llArgumentDeclaration = LLBuilder.buildArgumentDeclaration(hlArgumentDeclaration, methodDeclaration);
-      hlArgumentDeclaration.setLL(llArgumentDeclaration);
+      hlArgumentDeclaration.setLL(llArgumentDeclaration); // TODO(rbd): This is a double-set.
+
+      methodDeclaration.addArgument(llArgumentDeclaration);
     }
 
     for (HLLocalScalarFieldDeclaration hlLocalScalarFieldDeclaration : block.getScalarFieldDeclarations()) {
       final LLLocalScalarFieldDeclaration llLocalScalarFieldDeclaration = LLBuilder.buildLocalScalarFieldDeclaration(hlLocalScalarFieldDeclaration, methodDeclaration);
-      hlLocalScalarFieldDeclaration.setLL(llLocalScalarFieldDeclaration);
+      hlLocalScalarFieldDeclaration.setLL(llLocalScalarFieldDeclaration); // TODO(rbd): This is a double-set.
 
-      methodDeclaration.addScalar(llLocalScalarFieldDeclaration);
+      methodDeclaration.addScalar(llLocalScalarFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
 
       final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
       resultCFG = resultCFG.concatenate(
@@ -124,9 +126,9 @@ public class LLBuilder {
 
     for (HLLocalArrayFieldDeclaration hlLocalArrayFieldDeclaration : block.getArrayFieldDeclarations()) {
       final LLLocalArrayFieldDeclaration llLocalArrayFieldDeclaration = LLBuilder.buildLocalArrayFieldDeclaration(hlLocalArrayFieldDeclaration, methodDeclaration);
-      hlLocalArrayFieldDeclaration.setLL(llLocalArrayFieldDeclaration);
+      hlLocalArrayFieldDeclaration.setLL(llLocalArrayFieldDeclaration); // TODO(rbd): This is a double-set.
 
-      methodDeclaration.addArray(llLocalArrayFieldDeclaration);
+      methodDeclaration.addArray(llLocalArrayFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
 
       final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
       final LLAliasDeclaration lengthResult = methodDeclaration.newAlias();
