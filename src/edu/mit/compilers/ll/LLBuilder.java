@@ -253,20 +253,22 @@ public class LLBuilder {
 
   // DONE: Robert
   public static LLControlFlowGraph buildIfStatement(HLIfStatement ifStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
-    final LLBasicBlock exitBB = new LLBasicBlock();
+    final LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget);
 
-    LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget);
-    bodyCFG = bodyCFG.concatenate(exitBB);
-
-    LLControlFlowGraph otherCFG;
+    final LLControlFlowGraph otherCFG;
     if (ifStatement.getOther().isPresent()) {
       otherCFG = LLBuilder.buildBlock(ifStatement.getOther().get(), methodDeclaration, breakTarget, continueTarget);
     } else {
       otherCFG = LLControlFlowGraph.empty();
     }
-    otherCFG = otherCFG.concatenate(exitBB);
+
+    final LLBasicBlock exitBB = new LLBasicBlock();
 
     final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), otherCFG.getEntry());
+
+    bodyCFG.getExit().setTrueTarget(exitBB);
+
+    otherCFG.getExit().setTrueTarget(exitBB);
 
     return new LLControlFlowGraph(entryBB, exitBB);
   }
