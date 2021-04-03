@@ -8,7 +8,8 @@ public class LLLength implements LLInstruction {
   private final LLDeclaration result;
 
   public LLLength(LLArrayFieldDeclaration declaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    this.declaration = declaration;
+    this.result = result;
   }
 
   public LLArrayFieldDeclaration getDeclaration() {
