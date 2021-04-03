@@ -1,5 +1,7 @@
 package edu.mit.compilers.hl;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 // TODO: Noah (debugString)
 public class HLCallStatement implements HLStatement {
 
@@ -15,7 +17,11 @@ public class HLCallStatement implements HLStatement {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLCallStatement {\n");
+    s.append(indent(depth + 1) + "call: " + call.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

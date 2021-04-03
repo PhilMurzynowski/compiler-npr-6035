@@ -1,5 +1,7 @@
 package edu.mit.compilers.hl;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 // DONE: Noah
 public class HLForStatement implements HLStatement {
 
@@ -38,7 +40,14 @@ public class HLForStatement implements HLStatement {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLForStatement {\n");
+    s.append(indent(depth + 1) + "initial: " + initial.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "condition: " + condition.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "update: " + update.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "body: " + body.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

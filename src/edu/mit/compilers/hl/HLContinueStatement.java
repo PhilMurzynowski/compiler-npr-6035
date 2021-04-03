@@ -7,7 +7,9 @@ public class HLContinueStatement implements HLStatement {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLIfStatement { }\n");
+    return s.toString();
   }
 
   @Override

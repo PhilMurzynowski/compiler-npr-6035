@@ -2,6 +2,8 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
 
   private final int index;
@@ -46,7 +48,15 @@ public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("LLLocalArrayFieldDeclaration {\n");
+    s.append(indent(depth + 1) + "index: " + index + ",\n");
+    s.append(indent(depth + 1) + "length: " + length + ",\n");
+    if (stackIndex.isPresent()) {
+      s.append(indent(depth + 1) + "stackIndex: " + stackIndex.get() + ",\n");
+    }
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

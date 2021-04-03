@@ -1,5 +1,7 @@
 package edu.mit.compilers.hl;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class HLBreakStatement implements HLStatement {
 
   public HLBreakStatement() {
@@ -8,7 +10,9 @@ public class HLBreakStatement implements HLStatement {
   
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLIfStatement { }\n");
+    return s.toString();
   }
 
   @Override
