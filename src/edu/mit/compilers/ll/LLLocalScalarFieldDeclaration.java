@@ -8,8 +8,8 @@ public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
   private Optional<Integer> stackIndex;
 
   public LLLocalScalarFieldDeclaration(int index) {
+    this.index = index;
     stackIndex = Optional.empty();
-    throw new UnsupportedOperationException("not implemented");
   }
 
   public void setStackIndex(int stackIndex) {

@@ -131,7 +131,7 @@ HLContinueStatement <- <HLStatement> { }
 ```
 Noah
 <HLArgument> <- <HLNode>
-<HLExpression> <- <HLArgumen>
+<HLExpression> <- <HLArgument>
 
 Phil
 HLBinaryExpression <- <HLExpression> {

@@ -14,6 +14,10 @@ public class ASTCharacterLiteral implements ASTExpression {
     this.value = value;
   }
 
+  public char getValue() {
+    return this.value;
+  }
+
   @Override
   public TextLocation getTextLocation() {
     return textLocation;

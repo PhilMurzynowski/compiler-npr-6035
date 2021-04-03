@@ -10,15 +10,26 @@ public class HLImportDeclaration implements HLNode {
   private Optional<LLImportDeclaration> ll;
 
   public HLImportDeclaration(final String identifier) {
-    throw new RuntimeException("not implemented");
+    this.identifier = identifier;
+  }
+
+  public String getIdentifer() {
+    return this.identifier;
   }
 
   public void setLL(LLImportDeclaration ll) {
-    throw new RuntimeException("not implemented");
+    if (this.ll.isPresent()) {
+      throw new RuntimeException("ll has already been set");
+    } else {
+      this.ll = Optional.of(ll);
+    }
   }
 
   public LLImportDeclaration getLL() {
-    throw new RuntimeException("not implemented");
+    if (this.ll.isPresent()) {
+      return this.ll.get();
+    }
+    throw new RuntimeException("ll is empty");
   }
 
   @Override

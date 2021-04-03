@@ -5,14 +5,14 @@ import static edu.mit.compilers.common.Utilities.indent;
 public class LLGlobalArrayFieldDeclaration implements LLArrayFieldDeclaration {
 
   private final String identifier;
-  private final int length;
+  private final long length;
 
-  public LLGlobalArrayFieldDeclaration(String identifier, int length) {
+  public LLGlobalArrayFieldDeclaration(String identifier, long length) {
     this.identifier = identifier;
     this.length = length;
   }
 
-  public int getLength() {
+  public long getLength() {
     return length;
   }
 

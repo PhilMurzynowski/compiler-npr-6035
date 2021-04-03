@@ -14,7 +14,10 @@ public class HLForStatement implements HLStatement {
       HLStoreStatement update,
       HLBlock body)
   {
-    throw new RuntimeException("not implemented");
+    this.initial = initial;
+    this.condition = condition;
+    this.update = update;
+    this.body = body;
   }
 
   public HLStoreScalarStatement getInitial() {

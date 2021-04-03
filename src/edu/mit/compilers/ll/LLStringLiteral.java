@@ -6,7 +6,8 @@ public class LLStringLiteral implements LLInstruction {
   private final LLDeclaration result;
 
   public LLStringLiteral(LLStringLiteralDeclaration declaration, LLDeclaration result) {
-    throw new RuntimeException("not implemented");
+    this.declaration = declaration;
+    this.result = result; 
   }
 
   @Override

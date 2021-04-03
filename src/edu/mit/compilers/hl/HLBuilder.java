@@ -49,9 +49,9 @@ public class HLBuilder {
     return builder.build();
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLImportDeclaration buildImportDeclaration(ASTImportDeclaration importDeclaration) {
-    throw new RuntimeException("not implemented");
+    return new HLImportDeclaration(importDeclaration.getIdentifier());
   }
 
   public static HLGlobalScalarFieldDeclaration buildGlobalScalarFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier) {
@@ -79,9 +79,13 @@ public class HLBuilder {
     return new HLArgumentDeclaration(argumentDeclaration.getType(), index);
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLLocalScalarFieldDeclaration buildLocalScalarFieldDeclaration(ASTFieldDeclaration fieldDeclaration, ASTFieldDeclaration.Identifier identifier, int index) {
-    throw new RuntimeException("not implemented");
+    VariableType type = fieldDeclaration.getType();
+    return new HLLocalScalarFieldDeclaration(
+      type,
+      index
+    );
   }
 
   // DONE: Noah
@@ -175,9 +179,68 @@ public class HLBuilder {
     }
   }
 
-  // TODO: Phil
+  // DONE: Phil
+  // NOTE(phil): could convert types
   public static HLStoreStatement buildCompoundAssignStatement(HLSymbolTable symbolTable, ASTCompoundAssignStatement compoundAssignStatement) {
-    throw new RuntimeException("not implemented");
+    final ASTLocationExpression location = compoundAssignStatement.getLocation();
+    final HLLoadExpression loadExpression = HLBuilder.buildLocationExpression(symbolTable, location);
+    Optional<ASTExpression> astExpression = compoundAssignStatement.getExpression();
+
+    if (location.getOffset().isPresent()) {
+      final HLArrayFieldDeclaration declaration = symbolTable.getArray(location.getIdentifier());
+      final HLExpression index = HLBuilder.buildExpression(symbolTable, location.getOffset().get());
+      if (astExpression.isPresent()) {
+        final HLExpression expression = HLBuilder.buildExpression(symbolTable, astExpression.get());
+        BinaryExpressionType type;
+        if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.ADD) {
+          type = BinaryExpressionType.ADD;
+        } else if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.SUBTRACT) {
+          type = BinaryExpressionType.SUBTRACT;
+        } else {
+          throw new RuntimeException("unreachable");
+        }
+        final HLBinaryExpression binaryExpression = new HLBinaryExpression(loadExpression, type, expression);
+        return new HLStoreArrayStatement(declaration, index, binaryExpression);
+      } else {
+        UnaryExpressionType type;
+        if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.INCREMENT) {
+          type = UnaryExpressionType.INCREMENT;
+        } else if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.DECREMENT) {
+          type = UnaryExpressionType.DECREMENT;
+        } else {
+          throw new RuntimeException("unreachable");
+        }
+        final HLUnaryExpression unaryExpression = new HLUnaryExpression(type, loadExpression);
+        return new HLStoreArrayStatement(declaration, index, unaryExpression);
+      }
+
+    } else {
+      final HLScalarFieldDeclaration declaration = symbolTable.getScalar(location.getIdentifier());
+      if (astExpression.isPresent()) {
+        final HLExpression expression = HLBuilder.buildExpression(symbolTable, astExpression.get());
+        BinaryExpressionType type;
+        if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.ADD) {
+          type = BinaryExpressionType.ADD;
+        } else if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.SUBTRACT) {
+          type = BinaryExpressionType.SUBTRACT;
+        } else {
+          throw new RuntimeException("unreachable");
+        }
+        final HLBinaryExpression binaryExpression = new HLBinaryExpression(loadExpression, type, expression);
+        return new HLStoreScalarStatement(declaration, binaryExpression);
+      } else {
+        UnaryExpressionType type;
+        if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.INCREMENT) {
+          type = UnaryExpressionType.INCREMENT;
+        } else if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.DECREMENT) {
+          type = UnaryExpressionType.DECREMENT;
+        } else {
+          throw new RuntimeException("unreachable");
+        }
+        final HLUnaryExpression unaryExpression = new HLUnaryExpression(type, loadExpression);
+        return new HLStoreScalarStatement(declaration, unaryExpression);
+      }
+    }
   }
 
   // DONE: Noah
@@ -198,9 +261,14 @@ public class HLBuilder {
     return new HLIfStatement(condition, body, other);
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLForStatement buildForStatement(HLSymbolTable symbolTable, ASTForStatement forStatement) {
-    throw new RuntimeException("not implemented");
+    return new HLForStatement(
+      buildIDAssignStatement(symbolTable, forStatement.getInitial()),
+      buildExpression(symbolTable, forStatement.getCondition()),
+      buildCompoundAssignStatement(symbolTable, forStatement.getUpdate()),
+      buildBlock(symbolTable, forStatement.getBody(), List.of())
+    );
   }
 
   // DONE: Noah
@@ -225,9 +293,9 @@ public class HLBuilder {
     return new HLBreakStatement();
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLContinueStatement buildContinueStatement(ASTContinueStatement continueStatement) {
-    throw new RuntimeException("not implemented");
+    return new HLContinueStatement();
   }
 
   public static HLArgument buildArgument(HLSymbolTable symbolTable, ASTArgument argument) {
@@ -330,9 +398,9 @@ public class HLBuilder {
     }
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static HLIntegerLiteral buildCharacterLiteral(ASTCharacterLiteral characterLiteral) {
-    throw new RuntimeException("not implemented");
+    return new HLIntegerLiteral(Character.getNumericValue(characterLiteral.getValue()));
   }
 
   // DONE: Noah

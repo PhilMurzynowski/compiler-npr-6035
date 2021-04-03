@@ -5,7 +5,7 @@ public class LLImportDeclaration implements LLDeclaration {
   private final String identifier;
 
   public LLImportDeclaration(String identifier) {
-    throw new RuntimeException("not implemented");
+    this.identifier = identifier;
   }
 
   public String getIdentifier() {

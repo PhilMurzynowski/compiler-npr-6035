@@ -10,6 +10,10 @@ public class HLStringLiteral implements HLArgument {
     this.declaration = declaration;
   }
 
+  public HLStringLiteralDeclaration getDeclaration() {
+    return this.declaration;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();

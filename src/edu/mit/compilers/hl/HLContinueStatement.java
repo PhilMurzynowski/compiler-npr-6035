@@ -3,7 +3,6 @@ package edu.mit.compilers.hl;
 public class HLContinueStatement implements HLStatement {
 
   public HLContinueStatement() {
-    throw new RuntimeException("not implemented");
   }
 
   @Override

@@ -15,16 +15,28 @@ public class HLLocalScalarFieldDeclaration implements HLScalarFieldDeclaration {
     final VariableType type,
     final int index)
   {
-    throw new UnsupportedOperationException("not implemented");
+    this.type = type;
+    this.index = index;
+  }
+
+  public int getIndex() {
+    return this.index;
   }
 
   public void setLL(LLLocalScalarFieldDeclaration ll) {
-    throw new RuntimeException("not implemented");
+    if (this.ll.isPresent()) {
+      throw new RuntimeException("ll has already been set");
+    } else {
+      this.ll = Optional.of(ll);
+    }
   }
 
   @Override
   public LLLocalScalarFieldDeclaration getLL() {
-    throw new RuntimeException("not implemented");
+    if (this.ll.isPresent()) {
+      return this.ll.get();
+    }
+    throw new RuntimeException("ll is empty");
   }
 
   @Override
