@@ -2,8 +2,10 @@ package edu.mit.compilers.ll;
 
 import java.util.Base64;
 import java.util.Optional;
+import java.util.List;
 
 import edu.mit.compilers.hl.*;
+import edu.mit.compilers.common.*;
 
 public class LLBuilder {
 
@@ -104,37 +106,72 @@ public class LLBuilder {
     return declaration;
   }
 
-  // TODO: Robert
+  // DONE: Robert
   public static LLControlFlowGraph buildBlock(HLBlock block, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
-
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     for (HLArgumentDeclaration hlArgumentDeclaration : block.getArgumentDeclarations()) {
       final LLArgumentDeclaration llArgumentDeclaration = LLBuilder.buildArgumentDeclaration(hlArgumentDeclaration, methodDeclaration);
-      hlArgumentDeclaration.setLL(llArgumentDeclaration);
+      hlArgumentDeclaration.setLL(llArgumentDeclaration); // TODO(rbd): This is a double-set.
+
+      methodDeclaration.addArgument(llArgumentDeclaration);
     }
 
     for (HLLocalScalarFieldDeclaration hlLocalScalarFieldDeclaration : block.getScalarFieldDeclarations()) {
+      final LLLocalScalarFieldDeclaration llLocalScalarFieldDeclaration = LLBuilder.buildLocalScalarFieldDeclaration(hlLocalScalarFieldDeclaration, methodDeclaration);
+      hlLocalScalarFieldDeclaration.setLL(llLocalScalarFieldDeclaration); // TODO(rbd): This is a double-set.
 
-      final LLLocalScalarFieldDeclaration llLocalScalarFieldDeclaration =
-        LLBuilder.buildLocalScalarFieldDeclaration(hlLocalScalarFieldDeclaration, methodDeclaration);
-      hlLocalScalarFieldDeclaration.setLL(llLocalScalarFieldDeclaration);
+      methodDeclaration.addScalar(llLocalScalarFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
 
-      final LLAliasDeclaration zeroAlias = methodDeclaration.newAlias();
+      final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
       resultCFG = resultCFG.concatenate(
-        new LLIntegerLiteral(0, zeroAlias),
-        new LLStoreScalar(hlLocalScalarFieldDeclaration.getLL(), zeroAlias)
+        new LLIntegerLiteral(0, zeroResult),
+        new LLStoreScalar(hlLocalScalarFieldDeclaration.getLL(), zeroResult)
       );
     }
 
     for (HLLocalArrayFieldDeclaration hlLocalArrayFieldDeclaration : block.getArrayFieldDeclarations()) {
-      final LLLocalArrayFieldDeclaration llLocalArrayFieldDeclaration =
-        LLBuilder.buildLocalArrayFieldDeclaration(hlLocalArrayFieldDeclaration, methodDeclaration);
-      hlLocalArrayFieldDeclaration.setLL(llLocalArrayFieldDeclaration);
+      final LLLocalArrayFieldDeclaration llLocalArrayFieldDeclaration = LLBuilder.buildLocalArrayFieldDeclaration(hlLocalArrayFieldDeclaration, methodDeclaration);
+      hlLocalArrayFieldDeclaration.setLL(llLocalArrayFieldDeclaration); // TODO(rbd): This is a double-set.
 
-      // NOTE(phil): Create a loop here
-      throw new RuntimeException("not implemented");
-      //
+      methodDeclaration.addArray(llLocalArrayFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
+
+      final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
+      final LLAliasDeclaration lengthResult = methodDeclaration.newAlias();
+      final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
+
+      final LLBasicBlock initialBB = new LLBasicBlock(
+        new LLIntegerLiteral(0, indexResult),
+        new LLIntegerLiteral(llLocalArrayFieldDeclaration.getLength(), lengthResult),
+        new LLIntegerLiteral(0, zeroResult)
+      );
+
+      final LLBasicBlock conditionBB = new LLBasicBlock(
+        new LLCompare(indexResult, lengthResult)
+      );
+
+      final LLBasicBlock bodyBB = new LLBasicBlock(
+        new LLStoreArray(llLocalArrayFieldDeclaration, indexResult, zeroResult)
+      );
+
+      final LLBasicBlock updateBB = new LLBasicBlock(
+        new LLUnary(UnaryExpressionType.INCREMENT, indexResult, indexResult)
+      );
+
+      final LLBasicBlock exitBB = new LLBasicBlock();
+
+      initialBB.setTrueTarget(conditionBB);
+
+      conditionBB.setTrueTarget(exitBB);
+      conditionBB.setFalseTarget(bodyBB);
+
+      bodyBB.setTrueTarget(updateBB);
+
+      updateBB.setTrueTarget(conditionBB);
+
+      resultCFG = resultCFG.concatenate(
+        new LLControlFlowGraph(initialBB, exitBB)
+      );
     }
 
     for (HLStatement statement : block.getStatements()) {
@@ -142,18 +179,12 @@ public class LLBuilder {
         LLBuilder.buildStatement(statement, methodDeclaration, breakTarget, continueTarget)
       );
 
-      // NOTE(phil): are breaks sufficient here?
-      if (statement instanceof HLReturnStatement returnStatement) {
-        break;
-      } else if (statement instanceof HLBreakStatement breakStatement) {
-        break;
-      } else if (statement instanceof  HLContinueStatement continueStatement) {
+      if (statement instanceof HLReturnStatement || statement instanceof HLBreakStatement || statement instanceof HLContinueStatement) {
         break;
       }
     }
 
     return resultCFG;
-
   }
 
   public static LLControlFlowGraph buildStatement(HLStatement statement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
@@ -239,20 +270,22 @@ public class LLBuilder {
 
   // DONE: Robert
   public static LLControlFlowGraph buildIfStatement(HLIfStatement ifStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
-    final LLBasicBlock exitBB = new LLBasicBlock();
+    final LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget);
 
-    LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget);
-    bodyCFG = bodyCFG.concatenate(exitBB);
-
-    LLControlFlowGraph otherCFG;
+    final LLControlFlowGraph otherCFG;
     if (ifStatement.getOther().isPresent()) {
       otherCFG = LLBuilder.buildBlock(ifStatement.getOther().get(), methodDeclaration, breakTarget, continueTarget);
     } else {
       otherCFG = LLControlFlowGraph.empty();
     }
-    otherCFG = otherCFG.concatenate(exitBB);
+
+    final LLBasicBlock exitBB = new LLBasicBlock();
 
     final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), otherCFG.getEntry());
+
+    bodyCFG.getExit().setTrueTarget(exitBB);
+
+    otherCFG.getExit().setTrueTarget(exitBB);
 
     return new LLControlFlowGraph(entryBB, exitBB);
   }
