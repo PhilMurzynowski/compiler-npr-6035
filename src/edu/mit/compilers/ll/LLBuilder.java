@@ -321,7 +321,6 @@ public class LLBuilder {
     if (bodyCFG.getExit() == updateCFG.getEntry() || bodyCFG.getExit() == exitBB) {
       bodyCFG = bodyCFG.concatenate(updateCFG);
     }
-    conditionBB.setTrueTarget(bodyCFG.getEntry());
     initializeCFG = initializeCFG.concatenate(updateCFG);
 
     return new LLControlFlowGraph(initializeCFG.getEntry(), exitBB);

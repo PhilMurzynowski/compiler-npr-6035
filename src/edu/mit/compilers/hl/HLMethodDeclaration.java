@@ -11,19 +11,26 @@ import static edu.mit.compilers.common.Utilities.indent;
 public class HLMethodDeclaration implements HLNode {
 
   private final String identifier;
-  private final HLBlock body;
+  private Optional<HLBlock> body;
   private final MethodType type;
   private Optional<LLMethodDeclaration> ll;
 
   public HLMethodDeclaration(
     final String identifier,
-    final MethodType type,
-    final HLBlock body)
+    final MethodType type)
   {
     this.identifier = identifier;
     this.type = type;
-    this.body = body;
+    this.body = Optional.empty();
     ll = Optional.empty();
+  }
+
+  public void setBody(HLBlock body) {
+    if (this.body.isPresent()) {
+      throw new RuntimeException("body has already been set");
+    } else {
+      this.body = Optional.of(body);
+    }
   }
 
   public MethodType getMethodType() {
@@ -50,7 +57,11 @@ public class HLMethodDeclaration implements HLNode {
   }
 
   public HLBlock getBody() {
-    return body;
+    if (body.isEmpty()) {
+      throw new RuntimeException("body has not been set yet");
+    } else {
+      return body.get();
+    }
   }
 
   @Override
@@ -58,7 +69,9 @@ public class HLMethodDeclaration implements HLNode {
     StringBuilder s = new StringBuilder();
     s.append("HLMethodDeclaration {\n");
     s.append(indent(depth + 1) + "identifier: " + identifier + ",\n");
-    s.append(indent(depth + 1) + "body: " + body.debugString(depth + 1) + ",\n");
+    if (body.isPresent()) {
+      s.append(indent(depth + 1) + "body: " + body.get().debugString(depth + 1) + ",\n");
+    }
     if (ll.isPresent()) {
       s.append(indent(depth + 1) + "ll: " + ll.get().debugString(depth + 1) + ",\n");
     }

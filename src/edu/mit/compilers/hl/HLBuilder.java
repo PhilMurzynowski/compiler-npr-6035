@@ -39,7 +39,6 @@ public class HLBuilder {
     for (ASTMethodDeclaration astMethodDeclaration : program.getMethodDeclarations()) {
       final HLMethodDeclaration hlMethodDeclaration = HLBuilder.buildMethodDeclaration(symbolTable, astMethodDeclaration);
 
-      symbolTable.addMethod(astMethodDeclaration.getIdentifier(), hlMethodDeclaration);
       builder.addMethod(hlMethodDeclaration);
     }
 
@@ -71,8 +70,14 @@ public class HLBuilder {
   public static HLMethodDeclaration buildMethodDeclaration(HLSymbolTable symbolTable, ASTMethodDeclaration methodDeclaration) {
     final String identifier = methodDeclaration.getIdentifier();
     final MethodType type = methodDeclaration.getMethodType();
+
+    final HLMethodDeclaration hlMethodDeclaration = new HLMethodDeclaration(identifier, type);
+    symbolTable.addMethod(methodDeclaration.getIdentifier(), hlMethodDeclaration);
+
     final HLBlock body = HLBuilder.buildBlock(symbolTable, methodDeclaration.getBlock(), methodDeclaration.getArguments());
-    return new HLMethodDeclaration(identifier, type, body);
+    hlMethodDeclaration.setBody(body);
+
+    return hlMethodDeclaration;
   }
 
   // DONE: Robert
@@ -381,6 +386,8 @@ public class HLBuilder {
       return builder.build();
 
     } else {
+      System.out.println(symbolTable.debugString(0));
+      System.out.println(methodCallExpression.debugString(0));
       throw new RuntimeException("unreachable");
     }
   }
