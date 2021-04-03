@@ -257,7 +257,7 @@ public class HLBuilder {
     final HLBlock body = HLBuilder.buildBlock(symbolTable, ifStatement.getBody(), List.of());
     Optional<HLBlock> other = Optional.empty();
     if (ifStatement.getOther().isPresent()) {
-      other = Optional.of(HLBuilder.buildBlock(symbolTable, ifStatement.getBody(), List.of()));
+      other = Optional.of(HLBuilder.buildBlock(symbolTable, ifStatement.getOther().get(), List.of()));
     }
     return new HLIfStatement(condition, body, other);
   }
