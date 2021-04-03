@@ -2,6 +2,8 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
 
   private final int index;
@@ -31,7 +33,11 @@ public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
 
   @Override
   public String debugString(int depth) {
-    throw new UnsupportedOperationException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("LLLocalScalarFieldDeclaration {\n");
+    s.append(indent(depth+1) + "index: " + index+ ",\n");
+    s.append("}\n");
+    return s.toString();
   }
 
   @Override

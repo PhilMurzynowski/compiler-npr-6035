@@ -5,7 +5,8 @@ import java.util.Optional;
 import edu.mit.compilers.ll.*;
 import edu.mit.compilers.common.*;
 
-// TODO: Noah (debugString)
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class HLGlobalArrayFieldDeclaration implements HLArrayFieldDeclaration {
 
   private final VariableType type;
@@ -54,7 +55,16 @@ public class HLGlobalArrayFieldDeclaration implements HLArrayFieldDeclaration {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLGlobalArrayFieldDeclaration {\n");
+    s.append(indent(depth+1) + "identifier: " + identifier + ",\n");
+    s.append(indent(depth+1) + "type: " + type + ",\n");
+    s.append(indent(depth+1) + "length: " + length+ ",\n");
+    if (ll.isPresent()) {
+      s.append(indent(depth+1) + "ll: " + ll.get().debugString(depth+1) + ",\n");
+    }
+    s.append("}\n");
+    return s.toString();
   }
 
   @Override

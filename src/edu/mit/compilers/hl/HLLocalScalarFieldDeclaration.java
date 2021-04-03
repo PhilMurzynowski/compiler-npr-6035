@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import edu.mit.compilers.ll.*;
 import edu.mit.compilers.common.*;
+import static edu.mit.compilers.common.Utilities.indent;
 
 public class HLLocalScalarFieldDeclaration implements HLScalarFieldDeclaration {
 
@@ -41,7 +42,15 @@ public class HLLocalScalarFieldDeclaration implements HLScalarFieldDeclaration {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLLocalScalarFieldDeclaration {\n");
+    s.append(indent(depth+1) + "type: " + type + ",\n");
+    s.append(indent(depth+1) + "index: " + index+ ",\n");
+    if (ll.isPresent()) {
+      s.append(indent(depth+1) + "ll: " + ll.get().debugString(depth+1) + ",\n");
+    }
+    s.append("}\n");
+    return s.toString();
   }
 
   @Override
