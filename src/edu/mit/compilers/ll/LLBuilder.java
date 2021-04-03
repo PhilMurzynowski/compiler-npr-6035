@@ -162,8 +162,8 @@ public class LLBuilder {
 
       initialBB.setTrueTarget(conditionBB);
 
-      conditionBB.setTrueTarget(exitBB);
-      conditionBB.setFalseTarget(bodyBB);
+      conditionBB.setTrueTarget(bodyBB);
+      conditionBB.setFalseTarget(exitBB);
 
       bodyBB.setTrueTarget(updateBB);
 
