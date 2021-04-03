@@ -1,5 +1,7 @@
 package edu.mit.compilers.ll;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class LLStringLiteral implements LLInstruction {
 
   private final LLStringLiteralDeclaration declaration;
@@ -20,7 +22,12 @@ public class LLStringLiteral implements LLInstruction {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("LLStringLiteral {\n");
+    s.append(indent(depth + 1) + "declaration: " + declaration.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "result: " + result.debugString(depth + 1) + ",\n");
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

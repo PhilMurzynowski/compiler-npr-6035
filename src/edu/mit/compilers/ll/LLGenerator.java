@@ -246,11 +246,6 @@ public class LLGenerator {
 
     } else /* VOID */ {
       // don't need to have return statements if void
-      s.append(generateInstruction(
-        "movq",
-        "$0",
-        "%rax"
-      ));
       s.append(generateReturn(new LLReturn(Optional.empty())));
     }
 
@@ -350,11 +345,12 @@ public class LLGenerator {
     Optional<LLDeclaration> returnExpression = ret.getExpression();
     if (returnExpression.isPresent()) {
       s.append(LLGenerator.generateInstruction("movq", returnExpression.get().location(), "%rax"));
+    } else {
+      s.append(LLGenerator.generateInstruction("movq", "$0", "%rax"));
     }
     
     s.append(LLGenerator.generateInstruction("movq", "%rbp", "%rsp"));
     s.append(LLGenerator.generateInstruction("popq", "%rbp"));
-    s.append(LLGenerator.generateInstruction("$0", "%rax"));
     s.append(LLGenerator.generateInstruction("retq"));
 
     return s.toString();
