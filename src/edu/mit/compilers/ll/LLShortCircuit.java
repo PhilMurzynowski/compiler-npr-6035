@@ -38,6 +38,35 @@ public class LLShortCircuit {
     } else if (binaryExpression.getType() == BinaryExpressionType.AND) {
       LLBasicBlock rightBB = shortExpression(binaryExpression.getRight(), methodDeclaration, trueTarget, falseTarget);
       return shortExpression(binaryExpression.getLeft(), methodDeclaration, rightBB, falseTarget);
+    } else if (binaryExpression.getType() == BinaryExpressionType.EQUAL
+        || binaryExpression.getType() == BinaryExpressionType.NOT_EQUAL
+        || binaryExpression.getType() == BinaryExpressionType.LESS_THAN
+        || binaryExpression.getType() == BinaryExpressionType.LESS_THAN_OR_EQUAL
+        || binaryExpression.getType() == BinaryExpressionType.GREATER_THAN
+        || binaryExpression.getType() == BinaryExpressionType.GREATER_THAN_OR_EQUAL) {
+      LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+      final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
+      resultCFG = resultCFG.concatenate(
+        new LLIntegerLiteral(0, zeroResult)
+      );
+
+      final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
+      resultCFG = resultCFG.concatenate(
+        LLBuilder.buildBinaryExpression(binaryExpression, methodDeclaration, expressionResult)
+      );
+
+      resultCFG = resultCFG.concatenate(
+        new LLBasicBlock(
+          List.of(
+            new LLCompare(zeroResult, expressionResult)
+          ),
+          Optional.of(trueTarget),
+          Optional.of(falseTarget)
+        )
+      );
+
+      return resultCFG.getEntry();
     } else {
       throw new RuntimeException("unreachable");
     }
