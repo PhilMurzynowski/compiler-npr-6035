@@ -3,6 +3,7 @@ package edu.mit.compilers.hl;
 import java.util.Optional;
 
 import edu.mit.compilers.ll.*;
+import edu.mit.compilers.common.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -11,15 +12,22 @@ public class HLMethodDeclaration implements HLNode {
 
   private final String identifier;
   private final HLBlock body;
+  private final MethodType type;
   private Optional<LLMethodDeclaration> ll;
 
   public HLMethodDeclaration(
     final String identifier,
+    final MethodType type,
     final HLBlock body)
   {
     this.identifier = identifier;
+    this.type = type;
     this.body = body;
     ll = Optional.empty();
+  }
+
+  public MethodType getMethodType() {
+    return type;
   }
 
   public void setLL(LLMethodDeclaration ll) {

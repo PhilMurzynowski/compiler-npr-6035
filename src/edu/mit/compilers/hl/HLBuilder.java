@@ -70,8 +70,9 @@ public class HLBuilder {
 
   public static HLMethodDeclaration buildMethodDeclaration(HLSymbolTable symbolTable, ASTMethodDeclaration methodDeclaration) {
     final String identifier = methodDeclaration.getIdentifier();
+    final MethodType type = methodDeclaration.getMethodType();
     final HLBlock body = HLBuilder.buildBlock(symbolTable, methodDeclaration.getBlock(), methodDeclaration.getArguments());
-    return new HLMethodDeclaration(identifier, body);
+    return new HLMethodDeclaration(identifier, type, body);
   }
 
   // DONE: Robert

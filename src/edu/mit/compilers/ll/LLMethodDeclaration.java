@@ -3,25 +3,32 @@ package edu.mit.compilers.ll;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import edu.mit.compilers.common.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLMethodDeclaration implements LLDeclaration {
 
   private final String identifier;
+  private final MethodType type;
   private final List<LLArgumentDeclaration> argumentDeclarations;
   private final List<LLLocalScalarFieldDeclaration> scalarFieldDeclarations;
   private final List<LLLocalArrayFieldDeclaration> arrayFieldDeclarations;
   private final List<LLAliasDeclaration> aliasDeclarations;
   private Optional<LLControlFlowGraph> body;
 
-  public LLMethodDeclaration(String identifier) {
+  public LLMethodDeclaration(String identifier, MethodType type) {
     this.identifier = identifier;
+    this.type = type;
     argumentDeclarations = new ArrayList<>();
     scalarFieldDeclarations = new ArrayList<>();
     arrayFieldDeclarations = new ArrayList<>();
     aliasDeclarations = new ArrayList<>();
     body = Optional.empty();
+  }
+
+  public MethodType getMethodType() {
+    return type;
   }
 
   public void addArgument(LLArgumentDeclaration argument) {

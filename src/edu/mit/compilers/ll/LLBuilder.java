@@ -72,7 +72,7 @@ public class LLBuilder {
   }
 
   public static LLMethodDeclaration buildMethodDeclaration(HLMethodDeclaration hlMethodDeclaration) {
-    final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier());
+    final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier(), hlMethodDeclaration.getMethodType());
     hlMethodDeclaration.setLL(llMethodDeclaration);
 
     // WARN(rbd): The lines above MUST be executed before the lines below. (Think: Recursive method calls.)

@@ -8,9 +8,26 @@ import edu.mit.compilers.common.*;
 
 public class LLShortCircuit {
 
-  // TODO: Phil
+  // DONE: Phil
   public static LLBasicBlock shortExpression(HLExpression expression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
-    throw new RuntimeException("not implemented");
+    if (expression instanceof HLBinaryExpression binaryExpression) {
+      return LLShortCircuit.shortBinaryExpression(binaryExpression, methodDeclaration, trueTarget, falseTarget);
+    } else if (expression instanceof HLUnaryExpression unaryExpression) {
+      return LLShortCircuit.shortUnaryExpression(unaryExpression, methodDeclaration, trueTarget, falseTarget);
+    } else if (expression instanceof HLLoadScalarExpression loadScalarExpression) {
+      return LLShortCircuit.shortLoadScalarExpression(loadScalarExpression, methodDeclaration, trueTarget, falseTarget);
+    } else if (expression instanceof HLLoadArrayExpression loadArrayExpression) {
+      return LLShortCircuit.shortLoadArrayExpression(loadArrayExpression, methodDeclaration, trueTarget, falseTarget);
+    } else if (expression instanceof HLCallExpression callExpression) {
+      return LLShortCircuit.shortCallExpression(callExpression, methodDeclaration, trueTarget, falseTarget);
+    //} else if (expression instanceof HLLengthExpression lengthExpression) {
+    //  return LLShortCircuit.shortLengthExpression(lengthExpression, methodDeclaration, trueTarget, falseTarget);
+    } else if (expression instanceof HLIntegerLiteral integerLiteral) {
+      return LLShortCircuit.shortIntegerLiteral(integerLiteral, methodDeclaration, trueTarget, falseTarget);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+
   }
 
   // DONE: Robert
@@ -36,9 +53,30 @@ public class LLShortCircuit {
 
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static LLBasicBlock shortLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
+    resultCFG = resultCFG.concatenate(
+      new LLIntegerLiteral(0, zeroResult)
+    );
+
+    final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph loadCFG = LLBuilder.buildLoadScalarExpression(loadScalarExpression, loadResult);
+    resultCFG = resultCFG.concatenate(loadCFG);
+
+    resultCFG = resultCFG.concatenate(
+      new LLBasicBlock(
+        List.of(
+          new LLCompare(zeroResult, loadResult)
+        ),
+        Optional.of(trueTarget),
+        Optional.of(falseTarget)
+      )
+    );
+
+    return resultCFG.getEntry();
   }
 
   // DONE: Robert
@@ -76,9 +114,30 @@ public class LLShortCircuit {
     }
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static LLBasicBlock shortInternalCallExpression(HLInternalCallExpression internalCallExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
-    throw new RuntimeException("not implemented");
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
+    resultCFG = resultCFG.concatenate(
+      new LLIntegerLiteral(0, zeroResult)
+    );
+
+    final LLAliasDeclaration callResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph callCFG = LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, callResult);
+    resultCFG = resultCFG.concatenate(callCFG);
+
+    resultCFG = resultCFG.concatenate(
+      new LLBasicBlock(
+        List.of(
+          new LLCompare(zeroResult, callResult)
+        ),
+        Optional.of(trueTarget), 
+        Optional.of(falseTarget)
+      )
+    );
+
+    return resultCFG.getEntry();
   }
 
   // DONE: Robert

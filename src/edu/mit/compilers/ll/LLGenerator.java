@@ -115,9 +115,15 @@ public class LLGenerator {
     }
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static String generateArrayFieldDeclaration(LLArrayFieldDeclaration arrayFieldDeclaration) {
-    throw new RuntimeException("not implemented");
+    if (arrayFieldDeclaration instanceof LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
+      return LLGenerator.generateGlobalArrayFieldDeclaration(globalArrayFieldDeclaration);
+    } else if (arrayFieldDeclaration instanceof LLLocalArrayFieldDeclaration localArrayFieldDeclaration) {
+      return LLGenerator.generateLocalArrayFieldDeclaration(localArrayFieldDeclaration);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   public static String generateGlobalScalarFieldDeclaration(LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
@@ -224,24 +230,29 @@ public class LLGenerator {
 
     // NOTE(phil): arguments handled by caller
     // NOTE(phil): declarations should already be handled by block hoisting
-    /*
-    for (LLLocalScalarFieldDeclarations scalarFieldDeclaration : methodDeclaration.getScalarFieldDeclarations()) {
-    }
-    for (LLLocalArrayFieldDeclaration arrayFieldDeclaration : methodDeclaration.getArrayFieldDeclarations()) {
-    }
-    // NOTE(phil): will allocate differently once using registers instead of temps
-    for (LLAliasDeclaration aliasDeclaration : methodDeclaration.getAliasDeclarations()) {
-    }
-    */
   
     if (methodDeclaration.hasBody()) {
       LLControlFlowGraph body = methodDeclaration.getBody();
       s.append(generateControlFlowGraph(body));
     }
 
-    // NOTE(phil): deal with potential lack of return statement here?
-    //  Add one if method is of type void?
-    //  Otherwise add runtime exception
+    if (methodDeclaration.getMethodType() != MethodType.VOID) {
+      // runtime exception
+      // hack divide by 0 for runtime error
+      s.append(generateInstruction(
+        "divq",
+        "$0"
+      ));
+
+    } else /* VOID */ {
+      // don't need to have return statements if void
+      s.append(generateInstruction(
+        "movq",
+        "$0",
+        "%rax"
+      ));
+      s.append(generateReturn(new LLReturn(Optional.empty())));
+    }
 
     return s.toString();
 
@@ -259,9 +270,10 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static String generateLocalArrayFieldDeclaration(LLLocalArrayFieldDeclaration globalArrayFieldDeclaration) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    return s.toString();
   }
 
   // NOTE(phil): this may not be necessary due to hoisting, and will always overwrite alias before reading
@@ -342,6 +354,7 @@ public class LLGenerator {
     
     s.append(LLGenerator.generateInstruction("movq", "%rbp", "%rsp"));
     s.append(LLGenerator.generateInstruction("popq", "%rbp"));
+    s.append(LLGenerator.generateInstruction("$0", "%rax"));
     s.append(LLGenerator.generateInstruction("retq"));
 
     return s.toString();
@@ -478,12 +491,35 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Phil
+  // DONE: Phil (same as external for now)
+  // NOTE(phil): add caller saved addresses
   public static String generateInternalCall(LLInternalCall internalCall) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
+    List<LLDeclaration> arguments = internalCall.getArguments();
+
+    for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
+      s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
+    }
+
+    for (int i = arguments.size() - 1; i > 5; --i) {
+      s.append(generateInstruction("pushq", arguments.get(i).location()));
+    }
+
+    s.append(generateInstruction("callq", internalCall.getDeclaration().location()));
+
+    if (arguments.size() > registers.size()) {
+      s.append(generateInstruction("addq", "$"+((arguments.size() - registers.size()) * 8), "%rsp"));
+    }
+
+    s.append(generateInstruction("movq", "%rax", internalCall.getResult().location()));
+
+    return s.toString();
   }
 
   // DONE: Robert
+  // NOTE(phil): 16 byte align?
   public static String generateExternalCall(LLExternalCall externalCall) {
     StringBuilder s = new StringBuilder();
 
@@ -528,9 +564,14 @@ public class LLGenerator {
     return s.toString();
   }
 
-  // TODO: Phil
+  // DONE: Phil
   public static String generateStringLiteral(LLStringLiteral stringLiteral) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+
+    s.append(LLGenerator.generateInstruction("movq", stringLiteral.getDeclaration().location(), "%rax"));
+    s.append(LLGenerator.generateInstruction("movq", "%rax", stringLiteral.getResult().location()));
+
+    return s.toString();
   }
 
 }

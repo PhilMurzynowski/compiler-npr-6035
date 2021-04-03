@@ -10,6 +10,14 @@ public class LLStringLiteral implements LLInstruction {
     this.result = result; 
   }
 
+  LLStringLiteralDeclaration getDeclaration() {
+    return this.declaration;
+  }
+
+  LLDeclaration getResult() {
+    return this.result;
+  }
+
   @Override
   public String debugString(int depth) {
     throw new RuntimeException("not implemented");

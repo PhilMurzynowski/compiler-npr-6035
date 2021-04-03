@@ -40,6 +40,18 @@ public class LLInternalCall implements LLInstruction {
 
   }
 
+  public LLMethodDeclaration getDeclaration() {
+    return declaration;
+  }
+
+  public List<LLDeclaration> getArguments() {
+    return arguments;
+  }
+
+  public LLDeclaration getResult() {
+    return result;
+  }
+
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
