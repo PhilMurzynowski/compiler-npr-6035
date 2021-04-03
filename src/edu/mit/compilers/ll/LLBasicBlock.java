@@ -128,6 +128,10 @@ public class LLBasicBlock implements LLDeclaration {
     }
   }
 
+  public int getIndex() {
+    return index;
+  }
+
   @Override
   public String location() {
     return "BB" + index;
@@ -144,10 +148,10 @@ public class LLBasicBlock implements LLDeclaration {
     }
     s.append(indent(depth + 1) + "],\n");
     if (trueTarget.isPresent()) {
-      s.append(indent(depth + 1) + "trueTarget: " + trueTarget.get().debugString(depth + 1) + ",\n");
+      s.append(indent(depth + 1) + "trueTarget: " + trueTarget.get().index + ",\n");
     }
     if (falseTarget.isPresent()) {
-      s.append(indent(depth + 1) + "falseTarget: " + falseTarget.get().debugString(depth + 1) + ",\n");
+      s.append(indent(depth + 1) + "falseTarget: " + falseTarget.get().index + ",\n");
     }
     s.append(indent(depth + 1) + "generated: " + generated + ",\n");
     s.append(indent(depth) + "}");

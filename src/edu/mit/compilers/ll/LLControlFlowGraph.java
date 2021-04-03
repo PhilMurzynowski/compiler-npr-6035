@@ -1,5 +1,9 @@
 package edu.mit.compilers.ll;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Stack;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLControlFlowGraph implements LLNode {
@@ -53,9 +57,35 @@ public class LLControlFlowGraph implements LLNode {
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append(indent(depth) + "LLControlFlowGraph {\n");
-    s.append(indent(depth + 1) + "entry: " + entry.debugString(depth + 1) + ",\n");
-    s.append(indent(depth + 1) + "exit: " + exit.debugString(depth + 1) + ",\n");
+    s.append("LLControlFlowGraph {\n");
+    s.append(indent(depth + 1) + "entry: " + entry.getIndex() + ",\n");
+    s.append(indent(depth + 1) + "exit: " + exit.getIndex() + ",\n");
+    s.append(indent(depth + 1) + "basicBlocks: [\n");
+
+    final Set<Integer> visited = new HashSet<>();
+    final Stack<LLBasicBlock> toVisit = new Stack<>();
+
+    toVisit.push(entry);
+
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current.getIndex())) {
+        s.append(indent(depth + 2) + current.debugString(depth + 2) + ",\n");
+
+        if (current.hasFalseTarget()) {
+          toVisit.push(current.getFalseTarget());
+        }
+
+        if (current.hasTrueTarget()) {
+          toVisit.push(current.getTrueTarget());
+        }
+
+        visited.add(current.getIndex());
+      }
+    }
+
+    s.append(indent(depth + 1) + "],\n");
     s.append(indent(depth) + "}");
     return s.toString();
   }
