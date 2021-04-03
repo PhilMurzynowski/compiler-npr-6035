@@ -223,6 +223,9 @@ public class LLGenerator {
 
     int stackSize = methodDeclaration.setStackIndices();
     if (stackSize > 0) {
+      if (stackSize % 16 != 0) {
+        stackSize += 8;
+      }
       s.append(generateInstruction(
         "subq",
         "$"+stackSize,
@@ -491,10 +494,18 @@ public class LLGenerator {
       s.append(generateInstruction("pushq", arguments.get(i).location()));
     }
 
+    if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {
+      s.append(generateInstruction("subq", "$8", "%rsp"));
+    }
+
     s.append(generateInstruction("callq", internalCall.getDeclaration().location()));
 
     if (arguments.size() > registers.size()) {
-      s.append(generateInstruction("addq", "$"+((arguments.size() - registers.size()) * 8), "%rsp"));
+      int size = (arguments.size() - registers.size()) * 8;
+      if (size % 16 != 0) {
+        size += 8;
+      }
+      s.append(generateInstruction("addq", "$"+size, "%rsp"));
     }
 
     s.append(generateInstruction("movq", "%rax", internalCall.getResult().location()));
@@ -518,10 +529,18 @@ public class LLGenerator {
       s.append(generateInstruction("pushq", arguments.get(i).location()));
     }
 
+    if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {
+      s.append(generateInstruction("subq", "$8", "%rsp"));
+    }
+
     s.append(generateInstruction("callq", externalCall.getDeclaration().location()));
 
     if (arguments.size() > registers.size()) {
-      s.append(generateInstruction("addq", "$"+((arguments.size() - registers.size()) * 8), "%rsp"));
+      int size = (arguments.size() - registers.size()) * 8;
+      if (size % 16 != 0) {
+        size += 8;
+      }
+      s.append(generateInstruction("addq", "$"+size, "%rsp"));
     }
 
     s.append(generateInstruction("movq", "%rax", externalCall.getResult().location()));
