@@ -28,7 +28,7 @@ public class LLLoadArray implements LLInstruction {
 
   @Override
   public String prettyString(int depth) {
-    return result.prettyString(depth) + " = load arr " + location.prettyString(depth) + ", " + index.prettyString(depth);
+    return result.prettyString(depth) + " = load " + location.prettyString(depth) + ", " + index.prettyString(depth);
   }
 
   @Override

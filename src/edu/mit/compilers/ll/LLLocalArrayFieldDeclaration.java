@@ -49,12 +49,12 @@ public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
 
   @Override
   public String prettyString(int depth) {
-    return "local " + index;
+    return "local arr " + index;
   }
 
   @Override
   public String prettyStringDeclaration(int depth) {
-    return "local " + index + " = [" + length + " x i64] { 0 }";
+    return "local arr " + index + " = [" + length + " x i64] { 0 }";
   }
 
   @Override
