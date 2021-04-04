@@ -2,6 +2,8 @@ package edu.mit.compilers.ll;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Stack;
 
 import static edu.mit.compilers.common.Utilities.indent;
@@ -48,10 +50,42 @@ public class LLControlFlowGraph implements LLNode {
   }
 
   public LLControlFlowGraph simplify() {
-    LLBasicBlock simplifiedEntry = entry.simplify();
-    // LLBasicBlock simplifiedExit = simplifiedEntry.getExit();
+    final Map<LLBasicBlock, Set<LLBasicBlock>> backEdges = new HashMap<>();
+    final Set<LLBasicBlock> visited = new HashSet<>();
+    final Stack<LLBasicBlock> toVisit = new Stack<>();
 
-    return new LLControlFlowGraph(simplifiedEntry, exit/* simplifiedExit */);
+    toVisit.push(entry);
+
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+        if (current.hasTrueTarget()) {
+          if (!backEdges.containsKey(current.getTrueTarget())) {
+            backEdges.put(current.getTrueTarget(), new HashSet<>());
+          }
+          backEdges.get(current.getTrueTarget()).add(current);
+
+          toVisit.push(current.getTrueTarget());
+        }
+
+        if (current.hasFalseTarget()) {
+          if (!backEdges.containsKey(current.getFalseTarget())) {
+            backEdges.put(current.getFalseTarget(), new HashSet<>());
+          }
+          backEdges.get(current.getFalseTarget()).add(current);
+
+          toVisit.push(current.getFalseTarget());
+        }
+
+        visited.add(current);
+      }
+    }
+
+    LLBasicBlock simplifiedEntry = entry.simplify(backEdges, new HashMap<>());
+    LLBasicBlock simplifiedExit = simplifiedEntry.getExit();
+
+    return new LLControlFlowGraph(simplifiedEntry, simplifiedExit);
   }
 
   @Override
@@ -62,7 +96,7 @@ public class LLControlFlowGraph implements LLNode {
     s.append(indent(depth + 1) + "exit: " + exit.getIndex() + ",\n");
     s.append(indent(depth + 1) + "basicBlocks: [\n");
 
-    final Set<Integer> visited = new HashSet<>();
+    final Set<LLBasicBlock> visited = new HashSet<>();
     final Stack<LLBasicBlock> toVisit = new Stack<>();
 
     toVisit.push(entry);
@@ -70,7 +104,7 @@ public class LLControlFlowGraph implements LLNode {
     while (!toVisit.isEmpty()) {
       final LLBasicBlock current = toVisit.pop();
 
-      if (!visited.contains(current.getIndex())) {
+      if (!visited.contains(current)) {
         s.append(indent(depth + 2) + current.debugString(depth + 2) + ",\n");
 
         if (current.hasFalseTarget()) {
@@ -81,7 +115,7 @@ public class LLControlFlowGraph implements LLNode {
           toVisit.push(current.getTrueTarget());
         }
 
-        visited.add(current.getIndex());
+        visited.add(current);
       }
     }
 

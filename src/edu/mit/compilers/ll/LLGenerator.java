@@ -191,9 +191,8 @@ public class LLGenerator {
   public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph) {
     StringBuilder s = new StringBuilder();
 
-    LLControlFlowGraph simplifiedCFG = controlFlowGraph/*.simplify()*/;
-
-    //System.out.println(simplifiedCFG.debugString(0));
+    // NOTE(rbd): You can remove `.simplify()` here if you think simplification is the problem. :)
+    LLControlFlowGraph simplifiedCFG = controlFlowGraph.simplify();
 
     s.append(LLGenerator.generateBasicBlock(simplifiedCFG.getEntry()));
 

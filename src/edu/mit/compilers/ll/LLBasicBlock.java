@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -91,23 +93,39 @@ public class LLBasicBlock implements LLDeclaration {
     return generated;
   }
 
-  public LLBasicBlock simplify() {
+  public LLBasicBlock simplify(Map<LLBasicBlock, Set<LLBasicBlock>> backEdges, Map<LLBasicBlock, LLBasicBlock> simplified) {
     assert !generated : "cannot simplify because basic block has already been generated";
 
     if (falseTarget.isPresent()) {
       assert trueTarget.isPresent() : "false target exists without matching true target";
 
-      LLBasicBlock simplifiedTrueTarget = getTrueTarget().simplify();
-      LLBasicBlock simplifiedFalseTarget = getFalseTarget().simplify();
+      if (!simplified.containsKey(getTrueTarget())) {
+        simplified.put(getTrueTarget(), getTrueTarget().simplify(backEdges, simplified));
+      }
+
+      if (!simplified.containsKey(getFalseTarget())) {
+        simplified.put(getFalseTarget(), getFalseTarget().simplify(backEdges, simplified));
+      }
+
+      LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
+      LLBasicBlock simplifiedFalseTarget = simplified.get(getFalseTarget());
 
       return new LLBasicBlock(instructions, Optional.of(simplifiedTrueTarget), Optional.of(simplifiedFalseTarget));
     } else if (trueTarget.isPresent()) {
-      LLBasicBlock simplifiedTrueTarget = getTrueTarget().simplify();
+      if (!simplified.containsKey(getTrueTarget())) {
+        simplified.put(getTrueTarget(), getTrueTarget().simplify(backEdges, simplified));
+      }
 
-      List<LLInstruction> resultInstructions = new ArrayList<>(instructions);
-      resultInstructions.addAll(simplifiedTrueTarget.instructions);
+      LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
 
-      return new LLBasicBlock(resultInstructions, simplifiedTrueTarget.trueTarget, simplifiedTrueTarget.falseTarget);
+      if (backEdges.get(trueTarget.get()).size() == 1) {
+        List<LLInstruction> resultInstructions = new ArrayList<>(instructions);
+        resultInstructions.addAll(simplifiedTrueTarget.instructions);
+
+        return new LLBasicBlock(resultInstructions, simplifiedTrueTarget.trueTarget, simplifiedTrueTarget.falseTarget);
+      } else {
+        return new LLBasicBlock(instructions, Optional.of(simplifiedTrueTarget), Optional.empty());
+      }
     } else {
       return this;
     }
@@ -161,6 +179,11 @@ public class LLBasicBlock implements LLDeclaration {
   @Override
   public String toString() {
     return debugString(0);
+  }
+
+  @Override
+  public int hashCode() {
+    return index;
   }
 
 }
