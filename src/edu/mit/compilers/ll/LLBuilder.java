@@ -102,7 +102,7 @@ public class LLBuilder {
 
   // DONE: Phil
   public static LLLocalScalarFieldDeclaration buildLocalScalarFieldDeclaration(HLLocalScalarFieldDeclaration localScalarFieldDeclaration, LLMethodDeclaration methodDeclaration) {
-    final LLLocalScalarFieldDeclaration declaration = new LLLocalScalarFieldDeclaration(localScalarFieldDeclaration.getIndex());
+    final LLLocalScalarFieldDeclaration declaration = new LLLocalScalarFieldDeclaration(methodDeclaration.scalarIndex());
     localScalarFieldDeclaration.setLL(declaration);
     return declaration;
   }
@@ -110,7 +110,7 @@ public class LLBuilder {
   // DONE: Noah
   public static LLLocalArrayFieldDeclaration buildLocalArrayFieldDeclaration(HLLocalArrayFieldDeclaration localArrayFieldDeclaration, LLMethodDeclaration methodDeclaration) {
     final LLLocalArrayFieldDeclaration declaration = new LLLocalArrayFieldDeclaration(
-        localArrayFieldDeclaration.getIndex(),
+        methodDeclaration.arrayIndex(),
         localArrayFieldDeclaration.getLength().getValue()
     );
     localArrayFieldDeclaration.setLL(declaration);
@@ -130,7 +130,7 @@ public class LLBuilder {
     for (HLLocalScalarFieldDeclaration hlLocalScalarFieldDeclaration : block.getScalarFieldDeclarations()) {
       final LLLocalScalarFieldDeclaration llLocalScalarFieldDeclaration = LLBuilder.buildLocalScalarFieldDeclaration(hlLocalScalarFieldDeclaration, methodDeclaration);
 
-      methodDeclaration.addScalar(llLocalScalarFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
+      methodDeclaration.addScalar(llLocalScalarFieldDeclaration);
 
       final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
       resultCFG = resultCFG.concatenate(
@@ -142,7 +142,7 @@ public class LLBuilder {
     for (HLLocalArrayFieldDeclaration hlLocalArrayFieldDeclaration : block.getArrayFieldDeclarations()) {
       final LLLocalArrayFieldDeclaration llLocalArrayFieldDeclaration = LLBuilder.buildLocalArrayFieldDeclaration(hlLocalArrayFieldDeclaration, methodDeclaration);
 
-      methodDeclaration.addArray(llLocalArrayFieldDeclaration); // TODO(rbd): This does not reflect the new hoisted location index.
+      methodDeclaration.addArray(llLocalArrayFieldDeclaration);
 
       final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
       final LLAliasDeclaration lengthResult = methodDeclaration.newAlias();
