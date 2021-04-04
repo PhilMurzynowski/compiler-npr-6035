@@ -301,15 +301,18 @@ public class LLBuilder {
 
   // DONE: Noah
   public static LLControlFlowGraph buildForStatement(HLForStatement forStatement, LLMethodDeclaration methodDeclaration) {
-    LLControlFlowGraph initializeCFG = buildStoreScalarStatement(forStatement.getInitial(), methodDeclaration);
     final LLBasicBlock exitBB = new LLBasicBlock();
+    LLControlFlowGraph initializeCFG = buildStoreScalarStatement(forStatement.getInitial(), methodDeclaration);
     LLControlFlowGraph updateCFG = buildStoreStatement(forStatement.getUpdate(), methodDeclaration);
 
     LLControlFlowGraph bodyCFG = buildBlock(
         forStatement.getBody(),
         methodDeclaration,
-        Optional.of(exitBB),
-        Optional.of(updateCFG.getEntry())
+        // ignore break and continue for now
+        //Optional.of(exitBB),
+        //Optional.of(updateCFG.getEntry())
+        Optional.empty(),
+        Optional.empty()
     );
 
     final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(
@@ -317,11 +320,17 @@ public class LLBuilder {
     );
 
     // connect all the different pieces
-    updateCFG = updateCFG.concatenate(conditionBB);
+    initializeCFG.getExit().setTrueTarget(conditionBB);
+    bodyCFG.getExit().setTrueTarget(updateCFG.getEntry());
+    updateCFG.getExit().setTrueTarget(conditionBB);
+
+
+    /*
     if (bodyCFG.getExit() == updateCFG.getEntry() || bodyCFG.getExit() == exitBB) {
       bodyCFG = bodyCFG.concatenate(updateCFG);
     }
     initializeCFG = initializeCFG.concatenate(updateCFG);
+    */
 
     return new LLControlFlowGraph(initializeCFG.getEntry(), exitBB);
 
