@@ -75,7 +75,7 @@ public class LLShortCircuit {
   // DONE: Noah
   public static LLBasicBlock shortUnaryExpression(HLUnaryExpression unaryExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
     if (unaryExpression.getType().equals(UnaryExpressionType.NOT)) {
-      return shortExpression(unaryExpression.getExpression(), methodDeclaration, trueTarget, falseTarget);
+      return shortExpression(unaryExpression.getExpression(), methodDeclaration, falseTarget, trueTarget);
     } else {
       throw new RuntimeException("cannot short-circuit unary of type " + unaryExpression.getType().name());
     }

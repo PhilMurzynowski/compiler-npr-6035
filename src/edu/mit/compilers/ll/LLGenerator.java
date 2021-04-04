@@ -353,32 +353,32 @@ public class LLGenerator {
       s.append(LLGenerator.generateInstruction("andq", binary.getRight().location(), "%rax"));
     } else if (binary.getType().equals(BinaryExpressionType.EQUAL)) {
       s.append(LLGenerator.generateInstruction("movq", binary.getLeft().location(), "%r10"));
-      s.append(LLGenerator.generateInstruction("xor", "%rax", "%rax"));
+      s.append(LLGenerator.generateInstruction("xorq", "%rax", "%rax"));
       s.append(LLGenerator.generateInstruction("cmpq", binary.getRight().location(), "%r10"));
       s.append(LLGenerator.generateInstruction("sete", "%al"));
     } else if (binary.getType().equals(BinaryExpressionType.NOT_EQUAL)) {
       s.append(LLGenerator.generateInstruction("movq", binary.getLeft().location(), "%r10"));
-      s.append(LLGenerator.generateInstruction("xor", "%rax", "%rax"));
+      s.append(LLGenerator.generateInstruction("xorq", "%rax", "%rax"));
       s.append(LLGenerator.generateInstruction("cmpq", binary.getRight().location(), "%r10"));
       s.append(LLGenerator.generateInstruction("setne", "%al"));
     } else if (binary.getType().equals(BinaryExpressionType.LESS_THAN)) {
       s.append(LLGenerator.generateInstruction("movq", binary.getLeft().location(), "%r10"));
-      s.append(LLGenerator.generateInstruction("xor", "%rax", "%rax"));
+      s.append(LLGenerator.generateInstruction("xorq", "%rax", "%rax"));
       s.append(LLGenerator.generateInstruction("cmpq", binary.getRight().location(), "%r10"));
       s.append(LLGenerator.generateInstruction("setl", "%al"));
     } else if (binary.getType().equals(BinaryExpressionType.LESS_THAN_OR_EQUAL)) {
       s.append(LLGenerator.generateInstruction("movq", binary.getLeft().location(), "%r10"));
-      s.append(LLGenerator.generateInstruction("xor", "%rax", "%rax"));
+      s.append(LLGenerator.generateInstruction("xorq", "%rax", "%rax"));
       s.append(LLGenerator.generateInstruction("cmpq", binary.getRight().location(), "%r10"));
       s.append(LLGenerator.generateInstruction("setle", "%al"));
     } else if (binary.getType().equals(BinaryExpressionType.GREATER_THAN)) {
       s.append(LLGenerator.generateInstruction("movq", binary.getLeft().location(), "%r10"));
-      s.append(LLGenerator.generateInstruction("xor", "%rax", "%rax"));
+      s.append(LLGenerator.generateInstruction("xorq", "%rax", "%rax"));
       s.append(LLGenerator.generateInstruction("cmpq", binary.getRight().location(), "%r10"));
       s.append(LLGenerator.generateInstruction("setg", "%al"));
     } else if (binary.getType().equals(BinaryExpressionType.GREATER_THAN_OR_EQUAL)) {
       s.append(LLGenerator.generateInstruction("movq", binary.getLeft().location(), "%r10"));
-      s.append(LLGenerator.generateInstruction("xor", "%rax", "%rax"));
+      s.append(LLGenerator.generateInstruction("xorq", "%rax", "%rax"));
       s.append(LLGenerator.generateInstruction("cmpq", binary.getRight().location(), "%r10"));
       s.append(LLGenerator.generateInstruction("setge", "%al"));
     } else if (binary.getType().equals(BinaryExpressionType.ADD)) {
@@ -415,19 +415,27 @@ public class LLGenerator {
 
     StringBuilder s = new StringBuilder();
 
-    s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
 
     if (unary.getType().equals(UnaryExpressionType.NEGATE)) {
+      s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
       s.append(generateInstruction("negq", "%rax"));
+      s.append(LLGenerator.generateInstruction("movq", "%rax", unary.getResult().location()));
     } else if (unary.getType().equals(UnaryExpressionType.NOT)) {
-      s.append(generateInstruction("notq", "%rax"));
+      s.append(generateInstruction("movq", unary.getExpression().location(), "%r10"));
+      s.append(generateInstruction("xorq", "%rax", "%rax"));
+      s.append(generateInstruction("testq", "%r10", "%r10"));
+      s.append(generateInstruction("sete", "%al"));
+      s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
     } else if (unary.getType().equals(UnaryExpressionType.INCREMENT)) {
+      s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
       s.append(generateInstruction("incq", "%rax"));
+      s.append(LLGenerator.generateInstruction("movq", "%rax", unary.getResult().location()));
     } else if (unary.getType().equals(UnaryExpressionType.DECREMENT)) {
+      s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
       s.append(generateInstruction("decq", "%rax"));
+      s.append(LLGenerator.generateInstruction("movq", "%rax", unary.getResult().location()));
     }
 
-    s.append(LLGenerator.generateInstruction("movq", "%rax", unary.getResult().location()));
 
     return s.toString();
   }
