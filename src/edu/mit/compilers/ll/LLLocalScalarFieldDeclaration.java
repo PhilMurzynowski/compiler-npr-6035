@@ -35,8 +35,8 @@ public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLLocalScalarFieldDeclaration {\n");
-    s.append(indent(depth+1) + "index: " + index+ ",\n");
-    s.append("}\n");
+    s.append(indent(depth + 1) + "index: " + index+ ",\n");
+    s.append(indent(depth) + "}");
     return s.toString();
   }
 

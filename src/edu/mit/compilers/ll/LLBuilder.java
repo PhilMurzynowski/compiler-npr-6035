@@ -338,26 +338,15 @@ public class LLBuilder {
 
   // DONE: Phil
   public static LLControlFlowGraph buildWhileStatement(HLWhileStatement whileStatement, LLMethodDeclaration methodDeclaration) {
-    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
-    final LLBasicBlock entryBB = new LLBasicBlock();
+    final LLControlFlowGraph bodyCFG = buildBlock(whileStatement.getBody(), methodDeclaration, Optional.empty(), Optional.empty());
+
     final LLBasicBlock exitBB = new LLBasicBlock();
 
-    LLControlFlowGraph bodyCFG = buildBlock(
-        whileStatement.getBody(),
-        methodDeclaration,
-        Optional.of(exitBB),
-        Optional.of(entryBB)
-    );
+    final LLBasicBlock entryBB = LLShortCircuit.shortExpression(whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), exitBB);
 
-    final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(
-        whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), exitBB
-    );
+    bodyCFG.getExit().setTrueTarget(entryBB);
 
-    resultCFG = resultCFG.concatenate(entryBB);
-    resultCFG = resultCFG.concatenate(conditionBB);
-
-    return new LLControlFlowGraph(resultCFG.getEntry(), exitBB);
-
+    return new LLControlFlowGraph(entryBB, exitBB);
   }
 
   public static LLControlFlowGraph buildReturnStatement(HLReturnStatement returnStatement, LLMethodDeclaration methodDeclaration) {
