@@ -495,12 +495,12 @@ public class LLGenerator {
       s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
     }
 
-    for (int i = arguments.size() - 1; i > 5; --i) {
-      s.append(generateInstruction("pushq", arguments.get(i).location()));
-    }
-
     if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {
       s.append(generateInstruction("subq", "$8", "%rsp"));
+    }
+
+    for (int i = arguments.size() - 1; i > 5; --i) {
+      s.append(generateInstruction("pushq", arguments.get(i).location()));
     }
 
     s.append(generateInstruction("callq", internalCall.getDeclaration().location()));
@@ -538,12 +538,12 @@ public class LLGenerator {
       s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
     }
 
-    for (int i = arguments.size() - 1; i > 5; --i) {
-      s.append(generateInstruction("pushq", arguments.get(i).location()));
-    }
-
     if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {
       s.append(generateInstruction("subq", "$8", "%rsp"));
+    }
+
+    for (int i = arguments.size() - 1; i > 5; --i) {
+      s.append(generateInstruction("pushq", arguments.get(i).location()));
     }
 
     s.append(generateInstruction("callq", externalCall.getDeclaration().location()));
