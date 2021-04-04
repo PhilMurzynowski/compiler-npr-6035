@@ -118,7 +118,7 @@ public class LLMethodDeclaration implements LLDeclaration {
     }
 
     for (LLLocalArrayFieldDeclaration array : arrayFieldDeclarations) {
-      index -= array.getLength() * 8;
+      index -= (array.getLength()+1) * 8;
       array.setStackIndex(index);
       index -= 8;
     }

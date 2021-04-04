@@ -252,14 +252,22 @@ public class LLGenerator {
   }
 
   // DONE: Noah
-  public static String generateLocalScalarFieldDeclaration(LLLocalScalarFieldDeclaration globalScalarFieldDeclaration) {
+  public static String generateLocalScalarFieldDeclaration(LLLocalScalarFieldDeclaration localScalarFieldDeclaration) {
     StringBuilder s = new StringBuilder();
     return s.toString();
   }
 
   // DONE: Phil
-  public static String generateLocalArrayFieldDeclaration(LLLocalArrayFieldDeclaration globalArrayFieldDeclaration) {
+  public static String generateLocalArrayFieldDeclaration(LLLocalArrayFieldDeclaration localArrayFieldDeclaration) {
     StringBuilder s = new StringBuilder();
+    /*
+    // store the length
+    s.append(LLGenerator.generateInstruction(
+      "movq",
+      "$"+localArrayFieldDeclaration.getLength(),
+      localArrayFieldDeclaration.location()
+    )); 
+    */
     return s.toString();
   }
 
