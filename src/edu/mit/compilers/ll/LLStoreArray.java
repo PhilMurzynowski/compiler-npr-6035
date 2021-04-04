@@ -28,7 +28,7 @@ public class LLStoreArray implements LLInstruction {
   
   @Override
   public String prettyString(int depth) {
-    return "store " + declaration.prettyString(depth) + ", " + index.prettyString(depth) + ", " + expression.prettyString(depth);
+    return "store arr " + declaration.prettyString(depth) + ", " + index.prettyString(depth) + ", " + expression.prettyString(depth);
   }
 
   @Override
