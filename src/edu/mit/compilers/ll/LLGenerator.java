@@ -472,8 +472,8 @@ public class LLGenerator {
     StringBuilder s = new StringBuilder();
 
     s.append(generateInstruction("movq", loadArray.getIndex().location(), "%r10"));
+    s.append(generateInstruction("addq", "$1", "%r10"));
     s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), "%rax"));
-    s.append(generateInstruction("addq", "$8", "%r10"));
     s.append(generateInstruction("movq", "%rax", loadArray.getResult().location()));
 
     return s.toString();
