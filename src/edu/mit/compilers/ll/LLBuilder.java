@@ -549,7 +549,7 @@ public class LLBuilder {
   public static LLControlFlowGraph buildLengthExpression(HLLengthExpression lengthExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    resultCFG.concatenate(
+    resultCFG = resultCFG.concatenate(
         new LLLength(lengthExpression.getDeclaration().getLL(), result)
     );
 
