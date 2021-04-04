@@ -31,7 +31,7 @@ public class HLStoreArrayStatement implements HLStoreStatement {
     StringBuilder s = new StringBuilder();
     s.append("HLStoreArrayStatement {\n");
     s.append(indent(depth + 1) + "declaration: " + declaration.debugString(depth + 1) + ",\n");
-    s.append(indent(depth + 1) + "index: " + index + ",\n");
+    s.append(indent(depth + 1) + "index: " + index.debugString(depth + 1) + ",\n");
     s.append(indent(depth + 1) + "expression: " + expression.debugString(depth + 1) + ",\n");
     s.append(indent(depth) + "}");
     return s.toString();

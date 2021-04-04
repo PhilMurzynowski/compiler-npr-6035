@@ -59,11 +59,11 @@ public class HLGlobalArrayFieldDeclaration implements HLArrayFieldDeclaration {
     s.append("HLGlobalArrayFieldDeclaration {\n");
     s.append(indent(depth+1) + "identifier: " + identifier + ",\n");
     s.append(indent(depth+1) + "type: " + type + ",\n");
-    s.append(indent(depth+1) + "length: " + length+ ",\n");
+    s.append(indent(depth+1) + "length: " + length.debugString(depth + 1) + ",\n");
     if (ll.isPresent()) {
       s.append(indent(depth+1) + "ll: " + ll.get().debugString(depth+1) + ",\n");
     }
-    s.append("}\n");
+    s.append(indent(depth) + "}");
     return s.toString();
   }
 

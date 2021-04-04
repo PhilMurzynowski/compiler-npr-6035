@@ -19,7 +19,7 @@ public class HLReturnStatement implements HLStatement {
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append(indent(depth) + "LLReturnStatement {\n");
+    s.append("LLReturnStatement {\n");
     if (expression.isPresent()) {
       s.append(indent(depth + 1) + "expression: " + expression.get().debugString(depth + 1) + ",\n");
     }

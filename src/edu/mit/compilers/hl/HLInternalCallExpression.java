@@ -48,7 +48,7 @@ public class HLInternalCallExpression implements HLCallExpression {
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("HLInternalCallExpression {\n");
-    s.append(indent(depth + 1) + "declaration: " + declaration.debugString(depth + 1) + ",\n");
+    s.append(indent(depth + 1) + "declaration: " + declaration.getIdentifier() + ",\n");
     s.append(indent(depth + 1) + "arguments: [\n");
     for (HLArgument argument : arguments) {
       s.append(indent(depth + 2) + argument.debugString(depth + 2) + ",\n");

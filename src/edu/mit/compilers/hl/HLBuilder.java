@@ -197,16 +197,15 @@ public class HLBuilder {
       final HLExpression index = HLBuilder.buildExpression(symbolTable, location.getOffset().get());
       if (astExpression.isPresent()) {
         final HLExpression expression = HLBuilder.buildExpression(symbolTable, astExpression.get());
-        BinaryExpressionType type;
+        HLStoreArrayCompoundStatement.Type type;
         if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.ADD) {
-          type = BinaryExpressionType.ADD;
+          type = HLStoreArrayCompoundStatement.Type.ADD;
         } else if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.SUBTRACT) {
-          type = BinaryExpressionType.SUBTRACT;
+          type = HLStoreArrayCompoundStatement.Type.SUBTRACT;
         } else {
           throw new RuntimeException("unreachable");
         }
-        final HLBinaryExpression binaryExpression = new HLBinaryExpression(loadExpression, type, expression);
-        return new HLStoreArrayStatement(declaration, index, binaryExpression);
+        return new HLStoreArrayCompoundStatement(declaration, index, type, expression);
       } else {
         UnaryExpressionType type;
         if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.INCREMENT) {
@@ -408,7 +407,7 @@ public class HLBuilder {
 
   // DONE: Phil
   public static HLIntegerLiteral buildCharacterLiteral(ASTCharacterLiteral characterLiteral) {
-    return new HLIntegerLiteral(Character.getNumericValue(characterLiteral.getValue()));
+    return new HLIntegerLiteral(characterLiteral.getValue());
   }
 
   // DONE: Noah

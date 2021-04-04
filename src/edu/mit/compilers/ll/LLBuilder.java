@@ -220,6 +220,8 @@ public class LLBuilder {
       return LLBuilder.buildStoreScalarStatement(storeScalarStatement, methodDeclaration);
     } else if (storeStatement instanceof HLStoreArrayStatement storeArrayStatement) {
       return LLBuilder.buildStoreArrayStatement(storeArrayStatement, methodDeclaration);
+    } else if (storeStatement instanceof HLStoreArrayCompoundStatement storeArrayCompoundStatement) {
+      return LLBuilder.buildStoreArrayCompoundStatement(storeArrayCompoundStatement, methodDeclaration);
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -243,18 +245,44 @@ public class LLBuilder {
   public static LLControlFlowGraph buildStoreArrayStatement(HLStoreArrayStatement storeArrayStatement, LLMethodDeclaration methodDeclaration) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    // value expression evaluation
-    final LLAliasDeclaration valueResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph valueCFG = LLBuilder.buildExpression(storeArrayStatement.getExpression(), methodDeclaration, valueResult);
-    resultCFG = resultCFG.concatenate(valueCFG);
-
     // index expression evaluation
     final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
     final LLControlFlowGraph indexCFG = LLBuilder.buildExpression(storeArrayStatement.getIndex(), methodDeclaration, indexResult);
     resultCFG = resultCFG.concatenate(indexCFG);
 
+    // value expression evaluation
+    final LLAliasDeclaration valueResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph valueCFG = LLBuilder.buildExpression(storeArrayStatement.getExpression(), methodDeclaration, valueResult);
+    resultCFG = resultCFG.concatenate(valueCFG);
+
     resultCFG = resultCFG.concatenate(
       new LLStoreArray(storeArrayStatement.getDeclaration().getLL(), indexResult, valueResult)
+    );
+
+    return resultCFG;
+  }
+
+  public static LLControlFlowGraph buildStoreArrayCompoundStatement(HLStoreArrayCompoundStatement storeArrayCompoundStatement, LLMethodDeclaration methodDeclaration) {
+    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+    // index expression evaluation
+    final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph indexCFG = LLBuilder.buildExpression(storeArrayCompoundStatement.getIndex(), methodDeclaration, indexResult);
+    resultCFG = resultCFG.concatenate(indexCFG);
+
+    final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
+    resultCFG = resultCFG.concatenate(
+      new LLLoadArray(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult, loadResult)
+    );
+
+    final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
+    final LLControlFlowGraph expressionCFG = LLBuilder.buildExpression(storeArrayCompoundStatement.getExpression(), methodDeclaration, expressionResult);
+    resultCFG = resultCFG.concatenate(expressionCFG);
+
+    final LLAliasDeclaration valueResult = methodDeclaration.newAlias();
+    resultCFG = resultCFG.concatenate(
+      new LLBinary(loadResult, storeArrayCompoundStatement.getType().toBinaryExpressionType(), expressionResult, valueResult),
+      new LLStoreArray(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult, valueResult)
     );
 
     return resultCFG;
