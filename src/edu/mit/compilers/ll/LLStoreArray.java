@@ -25,6 +25,11 @@ public class LLStoreArray implements LLInstruction {
   public LLDeclaration getExpression() {
     return expression;
   }
+  
+  @Override
+  public String prettyString(int depth) {
+    return "store " + declaration.prettyString(depth) + ", " + index.prettyString(depth) + ", " + expression.prettyString(depth);
+  }
 
   @Override
   public String debugString(int depth) {

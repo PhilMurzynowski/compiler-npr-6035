@@ -112,6 +112,36 @@ public class LLControlFlowGraph implements LLNode {
   }
 
   @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+
+    final Set<LLBasicBlock> visited = new HashSet<>();
+    final Stack<LLBasicBlock> toVisit = new Stack<>();
+
+    toVisit.push(entry);
+
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+        s.append(indent(depth) + current.prettyStringDeclaration(depth) + "\n");
+
+        if (current.hasFalseTarget()) {
+          toVisit.push(current.getFalseTarget());
+        }
+
+        if (current.hasTrueTarget()) {
+          toVisit.push(current.getTrueTarget());
+        }
+
+        visited.add(current);
+      }
+    }
+    
+    return s.toString().strip();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLControlFlowGraph {\n");

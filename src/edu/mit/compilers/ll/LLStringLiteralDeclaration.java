@@ -27,6 +27,16 @@ public class LLStringLiteralDeclaration implements LLDeclaration {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return "@STR" + index;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "@STR" + index + " = \"" + value + "\"";
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLStringLiteralDeclaration {\n");

@@ -29,6 +29,29 @@ public class LLUnary implements LLInstruction {
   }
 
   @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+
+    s.append(result.prettyString(depth) + " = ");
+
+    if (type.equals(UnaryExpressionType.NOT)) {
+      s.append("not");
+    } else if (type.equals(UnaryExpressionType.NEGATE)) {
+      s.append("neg");
+    } else if (type.equals(UnaryExpressionType.INCREMENT)) {
+      s.append("inc");
+    } else if (type.equals(UnaryExpressionType.DECREMENT)) {
+      s.append("dec");
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+
+    s.append(" " + expression.prettyString(depth));
+
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLUnary {\n");

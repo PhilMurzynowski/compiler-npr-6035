@@ -11,6 +11,16 @@ public class LLArgumentDeclaration implements LLScalarFieldDeclaration {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return "arg " + index;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "declare arg " + index;
+  }
+
+  @Override
   public String location() {
     if (index == 0) {
       return "%rdi";

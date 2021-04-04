@@ -153,6 +153,27 @@ public class LLBasicBlock implements LLDeclaration {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return "@BB" + index;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("BB" + index + ":\n");
+    for (LLInstruction instruction : instructions) {
+      s.append(indent(depth + 1) + instruction.prettyString(depth + 1) + "\n");
+    }
+    if (falseTarget.isPresent()) {
+      s.append(indent(depth + 1) + "je " + falseTarget.get().prettyString(depth) + "\n");
+    }
+    if (trueTarget.isPresent()) {
+      s.append(indent(depth + 1) + "jmp " + trueTarget.get().prettyString(depth) + "\n");
+    }
+    return s.toString().strip();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLBasicBlock {\n");

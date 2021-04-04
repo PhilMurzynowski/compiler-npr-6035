@@ -14,12 +14,26 @@ public class LLAliasDeclaration implements LLDeclaration {
     stackIndex = Optional.empty();
   }
 
+  public int getIndex() {
+    return index;
+  }
+
   public void setStackIndex(int stackIndex) {
     if (this.stackIndex.isPresent()) {
       throw new RuntimeException("stackIndex has already been set");
     } else {
       this.stackIndex = Optional.of(stackIndex);
     }
+  }
+
+  @Override
+  public String prettyString(int depth) {
+    return "%" + index;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "declare %" + index;
   }
 
   @Override

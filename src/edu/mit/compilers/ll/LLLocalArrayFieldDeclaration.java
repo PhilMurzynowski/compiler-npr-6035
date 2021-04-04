@@ -24,6 +24,7 @@ public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
     }
   }
 
+  @Override
   public long getLength() {
     return length;
   }
@@ -44,6 +45,16 @@ public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
     } else {
       return stackIndex.get() + "(%rbp," + register + ",8)";
     }
+  }
+
+  @Override
+  public String prettyString(int depth) {
+    return "local " + index;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "local " + index + " = [" + length + " x i64] { 0 }";
   }
 
   @Override

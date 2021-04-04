@@ -17,6 +17,16 @@ public class LLReturn implements LLInstruction {
   }
 
   @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("ret");
+    if (expression.isPresent()) {
+      s.append(" " + expression.get().prettyString(depth));
+    }
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLReturn {\n");

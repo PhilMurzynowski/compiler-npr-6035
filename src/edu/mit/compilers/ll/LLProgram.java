@@ -95,6 +95,33 @@ public class LLProgram implements LLNode {
   }
 
   @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+
+    for (LLImportDeclaration importDeclaration : importDeclarations) {
+      s.append(indent(depth) + importDeclaration.prettyStringDeclaration(depth) + "\n");
+    }
+
+    for (LLScalarFieldDeclaration scalarFieldDeclaration : scalarFieldDeclarations) {
+      s.append(indent(depth) + scalarFieldDeclaration.prettyStringDeclaration(depth) + "\n");
+    }
+
+    for (LLArrayFieldDeclaration arrayFieldDeclaration : arrayFieldDeclarations) {
+      s.append(indent(depth) + arrayFieldDeclaration.prettyStringDeclaration(depth) + "\n");
+    }
+
+    for (LLStringLiteralDeclaration stringLiteralDeclaration : stringLiteralDeclarations) {
+      s.append(indent(depth) + stringLiteralDeclaration.prettyStringDeclaration(depth) + "\n");
+    }
+
+    for (LLMethodDeclaration methodDeclaration : methodDeclarations) {
+      s.append(indent(depth) + methodDeclaration.prettyStringDeclaration(depth) + "\n");
+    }
+
+    return s.toString().strip();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLProgram {\n");

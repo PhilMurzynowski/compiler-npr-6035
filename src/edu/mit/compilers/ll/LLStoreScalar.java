@@ -19,6 +19,11 @@ public class LLStoreScalar implements LLInstruction {
   public LLScalarFieldDeclaration getDeclaration() {
     return this.declaration;
   }
+  
+  @Override
+  public String prettyString(int depth) {
+    return "store " + declaration.prettyString(depth) + ", " + expression.prettyString(depth);
+  }
 
   @Override
   public String debugString(int depth) {

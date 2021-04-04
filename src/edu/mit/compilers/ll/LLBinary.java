@@ -35,6 +35,47 @@ public class LLBinary implements LLInstruction {
   }
 
   @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+
+    s.append(result.prettyString(depth) + " = ");
+
+    if (type.equals(BinaryExpressionType.OR)) {
+      s.append("or");
+    } else if (type.equals(BinaryExpressionType.AND)) {
+      s.append("and");
+    } else if (type.equals(BinaryExpressionType.EQUAL)) {
+      s.append("eq");
+    } else if (type.equals(BinaryExpressionType.NOT_EQUAL)) {
+      s.append("ne");
+    } else if (type.equals(BinaryExpressionType.LESS_THAN)) {
+      s.append("lt");
+    } else if (type.equals(BinaryExpressionType.LESS_THAN_OR_EQUAL)) {
+      s.append("le");
+    } else if (type.equals(BinaryExpressionType.GREATER_THAN)) {
+      s.append("gt");
+    } else if (type.equals(BinaryExpressionType.GREATER_THAN_OR_EQUAL)) {
+      s.append("ge");
+    } else if (type.equals(BinaryExpressionType.ADD)) {
+      s.append("add");
+    } else if (type.equals(BinaryExpressionType.SUBTRACT)) {
+      s.append("sub");
+    } else if (type.equals(BinaryExpressionType.MULTIPLY)) {
+      s.append("mul");
+    } else if (type.equals(BinaryExpressionType.DIVIDE)) {
+      s.append("div");
+    } else if (type.equals(BinaryExpressionType.MODULUS)) {
+      s.append("mod");
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+
+    s.append(" " + left.prettyString(depth) + ", " + right.prettyString(depth));
+
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLBinary {\n");

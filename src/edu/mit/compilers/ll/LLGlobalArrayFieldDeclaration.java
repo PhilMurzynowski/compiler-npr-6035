@@ -12,6 +12,7 @@ public class LLGlobalArrayFieldDeclaration implements LLArrayFieldDeclaration {
     this.length = length;
   }
 
+  @Override
   public long getLength() {
     return length;
   }
@@ -24,6 +25,16 @@ public class LLGlobalArrayFieldDeclaration implements LLArrayFieldDeclaration {
   @Override
   public String index(String register) {
     return identifier + "(," + register + ",8)";
+  }
+
+  @Override
+  public String prettyString(int depth) {
+    return "@" + identifier;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "@" + identifier + " = [" + length + " x i64] { 0 }";
   }
 
   @Override

@@ -4,5 +4,7 @@ public interface LLArrayFieldDeclaration extends LLDeclaration {
 
   public String index(String register);
 
+  public long getLength();
+
 }
 

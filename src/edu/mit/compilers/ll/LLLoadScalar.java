@@ -21,6 +21,11 @@ public class LLLoadScalar implements LLInstruction {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return result.prettyString(depth) + " = load " + declaration.prettyString(depth);
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLLoadScalar {\n");

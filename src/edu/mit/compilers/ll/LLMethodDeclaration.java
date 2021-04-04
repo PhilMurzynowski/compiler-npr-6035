@@ -137,6 +137,40 @@ public class LLMethodDeclaration implements LLDeclaration {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return "@" + identifier;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    StringBuilder s = new StringBuilder();
+
+    s.append(identifier + ":\n");
+
+    for (LLArgumentDeclaration argumentDeclaration : argumentDeclarations) {
+      s.append(indent(depth + 1) + argumentDeclaration.prettyStringDeclaration(depth + 1) + "\n");
+    }
+
+    for (LLLocalScalarFieldDeclaration scalarFieldDeclaration : scalarFieldDeclarations) {
+      s.append(indent(depth + 1) + scalarFieldDeclaration.prettyStringDeclaration(depth + 1) + "\n");
+    }
+
+    for (LLLocalArrayFieldDeclaration arrayFieldDeclaration : arrayFieldDeclarations) {
+      s.append(indent(depth + 1) + arrayFieldDeclaration.prettyStringDeclaration(depth + 1) + "\n");
+    }
+
+    // for (LLAliasDeclaration aliasDeclaration : aliasDeclarations) {
+    //   s.append(indent(depth + 1) + aliasDeclaration.prettyStringDeclaration(depth + 1) + ",\n");
+    // }
+
+    if (body.isPresent()) {
+      s.append(indent(depth + 1) + body.get().prettyString(depth + 1));
+    }
+
+    return s.toString().strip();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLMethodDeclaration {\n");
@@ -161,7 +195,9 @@ public class LLMethodDeclaration implements LLDeclaration {
       s.append(indent(depth + 2) + aliasDeclaration.debugString(depth + 2) + ",\n");
     }
     s.append(indent(depth + 1) + "],\n");
-    s.append(indent(depth + 1) + "body: " + body.get().debugString(depth + 1) + ",\n");
+    if (body.isPresent()) {
+      s.append(indent(depth + 1) + "body: " + body.get().debugString(depth + 1) + ",\n");
+    }
     s.append(indent(depth) + "}");
     return s.toString();
   }

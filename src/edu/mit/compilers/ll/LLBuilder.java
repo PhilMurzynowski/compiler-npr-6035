@@ -87,7 +87,8 @@ public class LLBuilder {
       // TODO(rbd): Need to throw exception here
     }
 
-    llMethodDeclaration.setBody(bodyCFG);
+    // NOTE(rbd): You can remove `.simplify()` here if you think simplification is the problem. :)
+    llMethodDeclaration.setBody(bodyCFG.simplify());
 
     return llMethodDeclaration;
   }

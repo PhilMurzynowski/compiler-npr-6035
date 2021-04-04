@@ -20,6 +20,16 @@ public class LLGlobalScalarFieldDeclaration implements LLScalarFieldDeclaration 
   }
 
   @Override
+  public String prettyString(int depth) {
+    return "@" + identifier;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "@" + identifier + " = i64 0";
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLGlobalScalarFieldDeclaration {\n");

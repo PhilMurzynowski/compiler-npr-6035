@@ -57,6 +57,25 @@ public class LLExternalCall implements LLInstruction {
   }
 
   @Override
+  public String prettyString(int depth) {
+    StringBuilder s = new StringBuilder();
+
+    s.append(result.prettyString(depth) + " = call " + declaration.prettyString(depth) + "(");
+
+    if (arguments.size() > 0) {
+      s.append(arguments.get(0).prettyString(depth));
+
+      for (int i = 1; i < arguments.size(); i++) {
+        s.append(", " + arguments.get(i).prettyString(depth));
+      }
+    }
+
+    s.append(")");
+
+    return s.toString();
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLExternalCallExpression {\n");

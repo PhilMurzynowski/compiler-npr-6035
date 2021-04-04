@@ -21,6 +21,11 @@ public class LLStringLiteral implements LLInstruction {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return result.prettyString(depth) + " = " + declaration.prettyString(depth);
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLStringLiteral {\n");

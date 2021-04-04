@@ -32,6 +32,16 @@ public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return "local " + index;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "local " + index + " = i64 0";
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLLocalScalarFieldDeclaration {\n");

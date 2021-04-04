@@ -175,6 +175,7 @@ class Main {
 
     HLProgram hl = HLBuilder.buildProgram(program);
     LLProgram ll = LLBuilder.buildProgram(hl);
+    // System.out.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
 
     outputStream.print(assembly);

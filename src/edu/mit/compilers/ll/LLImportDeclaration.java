@@ -20,6 +20,16 @@ public class LLImportDeclaration implements LLDeclaration {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return "@" + identifier;
+  }
+
+  @Override
+  public String prettyStringDeclaration(int depth) {
+    return "declare i64 @" + identifier + "(...)";
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLImportDeclaration {\n");

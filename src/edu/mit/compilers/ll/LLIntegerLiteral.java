@@ -21,6 +21,11 @@ public class LLIntegerLiteral implements LLInstruction {
   }
 
   @Override
+  public String prettyString(int depth) {
+    return result.prettyString(depth) + " = $" + value;
+  }
+
+  @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("LLIntegerLiteral {\n");
@@ -32,6 +37,6 @@ public class LLIntegerLiteral implements LLInstruction {
 
   @Override
   public String toString() {
-    throw new UnsupportedOperationException("not implemented");
+    return debugString(0);
   }
 }
