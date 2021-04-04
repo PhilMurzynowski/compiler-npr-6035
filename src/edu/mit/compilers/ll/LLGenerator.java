@@ -143,7 +143,6 @@ public class LLGenerator {
     StringBuilder s = new StringBuilder();
 
     s.append(generateLabel(globalArrayFieldDeclaration.location()));
-    s.append(generateInstruction(".quad", globalArrayFieldDeclaration.getLength()+""));
     s.append(generateInstruction(".zero", (globalArrayFieldDeclaration.getLength() * 8)+""));
 
     return s.toString();
@@ -255,14 +254,6 @@ public class LLGenerator {
   // DONE: Phil
   public static String generateLocalArrayFieldDeclaration(LLLocalArrayFieldDeclaration localArrayFieldDeclaration) {
     StringBuilder s = new StringBuilder();
-    /*
-    // store the length
-    s.append(LLGenerator.generateInstruction(
-      "movq",
-      "$"+localArrayFieldDeclaration.getLength(),
-      localArrayFieldDeclaration.location()
-    )); 
-    */
     return s.toString();
   }
 
@@ -328,7 +319,6 @@ public class LLGenerator {
 
     s.append(LLGenerator.generateInstruction("movq", storeArray.getIndex().location(), "%r10"));
     s.append(LLGenerator.generateInstruction("movq", storeArray.getExpression().location(), "%rax"));
-    s.append(LLGenerator.generateInstruction("addq", "$1", "%r10"));
     s.append(LLGenerator.generateInstruction("movq", "%rax", storeArray.getDeclaration().index("%r10")));
 
     return s.toString();
@@ -475,7 +465,6 @@ public class LLGenerator {
     StringBuilder s = new StringBuilder();
 
     s.append(generateInstruction("movq", loadArray.getIndex().location(), "%r10"));
-    s.append(generateInstruction("addq", "$1", "%r10"));
     s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), "%rax"));
     s.append(generateInstruction("movq", "%rax", loadArray.getResult().location()));
 
@@ -556,7 +545,7 @@ public class LLGenerator {
   public static String generateLength(LLLength length) {
     StringBuilder s = new StringBuilder();
 
-    s.append(LLGenerator.generateInstruction("movq", length.getDeclaration().location(), "%rax"));
+    s.append(LLGenerator.generateInstruction("movq", "$"+length.getDeclaration().getLength(), "%rax"));
     s.append(LLGenerator.generateInstruction("movq", "%rax", length.getResult().location()));
 
     return s.toString();
