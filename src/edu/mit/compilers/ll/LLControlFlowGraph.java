@@ -83,9 +83,9 @@ public class LLControlFlowGraph implements LLNode {
     }
 
     LLBasicBlock simplifiedEntry = entry.simplify(backEdges, new HashMap<>());
-    LLBasicBlock simplifiedExit = simplifiedEntry.getExit();
+    // LLBasicBlock simplifiedExit = simplifiedEntry.getExit();
 
-    return new LLControlFlowGraph(simplifiedEntry, simplifiedExit);
+    return new LLControlFlowGraph(simplifiedEntry, exit /*simplifiedExit*/);
   }
 
   @Override
