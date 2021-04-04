@@ -13,8 +13,8 @@ public class LLBasicBlock implements LLDeclaration {
 
   private static int count = 0;
 
-  private final int index;
-  private final List<LLInstruction> instructions;
+  private int index;
+  private List<LLInstruction> instructions;
   private Optional<LLBasicBlock> trueTarget;
   private Optional<LLBasicBlock> falseTarget;
   private boolean generated;
@@ -100,11 +100,13 @@ public class LLBasicBlock implements LLDeclaration {
       assert trueTarget.isPresent() : "false target exists without matching true target";
 
       if (!simplified.containsKey(getTrueTarget())) {
-        simplified.put(getTrueTarget(), getTrueTarget().simplify(backEdges, simplified));
+        simplified.put(getTrueTarget(), new LLBasicBlock());
+        simplified.get(getTrueTarget()).subsume(getTrueTarget().simplify(backEdges, simplified));
       }
 
       if (!simplified.containsKey(getFalseTarget())) {
-        simplified.put(getFalseTarget(), getFalseTarget().simplify(backEdges, simplified));
+        simplified.put(getFalseTarget(), new LLBasicBlock());
+        simplified.get(getFalseTarget()).subsume(getFalseTarget().simplify(backEdges, simplified));
       }
 
       LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
@@ -113,7 +115,8 @@ public class LLBasicBlock implements LLDeclaration {
       return new LLBasicBlock(instructions, Optional.of(simplifiedTrueTarget), Optional.of(simplifiedFalseTarget));
     } else if (trueTarget.isPresent()) {
       if (!simplified.containsKey(getTrueTarget())) {
-        simplified.put(getTrueTarget(), getTrueTarget().simplify(backEdges, simplified));
+        simplified.put(getTrueTarget(), new LLBasicBlock());
+        simplified.get(getTrueTarget()).subsume(getTrueTarget().simplify(backEdges, simplified));
       }
 
       LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
@@ -131,23 +134,17 @@ public class LLBasicBlock implements LLDeclaration {
     }
   }
 
-  public LLBasicBlock getExit() {
-    if (falseTarget.isPresent()) {
-      LLBasicBlock trueExit = trueTarget.get().getExit();
-      LLBasicBlock falseExit = falseTarget.get().getExit();
-
-      assert trueExit == falseExit : "true and false target exits do not *reference* the same basic block";
-
-      return trueExit;
-    } else if (trueTarget.isPresent()) {
-      return trueTarget.get().getExit();
-    } else {
-      return this;
-    }
-  }
-
   public int getIndex() {
     return index;
+  }
+
+  // NOTE(rbd): This is very unfortunate, I know... This is necessary to handle loops in CFG simplification above.
+  private void subsume(LLBasicBlock that) {
+    this.index = that.index;
+    this.instructions = that.instructions;
+    this.trueTarget = that.trueTarget;
+    this.falseTarget = that.falseTarget;
+    this.generated = that.generated;
   }
 
   @Override

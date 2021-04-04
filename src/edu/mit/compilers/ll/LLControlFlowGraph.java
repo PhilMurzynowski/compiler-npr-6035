@@ -83,9 +83,32 @@ public class LLControlFlowGraph implements LLNode {
     }
 
     LLBasicBlock simplifiedEntry = entry.simplify(backEdges, new HashMap<>());
-    // LLBasicBlock simplifiedExit = simplifiedEntry.getExit();
 
-    return new LLControlFlowGraph(simplifiedEntry, exit /*simplifiedExit*/);
+    final Set<LLBasicBlock> simplifiedExits = new HashSet<>();
+    visited.clear();
+
+    toVisit.push(simplifiedEntry);
+
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+        if (current.hasFalseTarget()) {
+          toVisit.push(current.getTrueTarget());
+          toVisit.push(current.getFalseTarget());
+        } else if (current.hasTrueTarget()) {
+          toVisit.push(current.getTrueTarget());
+        } else {
+          simplifiedExits.add(current);
+        }
+
+        visited.add(current);
+      }
+    }
+
+    assert simplifiedExits.size() == 1 : "more than one exit";
+
+    return new LLControlFlowGraph(simplifiedEntry, simplifiedExits.iterator().next());
   }
 
   @Override
