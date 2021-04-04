@@ -277,77 +277,59 @@ public class LLBuilder {
   // DONE: Robert
   public static LLControlFlowGraph buildIfStatement(HLIfStatement ifStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget) {
     final LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget);
-
     final LLControlFlowGraph otherCFG;
     if (ifStatement.getOther().isPresent()) {
       otherCFG = LLBuilder.buildBlock(ifStatement.getOther().get(), methodDeclaration, breakTarget, continueTarget);
     } else {
       otherCFG = LLControlFlowGraph.empty();
     }
-
     final LLBasicBlock exitBB = new LLBasicBlock();
-
     final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), otherCFG.getEntry());
 
     if (breakTarget.isPresent()) {
       if (bodyCFG.getExit() != breakTarget.get() && bodyCFG.getExit() != continueTarget.get()) {
         bodyCFG.getExit().setTrueTarget(exitBB);
       }
+      if (otherCFG.getExit() != breakTarget.get() && otherCFG.getExit() != continueTarget.get()) {
+        otherCFG.getExit().setTrueTarget(exitBB);
+      }
     } else {
       bodyCFG.getExit().setTrueTarget(exitBB);
+      otherCFG.getExit().setTrueTarget(exitBB);
     }
 
-    otherCFG.getExit().setTrueTarget(exitBB);
-
-    final LLControlFlowGraph cfg = new LLControlFlowGraph(entryBB, exitBB);
-
-    return cfg;
+    return new LLControlFlowGraph(entryBB, exitBB);
   }
 
   // DONE: Noah
   public static LLControlFlowGraph buildForStatement(HLForStatement forStatement, LLMethodDeclaration methodDeclaration) {
-    final LLBasicBlock exitBB = new LLBasicBlock();
-    LLControlFlowGraph initializeCFG = buildStoreScalarStatement(forStatement.getInitial(), methodDeclaration);
-    LLControlFlowGraph updateCFG = buildStoreStatement(forStatement.getUpdate(), methodDeclaration);
-
-    LLControlFlowGraph bodyCFG = buildBlock(
-        forStatement.getBody(),
-        methodDeclaration,
-        // ignore break and continue for now
-        //Optional.of(exitBB),
-        //Optional.of(updateCFG.getEntry())
-        Optional.empty(),
-        Optional.empty()
+    final LLBasicBlock breakBB = new LLBasicBlock();
+    final LLControlFlowGraph updateCFG = buildStoreStatement(forStatement.getUpdate(), methodDeclaration);
+    final LLControlFlowGraph initialCFG = buildStoreScalarStatement(forStatement.getInitial(), methodDeclaration);
+    final LLControlFlowGraph bodyCFG = buildBlock(
+      forStatement.getBody(),
+      methodDeclaration,
+      Optional.of(breakBB),
+      Optional.of(updateCFG.getEntry())
     );
-
     final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(
-        forStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), exitBB
+      forStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB
     );
 
-    // connect all the different pieces
-    initializeCFG.getExit().setTrueTarget(conditionBB);
-    bodyCFG.getExit().setTrueTarget(updateCFG.getEntry());
+    initialCFG.getExit().setTrueTarget(conditionBB);
+    if (bodyCFG.getExit() != updateCFG.getEntry() && bodyCFG.getExit() != breakBB) {
+      bodyCFG.getExit().setTrueTarget(updateCFG.getEntry());
+    }
     updateCFG.getExit().setTrueTarget(conditionBB);
 
-
-    /*
-    if (bodyCFG.getExit() == updateCFG.getEntry() || bodyCFG.getExit() == exitBB) {
-      bodyCFG = bodyCFG.concatenate(updateCFG);
-    }
-    initializeCFG = initializeCFG.concatenate(updateCFG);
-    */
-
-    return new LLControlFlowGraph(initializeCFG.getEntry(), exitBB);
-
+    return new LLControlFlowGraph(initialCFG.getEntry(), breakBB);
   }
 
   // DONE: Phil
   public static LLControlFlowGraph buildWhileStatement(HLWhileStatement whileStatement, LLMethodDeclaration methodDeclaration) {
     final LLBasicBlock breakBB = new LLBasicBlock();
     final LLBasicBlock continueBB = new LLBasicBlock();
-
     final LLControlFlowGraph bodyCFG = buildBlock(whileStatement.getBody(), methodDeclaration, Optional.of(breakBB), Optional.of(continueBB));
-
     final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB);
 
     if (bodyCFG.getExit() != breakBB && bodyCFG.getExit() != continueBB) {
