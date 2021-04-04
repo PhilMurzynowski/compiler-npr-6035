@@ -183,9 +183,7 @@ public class LLBuilder {
     }
 
     for (HLStatement statement : block.getStatements()) {
-      resultCFG = resultCFG.concatenate(
-        LLBuilder.buildStatement(statement, methodDeclaration, breakTarget, continueTarget)
-      );
+      resultCFG = resultCFG.concatenate(LLBuilder.buildStatement(statement, methodDeclaration, breakTarget, continueTarget));
 
       if (statement instanceof HLReturnStatement || statement instanceof HLBreakStatement || statement instanceof HLContinueStatement) {
         break;
@@ -291,7 +289,13 @@ public class LLBuilder {
 
     final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), otherCFG.getEntry());
 
-    bodyCFG.getExit().setTrueTarget(exitBB);
+    if (breakTarget.isPresent()) {
+      if (bodyCFG.getExit() != breakTarget.get() && bodyCFG.getExit() != continueTarget.get()) {
+        bodyCFG.getExit().setTrueTarget(exitBB);
+      }
+    } else {
+      bodyCFG.getExit().setTrueTarget(exitBB);
+    }
 
     otherCFG.getExit().setTrueTarget(exitBB);
 
@@ -339,15 +343,19 @@ public class LLBuilder {
 
   // DONE: Phil
   public static LLControlFlowGraph buildWhileStatement(HLWhileStatement whileStatement, LLMethodDeclaration methodDeclaration) {
-    final LLControlFlowGraph bodyCFG = buildBlock(whileStatement.getBody(), methodDeclaration, Optional.empty(), Optional.empty());
+    final LLBasicBlock breakBB = new LLBasicBlock();
+    final LLBasicBlock continueBB = new LLBasicBlock();
 
-    final LLBasicBlock exitBB = new LLBasicBlock();
+    final LLControlFlowGraph bodyCFG = buildBlock(whileStatement.getBody(), methodDeclaration, Optional.of(breakBB), Optional.of(continueBB));
 
-    final LLBasicBlock entryBB = LLShortCircuit.shortExpression(whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), exitBB);
+    final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB);
 
-    bodyCFG.getExit().setTrueTarget(entryBB);
+    if (bodyCFG.getExit() != breakBB && bodyCFG.getExit() != continueBB) {
+      bodyCFG.getExit().setTrueTarget(continueBB);
+    }
+    continueBB.setTrueTarget(conditionBB);
 
-    return new LLControlFlowGraph(entryBB, exitBB);
+    return new LLControlFlowGraph(conditionBB, breakBB);
   }
 
   public static LLControlFlowGraph buildReturnStatement(HLReturnStatement returnStatement, LLMethodDeclaration methodDeclaration) {

@@ -39,7 +39,7 @@ public class LLBasicBlock implements LLDeclaration {
 
   public void setTrueTarget(LLBasicBlock trueTarget) {
     if (this.trueTarget.isPresent()) {
-      throw new RuntimeException("true target has already been set");
+      throw new RuntimeException("true target for BB" + index + " cannot be set to BB" + trueTarget.getIndex() + " as it has already been set to BB" + getTrueTarget().getIndex());
     } else {
       this.trueTarget = Optional.of(trueTarget);
     }
@@ -47,7 +47,7 @@ public class LLBasicBlock implements LLDeclaration {
 
   public void setFalseTarget(LLBasicBlock falseTarget) {
     if (this.falseTarget.isPresent()) {
-      throw new RuntimeException("false target has already been set");
+      throw new RuntimeException("false target for BB" + index + " cannot be set to BB" + falseTarget.getIndex() + " as it has already been set to BB" + getFalseTarget().getIndex());
     } else {
       this.falseTarget = Optional.of(falseTarget);
     }

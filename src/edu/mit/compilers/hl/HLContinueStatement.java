@@ -2,13 +2,12 @@ package edu.mit.compilers.hl;
 
 public class HLContinueStatement implements HLStatement {
 
-  public HLContinueStatement() {
-  }
+  public HLContinueStatement() { }
 
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
-    s.append("HLIfStatement { }\n");
+    s.append("HLContinueStatement { }");
     return s.toString();
   }
 

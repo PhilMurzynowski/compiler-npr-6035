@@ -50,7 +50,7 @@ public class HLLocalScalarFieldDeclaration implements HLScalarFieldDeclaration {
     if (ll.isPresent()) {
       s.append(indent(depth+1) + "ll: " + ll.get().debugString(depth+1) + ",\n");
     }
-    s.append("}\n");
+    s.append(indent(depth) + "}");
     return s.toString();
   }
 
