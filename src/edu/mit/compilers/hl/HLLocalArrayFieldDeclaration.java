@@ -2,9 +2,10 @@ package edu.mit.compilers.hl;
 
 import java.util.Optional;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 import edu.mit.compilers.ll.*;
 
-// TODO: Noah (debugString)
 public class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration {
 
   // NOTE: may be changing with hoisting
@@ -47,7 +48,15 @@ public class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration {
 
   @Override
   public String debugString(int depth) {
-    throw new RuntimeException("not implemented");
+    StringBuilder s = new StringBuilder();
+    s.append("HLLocalArrayFieldDeclaration {\n");
+    s.append(indent(depth+1) + "index: " + index + ",\n");
+    s.append(indent(depth+1) + "length: " + length.debugString(depth + 1) + ",\n");
+    if (ll.isPresent()) {
+      s.append(indent(depth+1) + "ll: " + ll.get().debugString(depth+1) + ",\n");
+    }
+    s.append(indent(depth) + "}");
+    return s.toString();
   }
 
   @Override

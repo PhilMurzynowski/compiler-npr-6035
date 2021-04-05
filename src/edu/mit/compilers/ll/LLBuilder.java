@@ -256,6 +256,7 @@ public class LLBuilder {
     resultCFG = resultCFG.concatenate(valueCFG);
 
     resultCFG = resultCFG.concatenate(
+      //new LLBoundsCheck(storeArrayStatement.getDeclaration().getLL(), indexResult),
       new LLStoreArray(storeArrayStatement.getDeclaration().getLL(), indexResult, valueResult)
     );
 
@@ -272,6 +273,7 @@ public class LLBuilder {
 
     final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
     resultCFG = resultCFG.concatenate(
+      //new LLBoundsCheck(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult),
       new LLLoadArray(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult, loadResult)
     );
 
@@ -279,6 +281,7 @@ public class LLBuilder {
     final LLControlFlowGraph expressionCFG = LLBuilder.buildExpression(storeArrayCompoundStatement.getExpression(), methodDeclaration, expressionResult);
     resultCFG = resultCFG.concatenate(expressionCFG);
 
+    // NOTE(phil): should not need to bounds check again for store as checked load and examining same index
     final LLAliasDeclaration valueResult = methodDeclaration.newAlias();
     resultCFG = resultCFG.concatenate(
       new LLBinary(loadResult, storeArrayCompoundStatement.getType().toBinaryExpressionType(), expressionResult, valueResult),
@@ -504,6 +507,7 @@ public class LLBuilder {
     resultCFG = resultCFG.concatenate(indexCFG);
 
     resultCFG = resultCFG.concatenate(
+      //new LLBoundsCheck(loadArrayExpression.getDeclaration().getLL(), indexResult),
       new LLLoadArray(loadArrayExpression.getDeclaration().getLL(), indexResult, result)
     );
 
