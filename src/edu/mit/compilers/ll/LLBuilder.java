@@ -257,11 +257,20 @@ public class LLBuilder {
     final LLControlFlowGraph valueCFG = LLBuilder.buildExpression(storeArrayStatement.getExpression(), methodDeclaration, valueResult);
     resultCFG = resultCFG.concatenate(valueCFG);
 
-    resultCFG = resultCFG.concatenate(
+    final LLBasicBlock storeBB = new LLBasicBlock(
       new LLStoreArray(storeArrayStatement.getDeclaration().getLL(), indexResult, valueResult)
     );
 
-    return resultCFG;
+    final LLControlFlowGraph boundsCheckCFG = buildBoundsCheck(
+      methodDeclaration,
+      storeArrayStatement.getDeclaration().getLL().getLength(),
+      indexResult,
+      storeBB
+    );
+
+    resultCFG = resultCFG.concatenate(boundsCheckCFG);
+
+    return new LLControlFlowGraph(resultCFG.getEntry(), storeBB);
   }
 
   public static LLControlFlowGraph buildStoreArrayCompoundStatement(HLStoreArrayCompoundStatement storeArrayCompoundStatement, LLMethodDeclaration methodDeclaration) {
@@ -273,9 +282,19 @@ public class LLBuilder {
     resultCFG = resultCFG.concatenate(indexCFG);
 
     final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
-    resultCFG = resultCFG.concatenate(
+    final LLBasicBlock loadBB = new LLBasicBlock(
       new LLLoadArray(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult, loadResult)
     );
+
+    final LLControlFlowGraph boundsCheckCFG = buildBoundsCheck(
+      methodDeclaration,
+      storeArrayCompoundStatement.getDeclaration().getLL().getLength(),
+      indexResult,
+      loadBB
+    );
+
+    resultCFG.getExit().setTrueTarget(boundsCheckCFG.getEntry());
+    resultCFG = new LLControlFlowGraph(resultCFG.getEntry(), loadBB);
 
     final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
     final LLControlFlowGraph expressionCFG = LLBuilder.buildExpression(storeArrayCompoundStatement.getExpression(), methodDeclaration, expressionResult);
@@ -497,6 +516,44 @@ public class LLBuilder {
     return resultCFG;
   }
 
+  private static LLControlFlowGraph buildBoundsCheck(LLMethodDeclaration methodDeclaration, long length, LLDeclaration indexResult, LLBasicBlock targetBB) {
+    final LLAliasDeclaration lengthResult = methodDeclaration.newAlias();
+    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
+    final LLBasicBlock initialBB = new LLBasicBlock(
+      new LLIntegerLiteral(length, lengthResult),
+      new LLIntegerLiteral(0, zeroResult)
+    );
+
+    final LLAliasDeclaration isPositiveResult = methodDeclaration.newAlias();
+    final LLBasicBlock isPositiveBB = new LLBasicBlock(
+      new LLBinary(indexResult, BinaryExpressionType.GREATER_THAN_OR_EQUAL, zeroResult, isPositiveResult),
+      new LLCompare(zeroResult, isPositiveResult)
+    );
+
+    final LLAliasDeclaration isLessResult = methodDeclaration.newAlias();
+    final LLBasicBlock isLessBB = new LLBasicBlock(
+      new LLBinary(indexResult, BinaryExpressionType.LESS_THAN, lengthResult, isLessResult),
+      new LLCompare(zeroResult, isLessResult)
+    );
+
+    final LLBasicBlock exceptionBB = new LLBasicBlock(
+      new LLException(LLException.Type.OutOfBounds)
+    );
+
+    initialBB.setTrueTarget(isPositiveBB);
+
+    isPositiveBB.setTrueTarget(isLessBB);
+    isPositiveBB.setFalseTarget(exceptionBB);
+
+    isLessBB.setTrueTarget(targetBB);
+    isLessBB.setFalseTarget(exceptionBB);
+
+    // NOTE(rbd): just to satisfy the single exit property of CFGs (will never be visited).
+    exceptionBB.setTrueTarget(targetBB);
+
+    return new LLControlFlowGraph(initialBB, targetBB);
+  }
+
   // DONE: Robert
   public static LLControlFlowGraph buildLoadArrayExpression(HLLoadArrayExpression loadArrayExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
@@ -505,11 +562,20 @@ public class LLBuilder {
     final LLControlFlowGraph indexCFG = LLBuilder.buildExpression(loadArrayExpression.getIndex(), methodDeclaration, indexResult);
     resultCFG = resultCFG.concatenate(indexCFG);
 
-    resultCFG = resultCFG.concatenate(
+    final LLBasicBlock loadBB = new LLBasicBlock(
       new LLLoadArray(loadArrayExpression.getDeclaration().getLL(), indexResult, result)
     );
 
-    return resultCFG;
+    final LLControlFlowGraph boundsCheckCFG = buildBoundsCheck(
+      methodDeclaration, 
+      loadArrayExpression.getDeclaration().getLL().getLength(),
+      indexResult,
+      loadBB
+    );
+
+    resultCFG = resultCFG.concatenate(boundsCheckCFG);
+
+    return new LLControlFlowGraph(indexCFG.getEntry(), loadBB);
   }
 
   // DONE: Noah
