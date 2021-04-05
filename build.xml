@@ -4,11 +4,11 @@
   </target>
   <target name="compile">
     <mkdir dir="build/classes"/>
-    <javac15 srcdir="src/edu/mit/compilers" destdir="build/classes" includeantruntime="false">
+    <javac srcdir="src/edu/mit/compilers" destdir="build/classes" includeantruntime="false">
       <compilerarg value="--enable-preview"/>
       <compilerarg value="--release"/>
       <compilerarg value="15"/>
-    </javac15>
+    </javac>
   </target>
   <target name="jar" depends="compile">
     <mkdir dir="build/jar"/>
