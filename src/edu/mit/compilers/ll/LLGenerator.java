@@ -42,6 +42,15 @@ public class LLGenerator {
     for (LLStringLiteralDeclaration stringLiteralDeclaration : program.getStringLiteralDeclarations()) {
       s.append(generateStringLiteralDeclaration(stringLiteralDeclaration));
     }
+
+    s.append(generateLabel("no_return_value"));
+    s.append(generateInstruction(".string \"Reached end of non-void method without returning a value.\\n\""));
+    s.append(generateInstruction(".align", "16"));
+
+    s.append(generateLabel("out_of_bounds"));
+    s.append(generateInstruction(".string \"Array index access is out-of-bounds.\\n\""));
+    s.append(generateInstruction(".align", "16"));
+
     s.append("\n");
 
     // imports
@@ -270,6 +279,8 @@ public class LLGenerator {
       return LLGenerator.generateStoreArray(storeArray);
     } else if (instruction instanceof LLReturn llReturn) {
       return LLGenerator.generateReturn(llReturn);
+    } else if (instruction instanceof LLException llException) {
+      return LLGenerator.generateException(llException);
     } else if (instruction instanceof LLBinary binary) {
       return LLGenerator.generateBinary(binary);
     } else if (instruction instanceof LLUnary unary) {
@@ -337,6 +348,26 @@ public class LLGenerator {
     s.append(LLGenerator.generateInstruction("movq", "%rbp", "%rsp"));
     s.append(LLGenerator.generateInstruction("popq", "%rbp"));
     s.append(LLGenerator.generateInstruction("retq"));
+
+    return s.toString();
+  }
+
+  public static String generateException(LLException exception) {
+    StringBuilder s = new StringBuilder();
+
+    if (exception.getType().equals(LLException.Type.OutOfBounds)) {
+      s.append(generateInstruction("leaq", "out_of_bounds(%rip)", "%rdi"));
+      s.append(generateInstruction("callq", "printf"));
+      s.append(generateInstruction("movq", "$-1", "%rdi"));
+      s.append(generateInstruction("callq", "exit"));
+    } else if (exception.getType().equals(LLException.Type.NoReturnValue)) {
+      s.append(generateInstruction("leaq", "no_return_value(%rip)", "%rdi"));
+      s.append(generateInstruction("callq", "printf"));
+      s.append(generateInstruction("movq", "$-2", "%rdi"));
+      s.append(generateInstruction("callq", "exit"));
+    } else {
+      throw new RuntimeException("unreachable");
+    }
 
     return s.toString();
   }

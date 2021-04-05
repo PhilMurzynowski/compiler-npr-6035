@@ -84,7 +84,9 @@ public class LLBuilder {
         new LLReturn(Optional.empty())
       );
     } else {
-      // TODO(rbd): Need to throw exception here
+      bodyCFG = bodyCFG.concatenate(
+        new LLException(LLException.Type.NoReturnValue)
+      );
     }
 
     // NOTE(rbd): You can remove `.simplify()` here if you think simplification is the problem. :)
