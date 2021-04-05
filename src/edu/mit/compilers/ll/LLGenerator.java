@@ -115,12 +115,6 @@ public class LLGenerator {
     }
   }
 
-  // TODO: Phil
-  public static String generateBoundsCheck(LLBoundsCheck boundsCheck) {
-    StringBuilder s = new StringBuilder();
-    return s.toString();
-  }
-
   // DONE: Phil
   public static String generateArrayFieldDeclaration(LLArrayFieldDeclaration arrayFieldDeclaration) {
     if (arrayFieldDeclaration instanceof LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
