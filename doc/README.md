@@ -24,3 +24,4 @@ No issues.
 
 - [Phase 1: Lexing and Parsing](1-lex-parse.md)
 - [Phase 2: Semantic Checking](2-semantics.md)
+- [Phase 3: Code Generation](3-codegen.md)
