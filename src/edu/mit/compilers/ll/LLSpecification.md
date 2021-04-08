@@ -4,7 +4,7 @@
 <LLNode>
 ```
 
-## Program
+## Declarations
 
 ```
 LLProgram <- <LLNode> {
@@ -14,37 +14,41 @@ LLProgram <- <LLNode> {
   stringLiteralDeclarations: [LLStringLiteralDeclaration],
   methodDeclarations: [LLMethodDeclaration],
 }
-```
 
-## Declarations
+<LLDeclaration> <- <LLNode>
 
-```
-<LLDeclaration> <- <LLNode> {
-  location(): String, // "label" or "-i(%rbp)"
-}
-
-Phil
 LLImportDeclaration <- <LLDeclaration> {
   identifier: String,
 }
 
 <LLScalarFieldDeclaration> <- <LLDeclaration>
 
-<LLArrayFieldDeclaration> <- <LLDeclaration> {
-  index(register: String): String, // register: "%r10" -> "-i(%rbp,%r10,8)"
-}
-
 LLGlobalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
   identifier: String,
 }
 
+LLLocalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
+  index: int,
+}
+
+LLArgumentDeclaration <- <LLScalarFieldDeclaration> {
+  index: int,
+}
+
+<LLArrayFieldDeclaration> <- <LLDeclaration>
+
 LLGlobalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
-  identifier: String, // "<label>(,%r10,8)"
+  identifier: String,
+  length: long,
+}
+
+LLLocalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
+  index: int,
   length: long,
 }
 
 LLStringLiteralDeclaration <- <LLDeclaration> {
-  index: long,
+  index: int,
   value: String,
 }
 
@@ -52,25 +56,12 @@ LLMethodDeclaration <- <LLDeclaration> {
   argumentDeclarations: [LLArgumentDeclaration],
   scalarFieldDeclarations: [LLLocalScalarFieldDeclaration],
   arrayFieldDeclarations: [LLLocalArrayFieldDeclaration],
-  aliasDeclarations: [<LLAliasDeclaration>],
+  aliasDeclarations: [LLAliasDeclaration],
   body: LLControlFlowGraph,
 }
 
-LLArgumentDeclaration <- <LLScalarFieldDeclaration> {
-  index: long,
-}
-
-LLLocalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
-  index: long,
-}
-
-LLLocalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
-  index: long,
-  length: long,
-}
-
 LLAliasDeclaration <- <LLDeclaration> {
-  index: long,
+  index: int,
 }
 ```
 
@@ -80,18 +71,21 @@ LLAliasDeclaration <- <LLDeclaration> {
 LLControlFlowGraph <- <LLNode> {
   entry: LLBasicBlock,
   exit: LLBasicBlock,
-  generate(): String,
 }
+```
 
+## Basic Block
+
+```
 LLBasicBlock <- <LLNode> {
-  index: long,
-  instructions: [<LLInstruction>], // no labels, declarations, or jumps
+  index: int,
+  instructions: [<LLInstruction>],
   trueTarget: LLBasicBlock?,
   falseTarget: LLBasicBlock?,
 }
 ```
 
-## Statements
+## Instructions
 
 ```
 <LLInstruction> <- <LLNode>
@@ -110,11 +104,16 @@ LLStoreArray <- <LLInstruction> {
 LLReturn <- <LLInstruction> {
   expression: <LLDeclaration>?,
 }
-```
 
-## Expressions
+LLException <- <LLInstruction> {
+  type: OUT_OF_BOUNDS | NO_RETURN_VALUE,
+}
 
-```
+LLCompare <- <LLInstruction> {
+  left: <LLDeclaration>,
+  right: <LLDeclaration>,
+}
+
 LLBinary <- <LLInstruction> {
   left: <LLDeclaration>,
   type: OR
@@ -135,7 +134,7 @@ LLBinary <- <LLInstruction> {
 }
 
 LLUnary <- <LLInstruction> {
-  type: NOT | NEGATE,
+  type: NOT | NEGATE | INCREMENT | DECREMENT,
   expression: <LLDeclaration>,
   result: <LLDeclaration>,
 }
@@ -179,246 +178,245 @@ LLStringLiteral <- <LLInstruction> {
 }
 ```
 
-### Templates
+## Templates
+
+### Declarations
 
 ```
+LLProgram: 
+  # ImportDeclarations
+  <importDeclarations[0].generate()>
+  <importDeclarations[1].generate()>
+  ...
 
-LLGlobalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
-  identifier: String,
-}
+  # Global Scalar Fields
+  <scalarFieldDeclarations[0].generate()>
+  <scalarFieldDeclarations[1].generate()>
+  ...
 
+  # Global Array Fields
+  <arrayFieldDeclarations[0].generate()>
+  <arrayFieldDeclarations[1].generate()>
+  ...
+
+  # String Literal Declarations
+  <stringLiteralDeclarations[0].generate()>
+  <stringLiteralDeclarations[1].generate()>
+  ...
+  out_of_bounds:
+    .string "Array index access is out-of-bounds.\n"
+    .align 16
+  no_return_value:
+    .string "Reached end of non-void method without returning a value.\n"
+    .align 16
+
+  # Methods
+  <methodDeclarations[0].generate()>
+  <methodDeclarations[1].generate()>
+  ...
+
+LLImportDeclaration:
+  # Imported <location()>
+
+LLGlobalScalarFieldDeclaration:
   <location()>:
     .quad 0
 
-LLGlobalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
-  identifier: String,
-  length: long,
-}
+LLLocalScalarFieldDeclaration:
+  # Local Scalar <location()>
 
+LLArgumentDeclaration:
+  # Argument <location()>
+
+LLGlobalArrayFieldDeclaration:
   <location()>:
-    .quad <length>
     .zero <length * 8>
 
-LLStringLiteralDeclaration <- <LLDeclaration> {
-  index: long,
-  value: String,
-}
+LLLocalArrayFieldDeclaration:
+  # Local Array <location()>[<length>]
 
+LLStringLiteralDeclaration:
   <location()>:
-    .asciz "<value>"
+    .string "<value>"
+    .align 16
 
-LLMethodDeclaration <- <LLDeclaration> {
-  argumentDeclarations: [LLArgumentDeclaration],
-  scalarFieldDeclarations: [LLLocalScalarFieldDeclaration],
-  arrayFieldDeclarations: [LLLocalArrayFieldDeclaration],
-  aliasDeclarations: [<LLAliasDeclaration>],
-  body: LLControlFlowGraph,
-}
-
+LLMethodDeclaration:
   <location()>:
-    <scalarFieldDeclarations[0].generate()>
-    ...
-    <arrayFieldDeclarations[0].generate()>
-    ...
-    <aliasFieldDeclarations[0].generate()>
-    ...
+    pushq  %rbp
+    movq  %rsp,%rbp
+    subq  $<stackSize>,%rsp
     <body.generate()>
 
-LLArgumentDeclaration <- <LLScalarFieldDeclaration> {
-  index: long,
-}
+LLAliasDeclaration:
+  # Alias <location()>
+```
 
-  // NOTE(rbd): nothing to do (this is set up by caller)
+### Control Flow Graph
 
-LLLocalScalarFieldDeclaration <- <LLScalarFieldDeclaration> {
-  index: long,
-}
+```
+LLControlFlowGraph: 
+  <entry.generate()>
+```
 
-  subq $8, %rsp
-  movq $0, <location()>
+### Basic Block
 
-LLLocalArrayFieldDeclaration <- <LLArrayFieldDeclaration> {
-  index: long,
-  length: long,
-}
+```
+LLBasicBlock (falseTarget.isPresent()):
+  <instructions[0].generate()>
+  <instructions[1].generate()>
+  ...
+  je  $<falseTarget.location()>
+  jmp  $<trueTarget.location()>
+  <trueTarget.generate()>
+  <falseTarget.generate()>
 
-  subq <(length+1)*8>, %rsp
-  movq <length>, <location()>
-  // TODO(rbd): set all elements to zero
+LLBasicBlock (trueTarget.isPresent()):
+  <instructions[0].generate()>
+  <instructions[1].generate()>
+  ...
+  jmp  $<trueTarget.location()>
+  <trueTarget.generate()>
 
-LLAliasDeclaration <- <LLDeclaration> {
-  index: long,
-}
+LLBasicBlock:
+  <instructions[0].generate()>
+  <instructions[1].generate()>
+  ...
+```
 
-  subq $8, %rsp
-  movq $0, <location()>
+### Instructions
 
-LLLabelDeclaration <- <LLDeclaration> {
-  index: long,
-}
+```
+LLStoreScalar:
+  movq  <expression.location()>,%rax
+  movq  %rax,<declaration.location()>
 
-  <location()>:
+LLStoreArray:
+  movq  <index.location()>,%r10
+  movq  <expression.location()>,%rax
+  movq  %rax,<declaration.index("%r10")>
 
-LLControlFlowGraph {
-  entry: LLBasicBlock,
-  exit: LLBasicBlock,
-}
-
-  // TODO(rbd): make template
-
-LLBasicBlock {
-  index: long,
-  instructions: [<LLNode>],
-  trueTarget: LLBasicBlock?,
-  falseTarget: LLBasicBlock?,
-}
-
-  // TODO(rbd): make template
-
-LLStoreScalar <- <LLNode> {
-  declaration: <LLScalarDeclaration>,
-  expression: LLAliasDeclaration,
-}
-
-  movq <expression.location()>, %rax
-  movq %rax, <declaration.location()>
-
-LLStoreArray <- <LLNode> {
-  declaration: <LLArrayDeclaration>,
-  index: LLAliasDeclaration,
-  expression: LLAliasDeclaration,
-}
-
-  movq <index.location()>, %r10
-  movq <expression.location()>, %rax
-  addq $8, %r10
-  movq %rax, <declaration.index("%r10")>
-
-LLReturn <- <LLNode> {
-  expression: LLAliasDeclaration?,
-}
-
-  movq <expression.location()>, %rax
+LLReturn:
+  movq  <expression.location()>,%rax
+  movq  %rbp,%rsp
+  popq  %rbp
   retq
 
-LLBranch <- <LLNode> {
-  condition: LLAliasDeclaration,
-  trueTarget: LLLabelDeclaration,
-  falseTarget: LLLabelDeclaration,
-}
+LLException:
+  leaq  <message>(%rip),%rdi
+  callq  printf
+  movq  $<returnValue>,%rdi
+  callq  exit
 
-  movq <condition.location()>, %eax
-  cmpq $0, %eax
-  jne <trueTarget.location()>
-  jmp <falseTarget.location()>
+LLCompare:
+  movq  <left.location()>,%rax
+  cmpq  <right.location()>,%rax
 
-LLJump <- <LLNode> {
-  target: LLLabelDeclaration,
-}
+LLBinary (type == OR | AND | ADD | SUBTRACT | MULTIPLY):
+  movq  <left.location()>,%rax
+  <type>  <right.location()>,%rax
+  movq  %rax,<result.location()>
 
-  jmp <target.location()>
+LLBinary (type == EQUAL | NOT_EQUAL | LESS_THAN | LESS_THAN_OR_EQUAL | GREATER_THAN | GREATER_THAN_OR_EQUAL):
+  movq  <left.location()>,%r10
+  xorq  %rax,%rax
+  cmpq  <right.location()>,%r10
+  set<type>  %al
+  movq  %rax,<result.location()>
 
-LLBinary <- <LLNode> {
-  left: LLAliasDeclaration,
-  type: OR
-    | AND
-    | EQUAL
-    | NOT_EQUAL
-    | LESS_THAN
-    | LESS_THAN_OR_EQUAL
-    | GREATER_THAN
-    | GREATER_THAN_OR_EQUAL
-    | ADD
-    | SUBTRACT
-    | MULTIPLY
-    | DIVIDE
-    | MODULUS,
-  right: LLAliasDeclaration,
-  result: LLAliasDeclaration,
-}
+LLBinary (type == DIVIDE):
+  movq  <left.location()>,%rax
+  cqto
+  idivq  <right.location()>
+  movq  %rax,<result.location()>
 
-  movq <left.location()>, %rax
-  <type>q <right.location()>, %rax,
-  movq %rax, <result.location()>
+LLBinary (type == MODULUS):
+  movq  <left.location()>,%rax
+  cqto
+  idivq  <right.location()>
+  movq  %rdx,<result.location()>
 
-LLUnary <- <LLNode> {
-  type: NOT | NEGATE,
-  expression: LLAliasDeclaration,
-  result: LLAliasDeclaration,
-}
+LLUnary (type == NEGATE | INCREMENT | DECREMENT):
+  movq  <expression.location()>,%rax
+  <type>  %rax
+  movq  %rax,<result.location()>
 
-  movq <expression.location()>, %rax
-  <type> %rax
-  movq %rax, <result.location()>
+LLUnary (type == NOT):
+  movq  <expression.location()>,%r10
+  xorq  %rax,%rax
+  testq  %r10,%r10
+  sete  %al
+  movq  %rax,<result.location()>
 
-LLLoadScalar <- <LLNode> {
-  declaration: <LLScalarDeclaration>,
-  result: LLAliasDeclaration,
-}
+LLLoadScalar:
+  movq  <declaration.location()>,%rax
+  movq  %rax,<result.location()>
 
-  movq <declaration.location()>, %rax // -i(%rbp) or label
-  movq %rax, <result.location()>
+LLLoadArray:
+  movq  <index.location()>,%r10
+  movq  <declaration.index("%r10")>,%rax
+  movq  %rax,<result.location()>
 
-LLLoadArray <- <LLNode> {
-  declaration: <LLArrayDeclaration>,
-  index: LLAliasDeclaration,
-  result: LLAliasDeclaration,
-}
-  
-  movq <index.location()>, %r10
-  movq <declaration.index("%r10")>, %rax // -i(%rbp,%r10,8) or label(,%r10,8)
-  addq $8, %r10
-  movq %rax, <result.location()>
-
-LLInternalCall <- <LLNode> {
-  declaration: LLMethodDeclaration,
-  arguments: [<LLAliasDeclaration>],
-  result: LLAliasDeclaration,
-}
-
-  movq <arguments[0].location()>, %edi
-  movq <arguments[1].location()>, %esi
+LLInternalCall:
+  pushq  %rdi
+  pushq  %rsi
+  pushq  %rdx
+  pushq  %rcx
+  pushq  %r8
+  pushq  %r9
+  movq  <arguments[0].location()>,%rdi
+  movq  <arguments[1].location()>,%rsi
+  movq  <arguments[2].location()>,%rdx
+  movq  <arguments[3].location()>,%rcx
+  movq  <arguments[4].location()>,%r8
+  movq  <arguments[5].location()>,%r9
+  pushq  <arguments[6].location()>
+  pushq  <arguments[7].location()>
   ...
-  // TODO(rbd): complete prolog
+  callq  <declaration.location()>
+  addq  $<(arguments.size() - 6) * 8>,%rsp
+  movq  %rax,<result.location()>
+  popq  %r9
+  popq  %r8
+  popq  %rcx
+  popq  %rdx
+  popq  %rsi
+  popq  %rdi
+
+LLExternalCall:
+  pushq  %rdi
+  pushq  %rsi
+  pushq  %rdx
+  pushq  %rcx
+  pushq  %r8
+  pushq  %r9
+  movq  <arguments[0].location()>,%rdi
+  movq  <arguments[1].location()>,%rsi
+  movq  <arguments[2].location()>,%rdx
+  movq  <arguments[3].location()>,%rcx
+  movq  <arguments[4].location()>,%r8
+  movq  <arguments[5].location()>,%r9
+  pushq  <arguments[6].location()>
+  pushq  <arguments[7].location()>
   ...
-  call <declaration.location()>
-  movq %rax, <result.location()>
+  callq  <declaration.location()>
+  addq  $<(arguments.size() - 6) * 8>,%rsp
+  movq  %rax,<result.location()>
+  popq  %r9
+  popq  %r8
+  popq  %rcx
+  popq  %rdx
+  popq  %rsi
+  popq  %rdi
 
-LLExternalCall <- <LLNode> {
-  declaration: LLImportDeclaration,
-  arguments: [<LLAliasDeclaration>],
-  result: LLAliasDeclaration,
-}
+LLLength:
+  movq  $<declaration.getLength()>,%rax
+  movq  %rax,<result.location()>
 
-  movq <arguments[0].location()>, %edi
-  movq <arguments[1].location()>, %esi
-  ...
-  // TODO(rbd): complete prolog
-  ...
-  call <declaration.location()>
-  movq %rax, <result.location()>
+LLIntegerLiteral:
+  movq  $<value>,%rax
+  movq  %rax,<result.location()>
 
-LLLength <- <LLNode> {
-  declaration: <LLArrayDeclaration>,
-  result: LLAliasDeclaration,
-}
-
-  movq <declaration.location()>, %rax
-  movq %rax, <result.location()>
-
-LLIntegerLiteral <- <LLNode> {
-  value: long,
-  result: LLAliasDeclaration,
-}
-
-  movq <value>, %rax
-  movq %rax, <result.location()>
-
-LLStringLiteral <- <LLNode> {
-  declaration: LLStringLiteralDeclaration,
-  result: LLStringAliasDeclaration,
-}
-
-  leaq <declaration.location()>, %rax
-  movq %rax, <result.location()>
+LLStringLiteral:
+  leaq  <declaration.location()>(%rip),%rax
+  movq  %rax,<result.location()>
 ```
