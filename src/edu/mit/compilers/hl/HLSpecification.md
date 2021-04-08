@@ -1,73 +1,61 @@
 # High-Level Intermediate Representation Specification
 
-## Program
+```
+<HLNode>
+```
+
+## Declarations
 
 ```
-HLProgram {
+HLProgram <- <HLNode> {
   importDeclarations: [HLImportDeclaration],
   scalarFieldDeclarations: [HLGlobalScalarFieldDeclaration],
   arrayFieldDeclarations: [HLGlobalArrayFieldDeclaration],
   stringLiteralDeclarations: [HLStringLiteralDeclaration],
   methodDeclarations: [HLMethodDeclaration],
 }
-```
 
-## Declarations
-
-```
-HLImportDeclaration {
+HLImportDeclaration <- <HLNode> {
   identifier: String,
 }
 
-<HLScalarFieldDeclaration> {
-  getType(): INTEGER | BOOLEAN,
-}
-
-<HLArrayFieldDeclaration> {
-  getType(): INTEGER | BOOLEAN,
-}
+<HLScalarFieldDeclaration> <- <HLNode>
 
 HLGlobalScalarFieldDeclaration <- <HLScalarFieldDeclaration> {
-  type: INTEGER | BOOLEAN,
   identifier: String,
-}
-
-HLGlobalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
-  type: INTEGER | BOOLEAN,
-  identifier: String,
-  length: long,
-}
-
-HLStringLiteralDeclaration {
-  index: int,
-  value: String,
-}
-
-HLMethodDeclaration {
-  identifier: String,
-  body: HLBlock,
 }
 
 HLArgumentDeclaration <- <HLScalarFieldDeclaration> {
-  type: INTEGER | BOOLEAN,
   index: int,
 }
 
 HLLocalScalarFieldDeclaration <- <HLScalarFieldDeclaration> {
-  type: INTEGER | BOOLEAN,
-  index: int, // location(): -(<NUM_ARGS> + <INDEX>)(%rbp)
+  index: int,
+}
+
+<HLArrayFieldDeclaration> <- <HLNode>
+
+HLGlobalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
+  identifier: String,
+  length: long,
 }
 
 HLLocalArrayFieldDeclaration <- <HLArrayFieldDeclaration> {
   index: int,
-  length: int, // location(): -(<NUM_ARGS> + <NUM_SCALARS> + <SUM_OF_PREVIOUS>)(%rbp)
+  length: long,
 }
-```
 
-## Block
+HLStringLiteralDeclaration <- <HLNode> {
+  index: int,
+  value: String,
+}
 
-```
-HLBlock {
+HLMethodDeclaration <- <HLNode> {
+  identifier: String,
+  body: HLBlock,
+}
+
+HLBlock <- <HLNode> {
   argumentDeclarations: [HLArgumentDeclaration],
   scalarFieldDeclarations: [HLLocalScalarFieldDeclaration],
   arrayFieldDeclarations: [HLLocalArrayFieldDeclaration],
@@ -78,8 +66,6 @@ HLBlock {
 ## Statements
 
 ```
-<HLNode>
-
 <HLStatement> <- <HLNode>
 
 <HLStoreStatement> <- <HLStatement>
@@ -95,8 +81,15 @@ HLStoreArrayStatement <- <HLStoreStatement> {
   expression: <HLExpression>,
 }
 
+HLStoreArrayCompoundStatement <- <HLStoreStatement> {
+  declaration: <HLArrayFieldDeclaration>,
+  index: <HLExpression>,
+  type: ADD | SUBTRACT,
+  expression: <HLExpression>,
+}
+
 HLCallStatement <- <HLStatement> {
-  call: HLCallExprression,
+  call: HLCallExpression,
 }
 
 HLIfStatement <- <HLStatement> {
@@ -129,11 +122,10 @@ HLContinueStatement <- <HLStatement> { }
 ## Expressions
 
 ```
-Noah
 <HLArgument> <- <HLNode>
+
 <HLExpression> <- <HLArgument>
 
-Phil
 HLBinaryExpression <- <HLExpression> {
   left: <HLExpression>,
   type: OR
@@ -153,16 +145,14 @@ HLBinaryExpression <- <HLExpression> {
 }
 
 HLUnaryExpression <- <HLExpression> {
-  type: NOT | NEGATE,
+  type: NOT | NEGATE | INCREMENT | DECREMENT,
   expression: <HLExpression>,
 }
 
-Noah
 HLLoadScalarExpression <- <HLExpression> {
   declaration: <HLScalarFieldDeclaration>,
 }
 
-Phil
 HLLoadArrayExpression <- <HLExpression> {
   declaration: <HLArrayFieldDeclaration>,
   index: <HLExpression>,
@@ -170,13 +160,11 @@ HLLoadArrayExpression <- <HLExpression> {
 
 <HLCallExpression> <- <HLExpression>
 
-Noah
 HLInternalCallExpression <- <HLCallExpression> {
   declaration: HLMethodDeclaration,
   arguments: [<HLExpression>],
 }
 
-Phil
 HLExternalCallExpression <- <HLCallExpression> {
   declaration: HLImportDeclaration,
   arguments: [<HLArgument>],
@@ -190,13 +178,24 @@ HLLengthExpression <- <HLExpression> {
 ## Literals
 
 ```
-Noah
 HLIntegerLiteral <- <HLExpression> {
   value: long,
 }
 
-Phil
 HLStringLiteral <- <HLArgument> {
   declaration: HLStringLiteralDeclaration,
+}
+```
+
+## Symbol Table
+
+```
+HLSymbolTable {
+  parent: HLSymbolTable?,
+  importDeclarations: { String => HLImportDeclaration },
+  scalarFieldDeclarations: { String => <HLScalarFieldDeclaration> },
+  arrayFieldDeclarations: { String => <HLArrayFieldDeclaration> },
+  stringLiteralDeclarations: { String => HLStringLiteralDeclaration },
+  methodDeclarations: { String => HLMethodDeclaration },
 }
 ```
