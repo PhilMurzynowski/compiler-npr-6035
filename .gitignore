@@ -3,3 +3,9 @@
 
 .idea
 *.iml
+
+.ycm_extra_conf.py
+out
+out.s
+temp.dcf
+
