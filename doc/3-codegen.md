@@ -1,4 +1,4 @@
-# Code Generation
+# Phase 3 Documentation : Code Generation
 
 ## Design
 
@@ -11,7 +11,11 @@ The phase 3 design can be split into three basic modules: high-level intermediat
 
 The high-level intermediate representation takes the abstract syntax tree and reduces it to a tree with simpler operations (e.g. loads and stores at the leaves) and incorporates links directly to declarations using the symbol table. The representation is as shown below, using the following format:
 
+<<<<<<< HEAD
 - Inheritance is represented by indentation.
+=======
+- Inheritance is represented by indentation. 
+>>>>>>> phase3-submission
 - Interfaces are surrounded with `<>`.
 - Fields of a class are given after `:`.
 - Optionals are appended with `?`.
@@ -169,7 +173,11 @@ If a basic block has a false target, its last instruction must be a `Compare`. I
 
 #### Builder
 
+<<<<<<< HEAD
 The [`LLBuilder`][llb] is designed similarly to the [`HLBuilder`][hlb]. However, instead of producing a tree, the `LLBuilder` produces either declarations or control flow graphs. For declarations, an HLIR declaration is converted to an LLIR declaration and a forwarding pointer is created for accessing the declaration from other LLIR instructions later in the build process.
+=======
+The [`LLBuilder`][llb] is designed similarly to the [`HLBuilder`][hlb]. However, instead of producing a tree, the `LLBuilder` produces either declarations or control flow graphs. For declarations, an HLIR declaration is converted to an LLIR declaration and a forwarding pointer is created for accessing the declaration from other LLIR instructions later in the build process. 
+>>>>>>> phase3-submission
 
 [llb]: https://github.com/6035/npr/blob/main/src/edu/mit/compilers/ll/LLBuilder.java
 
@@ -179,7 +187,11 @@ More complicated HLIR (like if or while statements) return more complicated CFGs
 
 Break and continue statements require special attention. All statements are provided a break and continue target, if composed within a loop. When a break or continue statement is reached, the respective target is returned as the CFG. Because the true/false targets of a break or continue CFG should not be set, any time a break or continue target could be returned, it is first checked before setting true/false targets (notably in block, if, for, and while builders).
 
+<<<<<<< HEAD
 Furthermore, whenever an HLIR block is created, several additional tasks are required. First, all variables within the block must be initialized to zero. These initializations use regular, existing LLIR instructions. For scalars, it is as simple as creating an `LLStoreScalar` with a zero `LLIntegerLiteral`. The array initialization is similar, but a for loop CFG is created to iterate over the array. This was chosen instead of unrolling otherwise large arrays would flood the instruction cache.
+=======
+Furthermore, whenever an HLIR block is created, several additional tasks are required. First, all variables within the block must be initialized to zero. These initializations use regular, existing LLIR instructions. For scalars, it is as simple as creating an `LLStoreScalar` with a zero `LLIntegerLiteral`. The array initialization is similar, but a for loop CFG is created to iterate over the array. This was chosen instead of unrolling otherwise large arrays would flood the instruction cache. 
+>>>>>>> phase3-submission
 
 Moreover declarations are also hoisted to the method declaration scope. This allows each function to have a single stack frame and all local variables can be allocated at once at function entry. The alternative would require creating (and destroying) stack frames at each block which seemed quite unnecessary.
 
@@ -209,7 +221,11 @@ Stack indices are calculated for all local and alias (temporary) declarations. A
 
 #### Generator
 
+<<<<<<< HEAD
 The generator converts the low level intermediate representation to a string composed of assembly instructions which is later written to a file. It designates predetermined exception messages labels, metadata, and space for specifying global identifiers such as strings, global variables, and method declarations, generates [templated][LLTemplates] assembly for low level instruction such as a load, store, or a binary operation. Instructions can be easily templated as the inputs and outputs for each instruction are currently temporary locations on the stack. It also flattens the control flow graph by uniquely identifying basic blocks with labels and connecting targets with conditional/non-conditional jumps to labels. Method declarations include the proper prologue callee convention and along with generating internal or external calls make sure to keep stack aligned as a multiple of 16. Lastly, call expressions additionally load in the 6 first arguments to registers according to caller convention with remaining arguments being stack allocated.
+=======
+The generator converts the low level intermediate representation to a string composed of assembly instructions which is later written to a file. It designates predetermined exception messages labels, metadata, and space for specifying global identifiers such as strings, global variables, and method declarations, generates [templated][LLTemplates] assembly for low level instruction such as a load, store, or a binary operation. Instructions can be easily templated as the inputs and outputs for each instruction are currently temporary locations on the stack. It also flattens the control flow graph by uniquely identifying basic blocks with labels and connecting targets with conditional/non-conditional jumps to labels. Method declarations include the proper prologue callee convention and along with generating internal or external calls make sure to keep stack aligned as a multiple of 16. Lastly, call expressions additionally load in the 6 first arguments to registers according to caller convention with remaining arguments being stack allocated. 
+>>>>>>> phase3-submission
 
 [LLTemplates]:https://github.com/6035/npr/blob/main/src/edu/mit/compilers/ll/LLSpecification.md#templates
 
@@ -232,6 +248,9 @@ There are a few problems we identified with our implementation when writing docu
 
 The initial design was formulated in group meetings. The initial skeleton for the high-level, low-level, and assembly modules were created together. All individual method implementations were divided up evenly between group members. Debugging occurred together in group meetings.
 
+<<<<<<< HEAD
 
 
     
+=======
+>>>>>>> phase3-submission
