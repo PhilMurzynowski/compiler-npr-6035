@@ -205,18 +205,17 @@ public class HLBuilder {
         } else {
           throw new RuntimeException("unreachable");
         }
-        return new HLStoreArrayCompoundStatement(declaration, index, type, expression);
+        return new HLStoreArrayCompoundStatement(declaration, index, type, Optional.of(expression));
       } else {
-        UnaryExpressionType type;
+        HLStoreArrayCompoundStatement.Type type;
         if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.INCREMENT) {
-          type = UnaryExpressionType.INCREMENT;
+          type = HLStoreArrayCompoundStatement.Type.INCREMENT;
         } else if (compoundAssignStatement.getType() == ASTCompoundAssignStatement.Type.DECREMENT) {
-          type = UnaryExpressionType.DECREMENT;
+          type = HLStoreArrayCompoundStatement.Type.DECREMENT;
         } else {
           throw new RuntimeException("unreachable");
         }
-        final HLUnaryExpression unaryExpression = new HLUnaryExpression(type, loadExpression);
-        return new HLStoreArrayStatement(declaration, index, unaryExpression);
+        return new HLStoreArrayCompoundStatement(declaration, index, type, Optional.empty());
       }
 
     } else {

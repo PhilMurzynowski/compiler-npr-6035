@@ -296,17 +296,30 @@ public class LLBuilder {
     resultCFG.getExit().setTrueTarget(boundsCheckCFG.getEntry());
     resultCFG = new LLControlFlowGraph(resultCFG.getEntry(), loadBB);
 
-    final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph expressionCFG = LLBuilder.buildExpression(storeArrayCompoundStatement.getExpression(), methodDeclaration, expressionResult);
-    resultCFG = resultCFG.concatenate(expressionCFG);
+    if (storeArrayCompoundStatement.getExpression().isPresent()) {
 
-    final LLAliasDeclaration valueResult = methodDeclaration.newAlias();
-    resultCFG = resultCFG.concatenate(
-      new LLBinary(loadResult, storeArrayCompoundStatement.getType().toBinaryExpressionType(), expressionResult, valueResult),
-      new LLStoreArray(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult, valueResult)
-    );
+      final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
+      final LLControlFlowGraph expressionCFG = LLBuilder.buildExpression(storeArrayCompoundStatement.getExpression().get(), methodDeclaration, expressionResult);
+      resultCFG = resultCFG.concatenate(expressionCFG);
+
+      final LLAliasDeclaration valueResult = methodDeclaration.newAlias();
+      resultCFG = resultCFG.concatenate(
+        new LLBinary(loadResult, storeArrayCompoundStatement.getType().toBinaryExpressionType(), expressionResult, valueResult),
+        new LLStoreArray(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult, valueResult)
+      );
+
+    } else {
+      
+      final LLAliasDeclaration valueResult = methodDeclaration.newAlias();
+      resultCFG = resultCFG.concatenate(
+        new LLUnary(storeArrayCompoundStatement.getType().toUnaryExpressionType(), loadResult, valueResult),
+        new LLStoreArray(storeArrayCompoundStatement.getDeclaration().getLL(), indexResult, valueResult)
+      );
+
+    }
 
     return resultCFG;
+
   }
 
   // DONE: Phil

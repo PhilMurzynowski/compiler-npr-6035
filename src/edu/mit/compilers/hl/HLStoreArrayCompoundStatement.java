@@ -1,5 +1,7 @@
 package edu.mit.compilers.hl;
 
+import java.util.Optional;
+
 import edu.mit.compilers.common.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
@@ -18,16 +20,34 @@ public class HLStoreArrayCompoundStatement implements HLStoreStatement {
       public BinaryExpressionType toBinaryExpressionType() {
         return BinaryExpressionType.SUBTRACT;
       }
+    },
+    INCREMENT{
+      @Override
+      public UnaryExpressionType toUnaryExpressionType() {
+        return UnaryExpressionType.INCREMENT;
+      }
+    },
+    DECREMENT{
+      @Override
+      public UnaryExpressionType toUnaryExpressionType() {
+        return UnaryExpressionType.DECREMENT;
+      }
     };
-    public abstract BinaryExpressionType toBinaryExpressionType();
+
+    public BinaryExpressionType toBinaryExpressionType() {
+      throw new RuntimeException("Cannot convert unary expression to binary expression");
+    }
+    public UnaryExpressionType toUnaryExpressionType() {
+      throw new RuntimeException("Cannot convert binary expression to unary expression");
+    }
   }
 
   private final HLArrayFieldDeclaration declaration; 
   private final HLExpression index;
   private final Type type;
-  private final HLExpression expression;
+  private final Optional<HLExpression> expression;
 
-  public HLStoreArrayCompoundStatement(HLArrayFieldDeclaration declaration, HLExpression index, Type type, HLExpression expression) {
+  public HLStoreArrayCompoundStatement(HLArrayFieldDeclaration declaration, HLExpression index, Type type, Optional<HLExpression> expression) {
     this.declaration = declaration;
     this.index = index;
     this.type = type;
@@ -46,9 +66,10 @@ public class HLStoreArrayCompoundStatement implements HLStoreStatement {
     return type;
   }
 
-  public HLExpression getExpression() {
+  public Optional<HLExpression> getExpression() {
     return expression;
   }
+
 
   @Override
   public String debugString(int depth) {
