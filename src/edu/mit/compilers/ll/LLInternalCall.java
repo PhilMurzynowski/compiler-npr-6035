@@ -1,5 +1,6 @@
 package edu.mit.compilers.ll;
 
+import java.util.Optional;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -50,6 +51,16 @@ public class LLInternalCall implements LLInstruction {
 
   public LLDeclaration getResult() {
     return result;
+  }
+
+  @Override
+  public List<LLDeclaration> uses() {
+    throw new RuntimeException("not implemented");
+  }
+
+  @Override
+  public Optional<LLDeclaration> definition() {
+    throw new RuntimeException("not implemented");
   }
 
   @Override

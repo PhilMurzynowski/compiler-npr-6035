@@ -1,5 +1,8 @@
 package edu.mit.compilers.ll;
 
+import java.util.Optional;
+import java.util.List;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLLoadArray implements LLInstruction {
@@ -24,6 +27,16 @@ public class LLLoadArray implements LLInstruction {
 
   public LLDeclaration getResult() {
     return result;
+  }
+
+  @Override
+  public List<LLDeclaration> uses() {
+    throw new RuntimeException("not implemented");
+  }
+
+  @Override
+  public Optional<LLDeclaration> definition() {
+    throw new RuntimeException("not implemented");
   }
 
   @Override

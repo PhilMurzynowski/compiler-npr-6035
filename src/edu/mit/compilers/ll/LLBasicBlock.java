@@ -19,8 +19,6 @@ public class LLBasicBlock implements LLDeclaration {
   private Optional<LLBasicBlock> falseTarget;
   private boolean generated;
 
-  // NOTE(rbd): Please try not to add anything to this class. Let me know if you do. :)
-
   public LLBasicBlock(List<LLInstruction> instructions, Optional<LLBasicBlock> trueTarget, Optional<LLBasicBlock> falseTarget) {
     index = count++;
     this.instructions = instructions;
@@ -71,6 +69,10 @@ public class LLBasicBlock implements LLDeclaration {
 
   public List<LLInstruction> getInstructions() {
     return instructions;
+  }
+
+  public void setInstructions(List<LLInstruction> llInstructions) {
+    this.instructions = llInstructions;
   }
 
   public LLBasicBlock getTrueTarget() {

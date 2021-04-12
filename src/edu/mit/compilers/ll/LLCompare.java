@@ -1,5 +1,8 @@
 package edu.mit.compilers.ll;
 
+import java.util.Optional;
+import java.util.List;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLCompare implements LLInstruction {
@@ -18,6 +21,16 @@ public class LLCompare implements LLInstruction {
 
   public LLDeclaration getRight() {
     return right;
+  }
+
+  @Override
+  public List<LLDeclaration> uses() {
+    throw new RuntimeException("not implemented");
+  }
+
+  @Override
+  public Optional<LLDeclaration> definition() {
+    throw new RuntimeException("not implemented");
   }
 
   @Override
