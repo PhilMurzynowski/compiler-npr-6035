@@ -478,21 +478,38 @@ public class LLBuilder {
   }
 
   public static LLControlFlowGraph buildBinaryExpression(HLBinaryExpression binaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-    LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    final LLAliasDeclaration leftResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph leftCFG = LLBuilder.buildExpression(binaryExpression.getLeft(), methodDeclaration, leftResult);
-    resultCFG = resultCFG.concatenate(leftCFG);
+    if (binaryExpression.getType() == BinaryExpressionType.AND || binaryExpression.getType() == BinaryExpressionType.OR) {
 
-    final LLAliasDeclaration rightResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph rightCFG = LLBuilder.buildExpression(binaryExpression.getRight(), methodDeclaration, rightResult);
-    resultCFG = resultCFG.concatenate(rightCFG);
+      LLBasicBlock trueBB = new LLBasicBlock(new LLIntegerLiteral(1, result));
+      LLBasicBlock falseBB = new LLBasicBlock(new LLIntegerLiteral(0, result));
+      LLBasicBlock entryBB = LLShortCircuit.shortExpression(binaryExpression, methodDeclaration, trueBB, falseBB);
+      LLBasicBlock exitBB = new LLBasicBlock();
+      
+      trueBB.setTrueTarget(exitBB);
+      falseBB.setTrueTarget(exitBB);
 
-    resultCFG = resultCFG.concatenate(
-      new LLBinary(leftResult, binaryExpression.getType(), rightResult, result)
-    );
+      return new LLControlFlowGraph(entryBB, exitBB);
+      
+    } else {
 
-    return resultCFG;
+      LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
+
+      final LLAliasDeclaration leftResult = methodDeclaration.newAlias();
+      final LLControlFlowGraph leftCFG = LLBuilder.buildExpression(binaryExpression.getLeft(), methodDeclaration, leftResult);
+      resultCFG = resultCFG.concatenate(leftCFG);
+
+      final LLAliasDeclaration rightResult = methodDeclaration.newAlias();
+      final LLControlFlowGraph rightCFG = LLBuilder.buildExpression(binaryExpression.getRight(), methodDeclaration, rightResult);
+      resultCFG = resultCFG.concatenate(rightCFG);
+
+      resultCFG = resultCFG.concatenate(
+        new LLBinary(leftResult, binaryExpression.getType(), rightResult, result)
+      );
+
+      return resultCFG;
+
+    }
   }
 
   public static LLControlFlowGraph buildUnaryExpression(HLUnaryExpression unaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
