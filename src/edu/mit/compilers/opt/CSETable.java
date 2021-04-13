@@ -8,11 +8,10 @@ import java.util.List;
 public class CSETable {
 
   private Map<LLDeclaration, String> mapVarToVal = new HashMap<>();
-  private Map<String, String> mapExpToVal = new HashMap<>();
-  private Map<String, LLDeclaration> mapExpToTmp = new HashMap<>();
+  private Map<String, String> mapExprToVal = new HashMap<>();
+  private Map<String, LLDeclaration> mapExprToTmp = new HashMap<>();
 
-  private int varCount;
-  private int exprCount;
+  private int valCount;
   private int tmpCount;
 
   public CSETable() {
@@ -21,12 +20,23 @@ public class CSETable {
 
   // Adds var to value mapping if does not exist and return value
   public String varToVal(LLDeclaration llVar) {
-    if (mapVarToVal.get(llVar) != null) {
+    if (mapVarToVal.containsKey(llVar)) {
       return mapVarToVal.get(llVar);
     } else {
-      String val = "v"+varCount;
+      String val = "v"+valCount;
       mapVarToVal.put(llVar, val);
-      this.varCount++;
+      this.valCount++;
+      return val;
+    }
+  }
+
+  public String exprToVal(String expr) {
+    if (mapExprToVal.containsKey(expr)) {
+      return mapExprToVal.get(expr);
+    } else {
+      String val = "v"+valCount;
+      mapExprToVal.put(expr, val);
+      this.valCount++;
       return val;
     }
   }

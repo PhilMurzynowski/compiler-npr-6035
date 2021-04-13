@@ -16,7 +16,7 @@ public class CommonSubExpression implements Optimization {
   {
 
     List<LLInstruction> newLLInstructions = new ArrayList<>();
-    entryBitMap.subsume(exitBitMap);
+    exitBitMap.subsume(entryBitMap);
     boolean changed = false;
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
