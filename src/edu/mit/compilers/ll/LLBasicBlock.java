@@ -81,6 +81,20 @@ public class LLBasicBlock implements LLDeclaration {
     return predecessors;
   }
 
+  public Set<LLBasicBlock> getSuccessors() {
+    final Set<LLBasicBlock> successors = new HashSet<>();
+
+    if (hasTrueTarget()) {
+      successors.add(getTrueTarget());
+    }
+
+    if (hasFalseTarget()) {
+      successors.add(getFalseTarget());
+    }
+
+    return successors;
+  }
+
   public boolean hasTrueTarget() {
     return trueTarget.isPresent();
   }
