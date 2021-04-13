@@ -10,9 +10,7 @@ import java.util.*;
 public class CommonSubExpression implements Optimization {
 
 
-  public static Set<LLBasicBlock> apply(LLMethodDeclaration methodDeclaration,
-    LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap,
-    CSETable cseTable)
+  public static Set<LLBasicBlock> apply(CSETable cseTable, LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap)
   {
 
     List<LLInstruction> newLLInstructions = new ArrayList<>();
@@ -21,18 +19,17 @@ public class CommonSubExpression implements Optimization {
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
+      StringBuilder exprBuilder = new StringBuilder();
+
       if (instruction instanceof LLBinary binaryInstruction) {
 
-        StringBuilder exprBuilder = new StringBuilder();
         exprBuilder.append(cseTable.varToVal(binaryInstruction.getLeft()));
         exprBuilder.append(binaryInstruction.getType());
         exprBuilder.append(cseTable.varToVal(binaryInstruction.getRight()));
 
       } else if (instruction instanceof LLUnary unaryInstruction) {
 
-        StringBuilder exprBuilder = new StringBuilder();
         UnaryExpressionType type = unaryInstruction.getType();
-
         if (type == UnaryExpressionType.NOT || type ==  UnaryExpressionType.NEGATE) {
           exprBuilder.append(type);
           exprBuilder.append(cseTable.varToVal(unaryInstruction.getExpression()));
@@ -45,12 +42,18 @@ public class CommonSubExpression implements Optimization {
  
       } else if (instruction instanceof LLCompare cmpInstruction) {
 
-        StringBuilder exprBuilder = new StringBuilder();
         exprBuilder.append(cseTable.varToVal(cmpInstruction.getLeft()));
         exprBuilder.append(BinaryExpressionType.EQUAL);
         exprBuilder.append(cseTable.varToVal(cmpInstruction.getRight()));
 
+      } else {
+        continue;
       }
+
+      String expr = exprBuilder.toString();
+      cseTable.exprToVal(expr);
+      cseTable.exprToTmp(expr);
+
     }
 
     return changed ? llBasicBlock.getSuccessors() : new HashSet<>();
