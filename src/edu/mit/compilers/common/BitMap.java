@@ -26,7 +26,7 @@ public class BitMap<G> {
    *  true otherwise
    */
   public boolean get(G obj) {
-    return map.containsKey(obj) || map.get(obj);
+    return map.containsKey(obj) && map.get(obj);
   }
 
   public void and(BitMap<G> other) {
