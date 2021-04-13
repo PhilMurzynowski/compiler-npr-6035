@@ -6,32 +6,47 @@ import java.util.HashMap;
 
 public class BitMap<G> {
 
+  private Map<G, Boolean> map = new HashMap<>();
+
   public BitMap() {
-    throw new RuntimeException("not implemented");
+
   }
 
   public void set(G obj) {
-    throw new RuntimeException("not implemented");
+    map.put(obj, true);
   }
 
   public void clear(G obj) {
-    throw new RuntimeException("not implemented");
+    map.put(obj, false);
   }
 
+  /**
+   * @param obj
+   * @return false if the object does not exist in the bitmap or is set to false;
+   *  true otherwise
+   */
   public boolean get(G obj) {
-    throw new RuntimeException("not implemented");
+    return map.containsKey(obj) || map.get(obj);
   }
 
   public void and(BitMap<G> other) {
-    throw new RuntimeException("not implemented");
+    for (G key : this.map.keySet()) {
+      this.map.put(key, this.get(key) && other.get(key));
+    }
+
+    for (G key : other.map.keySet()) {
+      this.map.put(key, this.get(key) && other.get(key));
+    }
   }
 
   public void or(BitMap<G> other) {
-    throw new RuntimeException("not implemented");
+    for (G key : other.map.keySet()) {
+      this.map.put(key, this.get(key) || other.get(key));
+    }
   }
 
   public void subsume(BitMap<G> other) {
-    throw new RuntimeException("not implemented");
+    this.map = new HashMap(other.map);
   }
 
 }
