@@ -237,6 +237,12 @@ public class LLGenerator {
       ));
     }
 
+    final List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
+
+    for (int i = 0; i < registers.size() && i < methodDeclaration.getArgumentDeclarations().size(); ++i) {
+      s.append(generateInstruction("movq", registers.get(i), methodDeclaration.getArgumentDeclarations().get(i).location()));
+    }
+
     // NOTE(phil): arguments handled by caller
     // NOTE(phil): declarations should already be handled by block hoisting
   
@@ -518,9 +524,9 @@ public class LLGenerator {
     List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
     List<LLDeclaration> arguments = internalCall.getArguments();
 
-    for (String register : registers) {
-      s.append(generateInstruction("pushq", register));
-    }
+    // for (String register : registers) {
+    //   s.append(generateInstruction("pushq", register));
+    // }
 
     for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
       s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
@@ -546,9 +552,9 @@ public class LLGenerator {
 
     s.append(generateInstruction("movq", "%rax", internalCall.getResult().location()));
 
-    for (int i = registers.size() - 1; i >= 0; --i) {
-      s.append(generateInstruction("popq", registers.get(i)));
-    }
+    // for (int i = registers.size() - 1; i >= 0; --i) {
+    //   s.append(generateInstruction("popq", registers.get(i)));
+    // }
 
     return s.toString();
   }
@@ -561,9 +567,9 @@ public class LLGenerator {
     List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
     List<LLDeclaration> arguments = externalCall.getArguments();
 
-    for (String register : registers) {
-      s.append(generateInstruction("pushq", register));
-    }
+    // for (String register : registers) {
+    //   s.append(generateInstruction("pushq", register));
+    // }
 
     for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
       s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
@@ -589,9 +595,9 @@ public class LLGenerator {
 
     s.append(generateInstruction("movq", "%rax", externalCall.getResult().location()));
 
-    for (int i = registers.size() - 1; i >= 0; --i) {
-      s.append(generateInstruction("popq", registers.get(i)));
-    }
+    // for (int i = registers.size() - 1; i >= 0; --i) {
+    //   s.append(generateInstruction("popq", registers.get(i)));
+    // }
 
     return s.toString();
   }

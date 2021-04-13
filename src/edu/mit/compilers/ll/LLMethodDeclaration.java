@@ -113,6 +113,11 @@ public class LLMethodDeclaration implements LLDeclaration {
   public int setStackIndices() {
     int index = -8;
 
+    for (int i = 0; i < argumentDeclarations.size() && i < 6; i++) {
+      argumentDeclarations.get(i).setStackIndex(index);
+      index -= 8;
+    }
+
     for (LLLocalScalarFieldDeclaration scalar : scalarFieldDeclarations) {
       scalar.setStackIndex(index);
       index -= 8;

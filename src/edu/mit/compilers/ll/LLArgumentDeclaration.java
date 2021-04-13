@@ -1,13 +1,17 @@
 package edu.mit.compilers.ll;
 
+import java.util.Optional;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLArgumentDeclaration implements LLScalarFieldDeclaration {
 
   private final int index;
+  private Optional<Integer> stackIndex;
 
   public LLArgumentDeclaration(int index) {
     this.index = index;
+    stackIndex = Optional.empty();
   }
 
   @Override
@@ -20,21 +24,23 @@ public class LLArgumentDeclaration implements LLScalarFieldDeclaration {
     return "declare arg " + index;
   }
 
+  public void setStackIndex(int stackIndex) {
+    if (this.stackIndex.isPresent()) {
+      throw new RuntimeException("stackIndex has already been set");
+    } else {
+      this.stackIndex = Optional.of(stackIndex);
+    }
+  }
+
   @Override
   public String location() {
-    if (index == 0) {
-      return "%rdi";
-    } else if (index == 1) {
-      return "%rsi";
-    } else if (index == 2) {
-      return "%rdx";
-    } else if (index == 3) {
-      return "%rcx";
-    } else if (index == 4) {
-      return "%r8";
-    } else if (index == 5) {
-      return "%r9";
-    } else { 
+    if (index < 6) {
+      if (this.stackIndex.isEmpty()) {
+        throw new RuntimeException("stackIndex has not been set");
+      } else {
+        return stackIndex.get() + "(%rbp)";
+      }
+    } else {
       return (16 + (index - 6) * 8) + "(%rbp)";
     }
   }
