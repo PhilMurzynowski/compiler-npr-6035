@@ -23,7 +23,8 @@ public class DeadCode implements Optimization {
 
     for (int i = allLLInstructions.size() - 1; i >= 0; i--) {
       LLInstruction instruction = allLLInstructions.get(i);
-      if (instruction.definition().isPresent()) {
+      boolean isCall = instruction instanceof LLInternalCall || instruction instanceof LLExternalCall;
+      if (!isCall && instruction.definition().isPresent()) {
         LLDeclaration definition = instruction.definition().get();
         if (entryBitMap.get(definition)) {
           entryBitMap.clear(definition);  // because old definition is changed
