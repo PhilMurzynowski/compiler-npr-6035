@@ -7,8 +7,10 @@ public class BitMap<G> {
 
   private Map<G, Boolean> map = new HashMap<>();
 
-  public BitMap() {
+  public BitMap() { }
 
+  public BitMap(BitMap<G> other) {
+    this.map = new HashMap<>(other.map);
   }
 
   public void set(G obj) {
@@ -46,6 +48,24 @@ public class BitMap<G> {
 
   public void subsume(BitMap<G> other) {
     this.map = new HashMap<>(other.map);
+  }
+
+  public boolean sameValue(BitMap<G> other) {
+    if (this.map.size() != other.map.size()) {
+      return false;
+    }
+
+    for (G key : this.map.keySet()) {
+      if (!other.map.containsKey(key)) {
+        return false;
+      }
+
+      if (this.map.get(key) != other.map.get(key)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
 }

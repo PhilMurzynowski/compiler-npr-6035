@@ -14,41 +14,42 @@ public class DeadCode implements Optimization {
    * @param exitBitMap
    * @return predecessors of this basic block
    */
-  public static Set<LLBasicBlock> apply(LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap) {
+  public static boolean apply(LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap) {
+    List<LLInstruction> allInstructions = llBasicBlock.getInstructions();
+    List<LLInstruction> aliveInstructions = new ArrayList<>();
 
-    List<LLInstruction> allLLInstructions = llBasicBlock.getInstructions();
-    List<LLInstruction> aliveLLInstructions = new ArrayList<>();
-    entryBitMap.subsume(exitBitMap);
-    boolean changed = false;
+    BitMap<LLDeclaration> currentBitMap = new BitMap<>(exitBitMap);
 
-    for (int i = allLLInstructions.size() - 1; i >= 0; i--) {
-      LLInstruction instruction = allLLInstructions.get(i);
+    for (int i = allInstructions.size() - 1; i >= 0; i--) {
+      LLInstruction instruction = allInstructions.get(i);
       boolean isCall = instruction instanceof LLInternalCall || instruction instanceof LLExternalCall;
       if (!isCall && instruction.definition().isPresent()) {
         LLDeclaration definition = instruction.definition().get();
-        if (entryBitMap.get(definition)) {
-          entryBitMap.clear(definition);  // because old definition is changed
-          aliveLLInstructions.add(instruction);
+        if (currentBitMap.get(definition)) {
+          currentBitMap.clear(definition);  // because old definition is changed
+          aliveInstructions.add(instruction);
           for (LLDeclaration use: instruction.uses()) {
-            entryBitMap.set(use);
+            currentBitMap.set(use);
           }
-        } else {
-          changed = true;
         }
       } else {
         // returns, exceptions, comparisons with no definition
-        aliveLLInstructions.add(instruction);
+        aliveInstructions.add(instruction);
         for (LLDeclaration use: instruction.uses()) {
-          entryBitMap.set(use);
+          currentBitMap.set(use);
         }
       }
     }
 
-    Collections.reverse(aliveLLInstructions);
-    llBasicBlock.setInstructions(aliveLLInstructions);
+    Collections.reverse(aliveInstructions);
+    llBasicBlock.setInstructions(aliveInstructions);
 
-    return changed ? llBasicBlock.getPredecessors() : new HashSet<>();
-    
+    if (currentBitMap.sameValue(entryBitMap)) {
+      return false;
+    } else {
+      entryBitMap.subsume(currentBitMap);
+      return true;
+    }
   }
 
   /**
@@ -57,43 +58,58 @@ public class DeadCode implements Optimization {
    * @param globals a list of global field declarations
    */
   public void apply(LLMethodDeclaration methodDeclaration, LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
-    Set<LLBasicBlock> workSet = new LinkedHashSet<>();
-    workSet.add(controlFlowGraph.getExit());
+    final Map<LLBasicBlock, BitMap<LLDeclaration>> entryBitMaps = new HashMap<>();
+    final Map<LLBasicBlock, BitMap<LLDeclaration>> exitBitMaps = new HashMap<>();
 
-    Map<LLBasicBlock, BitMap<LLDeclaration>> entryBitMaps = new HashMap<>();
-    Map<LLBasicBlock, BitMap<LLDeclaration>> exitBitMaps = new HashMap<>();
+    final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
+    final Set<LLBasicBlock> visited = new LinkedHashSet<>();
 
-    BitMap<LLDeclaration> globalExitBitMap = new BitMap<>();
+    // Initialize the exit block's bit maps
+    final BitMap<LLDeclaration> globalExitBitMap = new BitMap<>();
     for (LLDeclaration global : globals) {
       globalExitBitMap.set(global);
     }
     entryBitMaps.put(controlFlowGraph.getExit(), new BitMap<>());
     exitBitMaps.put(controlFlowGraph.getExit(), globalExitBitMap);
 
+    workSet.addAll(controlFlowGraph.getExit().getPredecessors());
+
+    visited.add(controlFlowGraph.getExit());
+
+    // Initialize all blocks' bit maps
+    while (!workSet.isEmpty()) {
+      final LLBasicBlock block = workSet.iterator().next();
+      workSet.remove(block);
+
+      if (!visited.contains(block)) {
+        entryBitMaps.put(block, new BitMap<>());
+        exitBitMaps.put(block, new BitMap<>());
+
+        workSet.addAll(block.getPredecessors());
+
+        visited.add(block);
+      }
+    }
+
+    // Set all blocks as to-be-visited
+    workSet.addAll(visited);
+
+    // Apply DCE to all blocks in work set
     while (!workSet.isEmpty()) {
       LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
 
-      if (!exitBitMaps.containsKey(block)) {
-        entryBitMaps.put(block, new BitMap<>());
-        exitBitMaps.put(block, new BitMap<>());
-      }
+      // Only update predecessors if entryBitMap changes
+      if (apply(block, entryBitMaps.get(block), exitBitMaps.get(block))) {
+        for (LLBasicBlock p : block.getPredecessors()) {
+          BitMap<LLDeclaration> exitMap = exitBitMaps.get(p);
+          exitMap.or(entryBitMaps.get(block));
 
-      Set<LLBasicBlock> predecessors = apply(block, entryBitMaps.get(block), exitBitMaps.get(block));
-
-      for (LLBasicBlock p : predecessors) {
-        if (!exitBitMaps.containsKey(p)) {
-          entryBitMaps.put(p, new BitMap<>());
-          exitBitMaps.put(p, new BitMap<>());
+          // Add all predecessors to work set
+          workSet.add(p);
         }
-
-        BitMap<LLDeclaration> exitMap = exitBitMaps.get(p);
-        exitMap.or(entryBitMaps.get(block));
       }
-
-      workSet.addAll(predecessors);
     }
-
   }
 
 }
