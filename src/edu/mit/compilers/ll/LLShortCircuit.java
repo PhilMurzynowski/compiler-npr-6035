@@ -1,8 +1,5 @@
 package edu.mit.compilers.ll;
 
-import java.util.List;
-import java.util.Optional;
-
 import edu.mit.compilers.hl.*;
 import edu.mit.compilers.common.*;
 
@@ -56,15 +53,14 @@ public class LLShortCircuit {
         LLBuilder.buildBinaryExpression(binaryExpression, methodDeclaration, expressionResult)
       );
 
-      resultCFG = resultCFG.concatenate(
-        new LLBasicBlock(
-          List.of(
-            new LLCompare(zeroResult, expressionResult)
-          ),
-          Optional.of(trueTarget),
-          Optional.of(falseTarget)
-        )
+      final LLBasicBlock compareBB = new LLBasicBlock(
+        new LLCompare(zeroResult, expressionResult)
       );
+
+      LLBasicBlock.setTrueTarget(compareBB, trueTarget);
+      LLBasicBlock.setFalseTarget(compareBB, falseTarget);
+
+      resultCFG = resultCFG.concatenate(compareBB);
 
       return resultCFG.getEntry();
     } else {
@@ -95,15 +91,14 @@ public class LLShortCircuit {
     final LLControlFlowGraph loadCFG = LLBuilder.buildLoadScalarExpression(loadScalarExpression, loadResult);
     resultCFG = resultCFG.concatenate(loadCFG);
 
-    resultCFG = resultCFG.concatenate(
-      new LLBasicBlock(
-        List.of(
-          new LLCompare(zeroResult, loadResult)
-        ),
-        Optional.of(trueTarget),
-        Optional.of(falseTarget)
-      )
+    final LLBasicBlock compareBB = new LLBasicBlock(
+      new LLCompare(zeroResult, loadResult)
     );
+
+    LLBasicBlock.setTrueTarget(compareBB, trueTarget);
+    LLBasicBlock.setFalseTarget(compareBB, falseTarget);
+
+    resultCFG = resultCFG.concatenate(compareBB);
 
     return resultCFG.getEntry();
   }
@@ -121,15 +116,14 @@ public class LLShortCircuit {
     final LLControlFlowGraph loadCFG = LLBuilder.buildLoadArrayExpression(loadArrayExpression, methodDeclaration, loadResult);
     resultCFG = resultCFG.concatenate(loadCFG);
 
-    resultCFG = resultCFG.concatenate(
-      new LLBasicBlock(
-        List.of(
-          new LLCompare(zeroResult, loadResult)
-        ),
-        Optional.of(trueTarget),
-        Optional.of(falseTarget)
-      )
+    final LLBasicBlock compareBB = new LLBasicBlock(
+      new LLCompare(zeroResult, loadResult)
     );
+
+    LLBasicBlock.setTrueTarget(compareBB, trueTarget);
+    LLBasicBlock.setFalseTarget(compareBB, falseTarget);
+
+    resultCFG = resultCFG.concatenate(compareBB);
 
     return resultCFG.getEntry();
   }
@@ -156,15 +150,14 @@ public class LLShortCircuit {
     final LLControlFlowGraph callCFG = LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, callResult);
     resultCFG = resultCFG.concatenate(callCFG);
 
-    resultCFG = resultCFG.concatenate(
-      new LLBasicBlock(
-        List.of(
-          new LLCompare(zeroResult, callResult)
-        ),
-        Optional.of(trueTarget), 
-        Optional.of(falseTarget)
-      )
+    final LLBasicBlock compareBB = new LLBasicBlock(
+      new LLCompare(zeroResult, callResult)
     );
+
+    LLBasicBlock.setTrueTarget(compareBB, trueTarget);
+    LLBasicBlock.setFalseTarget(compareBB, falseTarget);
+
+    resultCFG = resultCFG.concatenate(compareBB);
 
     return resultCFG.getEntry();
   }
@@ -182,15 +175,14 @@ public class LLShortCircuit {
     final LLControlFlowGraph integerCFG = LLBuilder.buildIntegerLiteral(integerLiteral, methodDeclaration, integerResult);
     resultCFG = resultCFG.concatenate(integerCFG);
 
-    resultCFG = resultCFG.concatenate(
-      new LLBasicBlock(
-        List.of(
-          new LLCompare(zeroResult, integerResult)
-        ),
-        Optional.of(trueTarget), 
-        Optional.of(falseTarget)
-      )
+    final LLBasicBlock compareBB = new LLBasicBlock(
+      new LLCompare(zeroResult, integerResult)
     );
+
+    LLBasicBlock.setTrueTarget(compareBB, trueTarget);
+    LLBasicBlock.setFalseTarget(compareBB, falseTarget);
+
+    resultCFG = resultCFG.concatenate(compareBB);
 
     return resultCFG.getEntry();
   }

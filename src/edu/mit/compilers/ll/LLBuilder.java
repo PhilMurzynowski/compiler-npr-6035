@@ -170,14 +170,14 @@ public class LLBuilder {
 
       final LLBasicBlock exitBB = new LLBasicBlock();
 
-      initialBB.setTrueTarget(conditionBB);
+      LLBasicBlock.setTrueTarget(initialBB, conditionBB);
 
-      conditionBB.setTrueTarget(bodyBB);
-      conditionBB.setFalseTarget(exitBB);
+      LLBasicBlock.setTrueTarget(conditionBB, bodyBB);
+      LLBasicBlock.setFalseTarget(conditionBB, exitBB);
 
-      bodyBB.setTrueTarget(updateBB);
+      LLBasicBlock.setTrueTarget(bodyBB, updateBB);
 
-      updateBB.setTrueTarget(conditionBB);
+      LLBasicBlock.setTrueTarget(updateBB, conditionBB);
 
       resultCFG = resultCFG.concatenate(
         new LLControlFlowGraph(initialBB, exitBB)
@@ -293,7 +293,8 @@ public class LLBuilder {
       loadBB
     );
 
-    resultCFG.getExit().setTrueTarget(boundsCheckCFG.getEntry());
+    LLBasicBlock.setTrueTarget(resultCFG.getExit(), boundsCheckCFG.getEntry());
+
     resultCFG = new LLControlFlowGraph(resultCFG.getEntry(), loadBB);
 
     if (storeArrayCompoundStatement.getExpression().isPresent()) {
@@ -350,14 +351,14 @@ public class LLBuilder {
 
     if (breakTarget.isPresent()) {
       if (bodyCFG.getExit() != breakTarget.get() && bodyCFG.getExit() != continueTarget.get()) {
-        bodyCFG.getExit().setTrueTarget(exitBB);
+        LLBasicBlock.setTrueTarget(bodyCFG.getExit(), exitBB);
       }
       if (otherCFG.getExit() != breakTarget.get() && otherCFG.getExit() != continueTarget.get()) {
-        otherCFG.getExit().setTrueTarget(exitBB);
+        LLBasicBlock.setTrueTarget(otherCFG.getExit(), exitBB);
       }
     } else {
-      bodyCFG.getExit().setTrueTarget(exitBB);
-      otherCFG.getExit().setTrueTarget(exitBB);
+      LLBasicBlock.setTrueTarget(bodyCFG.getExit(), exitBB);
+      LLBasicBlock.setTrueTarget(otherCFG.getExit(), exitBB);
     }
 
     return new LLControlFlowGraph(entryBB, exitBB);
@@ -378,11 +379,12 @@ public class LLBuilder {
       forStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB
     );
 
-    initialCFG.getExit().setTrueTarget(conditionBB);
+    LLBasicBlock.setTrueTarget(initialCFG.getExit(), conditionBB);
+
     if (bodyCFG.getExit() != updateCFG.getEntry() && bodyCFG.getExit() != breakBB) {
-      bodyCFG.getExit().setTrueTarget(updateCFG.getEntry());
+      LLBasicBlock.setTrueTarget(bodyCFG.getExit(), updateCFG.getEntry());
     }
-    updateCFG.getExit().setTrueTarget(conditionBB);
+    LLBasicBlock.setTrueTarget(updateCFG.getExit(), conditionBB);
 
     return new LLControlFlowGraph(initialCFG.getEntry(), breakBB);
   }
@@ -395,9 +397,10 @@ public class LLBuilder {
     final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB);
 
     if (bodyCFG.getExit() != breakBB && bodyCFG.getExit() != continueBB) {
-      bodyCFG.getExit().setTrueTarget(continueBB);
+      LLBasicBlock.setTrueTarget(bodyCFG.getExit(), continueBB);
     }
-    continueBB.setTrueTarget(conditionBB);
+
+    LLBasicBlock.setTrueTarget(continueBB, conditionBB);
 
     return new LLControlFlowGraph(conditionBB, breakBB);
   }
@@ -478,21 +481,17 @@ public class LLBuilder {
   }
 
   public static LLControlFlowGraph buildBinaryExpression(HLBinaryExpression binaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
-
     if (binaryExpression.getType() == BinaryExpressionType.AND || binaryExpression.getType() == BinaryExpressionType.OR) {
-
       LLBasicBlock trueBB = new LLBasicBlock(new LLIntegerLiteral(1, result));
       LLBasicBlock falseBB = new LLBasicBlock(new LLIntegerLiteral(0, result));
       LLBasicBlock entryBB = LLShortCircuit.shortExpression(binaryExpression, methodDeclaration, trueBB, falseBB);
       LLBasicBlock exitBB = new LLBasicBlock();
       
-      trueBB.setTrueTarget(exitBB);
-      falseBB.setTrueTarget(exitBB);
+      LLBasicBlock.setTrueTarget(trueBB, exitBB);
+      LLBasicBlock.setTrueTarget(falseBB, exitBB);
 
       return new LLControlFlowGraph(entryBB, exitBB);
-      
     } else {
-
       LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
       final LLAliasDeclaration leftResult = methodDeclaration.newAlias();
@@ -508,7 +507,6 @@ public class LLBuilder {
       );
 
       return resultCFG;
-
     }
   }
 
@@ -570,16 +568,16 @@ public class LLBuilder {
       new LLException(LLException.Type.OutOfBounds)
     );
 
-    initialBB.setTrueTarget(isPositiveBB);
+    LLBasicBlock.setTrueTarget(initialBB, isPositiveBB);
 
-    isPositiveBB.setTrueTarget(isLessBB);
-    isPositiveBB.setFalseTarget(exceptionBB);
+    LLBasicBlock.setTrueTarget(isPositiveBB, isLessBB);
+    LLBasicBlock.setFalseTarget(isPositiveBB, exceptionBB);
 
-    isLessBB.setTrueTarget(targetBB);
-    isLessBB.setFalseTarget(exceptionBB);
+    LLBasicBlock.setTrueTarget(isLessBB, targetBB);
+    LLBasicBlock.setFalseTarget(isLessBB, exceptionBB);
 
     // NOTE(rbd): just to satisfy the single exit property of CFGs (will never be visited).
-    exceptionBB.setTrueTarget(targetBB);
+    LLBasicBlock.setTrueTarget(exceptionBB, targetBB);
 
     return new LLControlFlowGraph(initialBB, targetBB);
   }

@@ -38,7 +38,7 @@ public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
 
   @Override
   public String prettyStringDeclaration(int depth) {
-    return "local " + index + " = i64 0";
+    return "local " + index + " = i64";
   }
 
   @Override

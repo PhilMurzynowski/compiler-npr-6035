@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Map;
+// import java.util.Map;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -37,7 +37,7 @@ public class LLControlFlowGraph implements LLNode {
   }
 
   public LLControlFlowGraph concatenate(LLControlFlowGraph that) {
-    this.exit.setTrueTarget(that.entry);
+    LLBasicBlock.setTrueTarget(this.exit, that.entry);
     return new LLControlFlowGraph(this.entry, that.exit);
   }
 
@@ -50,42 +50,11 @@ public class LLControlFlowGraph implements LLNode {
   }
 
   public LLControlFlowGraph simplify() {
-    final Map<LLBasicBlock, Set<LLBasicBlock>> backEdges = new HashMap<>();
+    LLBasicBlock simplifiedEntry = entry.simplify(new HashMap<>());
+
     final Set<LLBasicBlock> visited = new HashSet<>();
     final Stack<LLBasicBlock> toVisit = new Stack<>();
-
-    toVisit.push(entry);
-
-    while (!toVisit.isEmpty()) {
-      final LLBasicBlock current = toVisit.pop();
-
-      if (!visited.contains(current)) {
-        if (current.hasTrueTarget()) {
-          if (!backEdges.containsKey(current.getTrueTarget())) {
-            backEdges.put(current.getTrueTarget(), new HashSet<>());
-          }
-          backEdges.get(current.getTrueTarget()).add(current);
-
-          toVisit.push(current.getTrueTarget());
-        }
-
-        if (current.hasFalseTarget()) {
-          if (!backEdges.containsKey(current.getFalseTarget())) {
-            backEdges.put(current.getFalseTarget(), new HashSet<>());
-          }
-          backEdges.get(current.getFalseTarget()).add(current);
-
-          toVisit.push(current.getFalseTarget());
-        }
-
-        visited.add(current);
-      }
-    }
-
-    LLBasicBlock simplifiedEntry = entry.simplify(backEdges, new HashMap<>());
-
     final Set<LLBasicBlock> simplifiedExits = new HashSet<>();
-    visited.clear();
 
     toVisit.push(simplifiedEntry);
 
@@ -94,9 +63,14 @@ public class LLControlFlowGraph implements LLNode {
 
       if (!visited.contains(current)) {
         if (current.hasFalseTarget()) {
+          current.getTrueTarget().addBackEdge(current);
+          current.getFalseTarget().addBackEdge(current);
+
           toVisit.push(current.getTrueTarget());
           toVisit.push(current.getFalseTarget());
         } else if (current.hasTrueTarget()) {
+          current.getTrueTarget().addBackEdge(current);
+
           toVisit.push(current.getTrueTarget());
         } else {
           simplifiedExits.add(current);
