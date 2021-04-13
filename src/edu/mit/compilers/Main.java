@@ -177,9 +177,8 @@ class Main {
     HLProgram hl = HLBuilder.buildProgram(program);
     // System.err.println(hl.debugString(0));
     LLProgram ll = LLBuilder.buildProgram(hl);
-    System.err.println(ll.prettyString(0));
     ll.accept(new DeadCode());
-    System.err.println("\n\nAfter DCE:\n----------\n\n" + ll.prettyString(0));
+    System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
 
     outputStream.print(assembly);
