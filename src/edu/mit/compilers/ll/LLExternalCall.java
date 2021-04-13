@@ -59,12 +59,19 @@ public class LLExternalCall implements LLInstruction {
 
   @Override
   public List<LLDeclaration> uses() {
-    throw new RuntimeException("not implemented");
+    final List<LLDeclaration> uses = new ArrayList<>();
+
+    uses.add(declaration);
+    for (LLDeclaration argument : arguments) {
+      uses.add(argument);
+    }
+
+    return uses;
   }
 
   @Override
   public Optional<LLDeclaration> definition() {
-    throw new RuntimeException("not implemented");
+    return Optional.of(result);
   }
 
   @Override
