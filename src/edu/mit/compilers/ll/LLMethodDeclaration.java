@@ -138,7 +138,7 @@ public class LLMethodDeclaration implements LLDeclaration {
   }
 
   public void accept(Optimization optimization, List<LLDeclaration> globals) {
-    optimization.apply(body.get(), globals);
+    optimization.apply(this, body.get(), globals);
   }
 
   @Override

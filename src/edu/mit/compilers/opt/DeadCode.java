@@ -56,7 +56,7 @@ public class DeadCode implements Optimization {
    * @param controlFlowGraph
    * @param globals a list of global field declarations
    */
-  public void apply(LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
+  public void apply(LLMethodDeclaration methodDeclaration, LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
     Set<LLBasicBlock> workSet = new LinkedHashSet<>();
     workSet.add(controlFlowGraph.getExit());
 
