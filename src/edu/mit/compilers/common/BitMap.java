@@ -1,6 +1,5 @@
 package edu.mit.compilers.common;
 
-import java.util.BitSet;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -46,7 +45,7 @@ public class BitMap<G> {
   }
 
   public void subsume(BitMap<G> other) {
-    this.map = new HashMap(other.map);
+    this.map = new HashMap<>(other.map);
   }
 
 }
