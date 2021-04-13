@@ -24,12 +24,12 @@ public class LLException implements LLInstruction {
 
   @Override
   public List<LLDeclaration> uses() {
-    throw new RuntimeException("not implemented");
+    return List.of();
   }
 
   @Override
   public Optional<LLDeclaration> definition() {
-    throw new RuntimeException("not implemented");
+    return Optional.empty();
   }
 
   @Override

@@ -25,12 +25,12 @@ public class LLCompare implements LLInstruction {
 
   @Override
   public List<LLDeclaration> uses() {
-    throw new RuntimeException("not implemented");
+    return List.of(left, right);
   }
 
   @Override
   public Optional<LLDeclaration> definition() {
-    throw new RuntimeException("not implemented");
+    return Optional.empty();
   }
 
   @Override

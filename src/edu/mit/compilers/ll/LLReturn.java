@@ -19,12 +19,16 @@ public class LLReturn implements LLInstruction {
 
   @Override
   public List<LLDeclaration> uses() {
-    throw new RuntimeException("not implemented");
+    if (expression.isPresent()) {
+      return List.of(expression.get());
+    } else {
+      return List.of();
+    }
   }
 
   @Override
   public Optional<LLDeclaration> definition() {
-    throw new RuntimeException("not implemented");
+    return Optional.empty();
   }
 
   @Override

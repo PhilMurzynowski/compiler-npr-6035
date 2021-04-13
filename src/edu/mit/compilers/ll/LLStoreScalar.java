@@ -25,12 +25,12 @@ public class LLStoreScalar implements LLInstruction {
 
   @Override
   public List<LLDeclaration> uses() {
-    throw new RuntimeException("not implemented");
+    return List.of(expression);
   }
 
   @Override
   public Optional<LLDeclaration> definition() {
-    throw new RuntimeException("not implemented");
+    return Optional.of(declaration);
   }
   
   @Override

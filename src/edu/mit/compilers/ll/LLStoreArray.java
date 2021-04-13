@@ -31,12 +31,12 @@ public class LLStoreArray implements LLInstruction {
 
   @Override
   public List<LLDeclaration> uses() {
-    throw new RuntimeException("not implemented");
+    return List.of(expression, index);
   }
 
   @Override
   public Optional<LLDeclaration> definition() {
-    throw new RuntimeException("not implemented");
+    return Optional.of(declaration);
   }
   
   @Override
