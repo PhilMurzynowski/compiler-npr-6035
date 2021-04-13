@@ -1,12 +1,11 @@
 package edu.mit.compilers.ll;
 
-import java.util.Optional;
-import java.util.List;
+import java.util.Set;
 
 public interface LLInstruction extends LLNode {
 
-  public List<LLDeclaration> uses();
-  public Optional<LLDeclaration> definition();
+  public Set<LLDeclaration> uses();
+  public Set<LLDeclaration> definition();
 
 }
 
