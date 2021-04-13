@@ -18,7 +18,7 @@ public class LLBasicBlock implements LLDeclaration {
   private List<LLInstruction> instructions;
   private Optional<LLBasicBlock> trueTarget;
   private Optional<LLBasicBlock> falseTarget;
-  private Set<LLBasicBlock> backEdges;
+  private Set<LLBasicBlock> predecessors;
   private boolean generated;
 
   public LLBasicBlock(List<LLInstruction> instructions) {
@@ -26,7 +26,7 @@ public class LLBasicBlock implements LLDeclaration {
     this.instructions = instructions;
     this.trueTarget = Optional.empty();
     this.falseTarget = Optional.empty();
-    this.backEdges = new HashSet<>();
+    this.predecessors = new HashSet<>();
     generated = false;
   }
 
@@ -44,7 +44,7 @@ public class LLBasicBlock implements LLDeclaration {
 
   public static void setTrueTarget(LLBasicBlock src, LLBasicBlock dst) {
     src.setTrueTarget(dst);
-    dst.addBackEdge(src);
+    dst.addPredecessor(src);
   }
 
   private void setFalseTarget(LLBasicBlock falseTarget) {
@@ -57,7 +57,7 @@ public class LLBasicBlock implements LLDeclaration {
 
   public static void setFalseTarget(LLBasicBlock src, LLBasicBlock dst) {
     src.setFalseTarget(dst);
-    dst.addBackEdge(src);
+    dst.addPredecessor(src);
   }
 
   public void setGenerated() {
@@ -69,16 +69,16 @@ public class LLBasicBlock implements LLDeclaration {
   }
 
   // NOTE(rbd): This should only be used by LLControlFlowGraph.simplify()!
-  public void addBackEdge(LLBasicBlock backEdge) {
-    if (this.backEdges.contains(backEdge)) {
-      throw new RuntimeException("back edge BB" + backEdge.index + " already exists for BB" + index);
+  public void addPredecessor(LLBasicBlock predecessor) {
+    if (this.predecessors.contains(predecessor)) {
+      throw new RuntimeException("back edge BB" + predecessor.index + " already exists for BB" + index);
     } else {
-      backEdges.add(backEdge);
+      predecessors.add(predecessor);
     }
   }
 
-  public Set<LLBasicBlock> getBackEdges() {
-    return backEdges;
+  public Set<LLBasicBlock> getPredecessors() {
+    return predecessors;
   }
 
   public boolean hasTrueTarget() {
@@ -155,7 +155,7 @@ public class LLBasicBlock implements LLDeclaration {
 
       final LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
 
-      if (getTrueTarget().backEdges.size() == 1) {
+      if (getTrueTarget().predecessors.size() == 1) {
         final List<LLInstruction> resultInstructions = new ArrayList<>(instructions);
         resultInstructions.addAll(simplifiedTrueTarget.instructions);
 
@@ -212,15 +212,15 @@ public class LLBasicBlock implements LLDeclaration {
   public String prettyStringDeclaration(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("BB" + index + ":");
-    if (backEdges.size() > 0) {
+    if (predecessors.size() > 0) {
       s.append(indent(12) + "; preds = ");
       boolean isFirst = true;
-      for (LLBasicBlock backEdge : backEdges) {
+      for (LLBasicBlock predecessor : predecessors) {
         if (isFirst) {
-          s.append("BB" + backEdge.index);
+          s.append("BB" + predecessor.index);
           isFirst = false;
         } else {
-          s.append(", BB" + backEdge.index);
+          s.append(", BB" + predecessor.index);
         }
       }
     }
@@ -253,9 +253,9 @@ public class LLBasicBlock implements LLDeclaration {
     if (falseTarget.isPresent()) {
       s.append(indent(depth + 1) + "falseTarget: " + falseTarget.get().index + ",\n");
     }
-    s.append(indent(depth + 1) + "backEdges: {\n");
-    for (LLBasicBlock backEdge : backEdges) {
-      s.append(indent(depth + 2) + backEdge.index + ",\n");
+    s.append(indent(depth + 1) + "predecessors: {\n");
+    for (LLBasicBlock predecessor : predecessors) {
+      s.append(indent(depth + 2) + predecessor.index + ",\n");
     }
     s.append(indent(depth + 1) + "},\n");
     s.append(indent(depth + 1) + "generated: " + generated + ",\n");

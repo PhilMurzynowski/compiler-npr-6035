@@ -63,13 +63,13 @@ public class LLControlFlowGraph implements LLNode {
 
       if (!visited.contains(current)) {
         if (current.hasFalseTarget()) {
-          current.getTrueTarget().addBackEdge(current);
-          current.getFalseTarget().addBackEdge(current);
+          current.getTrueTarget().addPredecessor(current);
+          current.getFalseTarget().addPredecessor(current);
 
           toVisit.push(current.getTrueTarget());
           toVisit.push(current.getFalseTarget());
         } else if (current.hasTrueTarget()) {
-          current.getTrueTarget().addBackEdge(current);
+          current.getTrueTarget().addPredecessor(current);
 
           toVisit.push(current.getTrueTarget());
         } else {
