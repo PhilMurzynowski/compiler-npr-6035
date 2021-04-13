@@ -30,4 +30,8 @@ public class BitMap<G> {
     throw new RuntimeException("not implemented");
   }
 
+  public void subsume(BitMap<G> other) {
+    throw new RuntimeException("not implemented");
+  }
+
 }

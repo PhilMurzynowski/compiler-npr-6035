@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
 import edu.mit.compilers.common.*;
+import edu.mit.compilers.opt.Optimization;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -129,6 +130,10 @@ public class LLMethodDeclaration implements LLDeclaration {
     }
 
     return -index - 8;
+  }
+
+  public void accept(Optimization optimization, List<LLDeclaration> globals) {
+    optimization.apply(body.get(), globals);
   }
 
   @Override

@@ -1,5 +1,7 @@
 package edu.mit.compilers.ll;
 
+import edu.mit.compilers.opt.Optimization;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -92,6 +94,16 @@ public class LLProgram implements LLNode {
 
   public List<LLMethodDeclaration> getMethodDeclarations() {
     return this.methodDeclarations;
+  }
+
+  public void accept(Optimization optimization) {
+    List<LLDeclaration> globals = new ArrayList<>();
+    globals.addAll(getScalarFieldDeclarations());
+    globals.addAll(getArrayFieldDeclarations());
+    globals = List.copyOf(globals);
+    for (LLMethodDeclaration methodDeclaration : getMethodDeclarations()) {
+      methodDeclaration.accept(optimization, globals);
+    }
   }
 
   @Override
