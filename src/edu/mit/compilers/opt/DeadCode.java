@@ -23,11 +23,14 @@ public class DeadCode implements Optimization {
     for (int i = allInstructions.size() - 1; i >= 0; i--) {
       LLInstruction instruction = allInstructions.get(i);
       boolean isCall = instruction instanceof LLInternalCall || instruction instanceof LLExternalCall;
-      // boolean isStore = instruction instanceof LLStoreArray || instruction instanceof LLStoreScalar;
-      if (!isCall /* && !isStore */ && instruction.definition().isPresent()) {
+      boolean isStoreArray = instruction instanceof LLStoreArray;
+      if (!isCall && instruction.definition().isPresent()) {
         LLDeclaration definition = instruction.definition().get();
         if (currentBitMap.get(definition)) {
-          currentBitMap.clear(definition);  // because old definition is changed
+          // Only clear if not a store array
+          if (!isStoreArray) {
+            currentBitMap.clear(definition);  // because old definition is changed
+          }
           aliveInstructions.add(instruction);
           for (LLDeclaration use: instruction.uses()) {
             currentBitMap.set(use);
