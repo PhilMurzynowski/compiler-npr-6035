@@ -3,6 +3,8 @@ package edu.mit.compilers.common;
 import java.util.Map;
 import java.util.HashMap;
 
+import static edu.mit.compilers.common.Utilities.indent;
+
 public class BitMap<G> {
 
   private Map<G, Boolean> map = new HashMap<>();
@@ -66,6 +68,21 @@ public class BitMap<G> {
     }
 
     return true;
+  }
+
+  public String debugString(int depth) {
+    StringBuilder s = new StringBuilder();
+    s.append("BitMap {\n");
+    for (G key : map.keySet()) {
+      s.append(indent(depth + 1) + key + " => " + map.get(key) + ",\n");
+    }
+    s.append(indent(depth) + "}");
+    return s.toString();
+  }
+
+  @Override
+  public String toString() {
+    return debugString(0);
   }
 
 }

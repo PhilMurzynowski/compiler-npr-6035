@@ -14,7 +14,7 @@ public class DeadCode implements Optimization {
    * @param exitBitMap
    * @return predecessors of this basic block
    */
-  public static boolean apply(LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap) {
+  public static boolean update(LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap, boolean delete) {
     List<LLInstruction> allInstructions = llBasicBlock.getInstructions();
     List<LLInstruction> aliveInstructions = new ArrayList<>();
 
@@ -23,8 +23,8 @@ public class DeadCode implements Optimization {
     for (int i = allInstructions.size() - 1; i >= 0; i--) {
       LLInstruction instruction = allInstructions.get(i);
       boolean isCall = instruction instanceof LLInternalCall || instruction instanceof LLExternalCall;
-      boolean isStore = instruction instanceof LLStoreArray || instruction instanceof LLStoreScalar;
-      if (!isCall && !isStore && instruction.definition().isPresent()) {
+      // boolean isStore = instruction instanceof LLStoreArray || instruction instanceof LLStoreScalar;
+      if (!isCall /* && !isStore */ && instruction.definition().isPresent()) {
         LLDeclaration definition = instruction.definition().get();
         if (currentBitMap.get(definition)) {
           currentBitMap.clear(definition);  // because old definition is changed
@@ -43,7 +43,9 @@ public class DeadCode implements Optimization {
     }
 
     Collections.reverse(aliveInstructions);
-    llBasicBlock.setInstructions(aliveInstructions);
+    if (delete) {
+      llBasicBlock.setInstructions(aliveInstructions);
+    }
 
     if (currentBitMap.sameValue(entryBitMap)) {
       return false;
@@ -95,13 +97,13 @@ public class DeadCode implements Optimization {
     // Set all blocks as to-be-visited
     workSet.addAll(visited);
 
-    // Apply DCE to all blocks in work set
+    // Update entry/exit sets for all basic blocks
     while (!workSet.isEmpty()) {
       LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
 
       // Only update predecessors if entryBitMap changes
-      if (apply(block, entryBitMaps.get(block), exitBitMaps.get(block))) {
+      if (update(block, entryBitMaps.get(block), exitBitMaps.get(block), false)) {
         for (LLBasicBlock p : block.getPredecessors()) {
           BitMap<LLDeclaration> exitMap = exitBitMaps.get(p);
           exitMap.or(entryBitMaps.get(block));
@@ -110,6 +112,12 @@ public class DeadCode implements Optimization {
           workSet.add(p);
         }
       }
+    }
+
+    // Now actually delete dead code
+    for (LLBasicBlock block : visited) {
+      boolean updated = update(block, entryBitMaps.get(block), exitBitMaps.get(block), true);
+      assert !updated : "nothing should change at this point";
     }
   }
 
