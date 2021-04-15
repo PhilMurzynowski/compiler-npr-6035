@@ -357,12 +357,6 @@ LLLoadArray:
   movq  %rax,<result.location()>
 
 LLInternalCall:
-  pushq  %rdi
-  pushq  %rsi
-  pushq  %rdx
-  pushq  %rcx
-  pushq  %r8
-  pushq  %r9
   movq  <arguments[0].location()>,%rdi
   movq  <arguments[1].location()>,%rsi
   movq  <arguments[2].location()>,%rdx
@@ -375,20 +369,8 @@ LLInternalCall:
   callq  <declaration.location()>
   addq  $<(arguments.size() - 6) * 8>,%rsp
   movq  %rax,<result.location()>
-  popq  %r9
-  popq  %r8
-  popq  %rcx
-  popq  %rdx
-  popq  %rsi
-  popq  %rdi
 
 LLExternalCall:
-  pushq  %rdi
-  pushq  %rsi
-  pushq  %rdx
-  pushq  %rcx
-  pushq  %r8
-  pushq  %r9
   movq  <arguments[0].location()>,%rdi
   movq  <arguments[1].location()>,%rsi
   movq  <arguments[2].location()>,%rdx
@@ -401,12 +383,6 @@ LLExternalCall:
   callq  <declaration.location()>
   addq  $<(arguments.size() - 6) * 8>,%rsp
   movq  %rax,<result.location()>
-  popq  %r9
-  popq  %r8
-  popq  %rcx
-  popq  %rdx
-  popq  %rsi
-  popq  %rdi
 
 LLLength:
   movq  $<declaration.getLength()>,%rax
