@@ -181,11 +181,38 @@ public class LLGenerator {
       basicBlock.setGenerated();
 
       if (basicBlock.hasFalseTarget()) {
-        s.append(LLGenerator.generateInstruction("je", basicBlock.getFalseTarget().location()));
-        s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
+        final List<LLInstruction> instructions = basicBlock.getInstructions();
 
-        s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
-        s.append(LLGenerator.generateBasicBlock(basicBlock.getFalseTarget()));
+        if (instructions.size() < 1) {
+          throw new RuntimeException("should have at least one instruction (a comparison)");
+        }
+
+        if (instructions.get(instructions.size() - 1) instanceof LLCompare compareInstruction) {
+          final ComparisonType comparisonType = compareInstruction.getType();
+
+          if (comparisonType.equals(ComparisonType.EQUAL)) {
+            s.append(LLGenerator.generateInstruction("jne", basicBlock.getFalseTarget().location()));
+          } else if (comparisonType.equals(ComparisonType.NOT_EQUAL)) {
+            s.append(LLGenerator.generateInstruction("je", basicBlock.getFalseTarget().location()));
+          } else if (comparisonType.equals(ComparisonType.LESS_THAN)) {
+            s.append(LLGenerator.generateInstruction("jge", basicBlock.getFalseTarget().location()));
+          } else if (comparisonType.equals(ComparisonType.LESS_THAN_OR_EQUAL)) {
+            s.append(LLGenerator.generateInstruction("jg", basicBlock.getFalseTarget().location()));
+          } else if (comparisonType.equals(ComparisonType.GREATER_THAN)) {
+            s.append(LLGenerator.generateInstruction("jle", basicBlock.getFalseTarget().location()));
+          } else if (comparisonType.equals(ComparisonType.GREATER_THAN_OR_EQUAL)) {
+            s.append(LLGenerator.generateInstruction("jl", basicBlock.getFalseTarget().location()));
+          } else {
+            throw new RuntimeException("unreachable");
+          }
+
+          s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
+
+          s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
+          s.append(LLGenerator.generateBasicBlock(basicBlock.getFalseTarget()));
+        } else {
+          throw new RuntimeException("expected last instruction to be a comparison");
+        }
       } else if (basicBlock.hasTrueTarget()) {
         s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
 

@@ -43,18 +43,16 @@ public class LLShortCircuit {
         || binaryExpression.getType() == BinaryExpressionType.GREATER_THAN_OR_EQUAL) {
       LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-      final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
-      resultCFG = resultCFG.concatenate(
-        new LLIntegerLiteral(0, zeroResult)
-      );
+      final LLAliasDeclaration leftResult = methodDeclaration.newAlias();
+      final LLControlFlowGraph leftCFG = LLBuilder.buildExpression(binaryExpression.getLeft(), methodDeclaration, leftResult);
+      resultCFG = resultCFG.concatenate(leftCFG);
 
-      final LLAliasDeclaration expressionResult = methodDeclaration.newAlias();
-      resultCFG = resultCFG.concatenate(
-        LLBuilder.buildBinaryExpression(binaryExpression, methodDeclaration, expressionResult)
-      );
+      final LLAliasDeclaration rightResult = methodDeclaration.newAlias();
+      final LLControlFlowGraph rightCFG = LLBuilder.buildExpression(binaryExpression.getRight(), methodDeclaration, rightResult);
+      resultCFG = resultCFG.concatenate(rightCFG);
 
       final LLBasicBlock compareBB = new LLBasicBlock(
-        new LLCompare(zeroResult, expressionResult)
+        new LLCompare(leftResult, binaryExpression.getType().toComparisonType(), rightResult)
       );
 
       LLBasicBlock.setTrueTarget(compareBB, trueTarget);
@@ -82,17 +80,12 @@ public class LLShortCircuit {
   public static LLBasicBlock shortLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
-    resultCFG = resultCFG.concatenate(
-      new LLIntegerLiteral(0, zeroResult)
-    );
-
     final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
     final LLControlFlowGraph loadCFG = LLBuilder.buildLoadScalarExpression(loadScalarExpression, loadResult);
     resultCFG = resultCFG.concatenate(loadCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(
-      new LLCompare(zeroResult, loadResult)
+      new LLCompare(loadResult, ComparisonType.EQUAL, new LLConstantDeclaration(1))
     );
 
     LLBasicBlock.setTrueTarget(compareBB, trueTarget);
@@ -107,17 +100,12 @@ public class LLShortCircuit {
   public static LLBasicBlock shortLoadArrayExpression(HLLoadArrayExpression loadArrayExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
-    resultCFG = resultCFG.concatenate(
-      new LLIntegerLiteral(0, zeroResult)
-    );
-
     final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
     final LLControlFlowGraph loadCFG = LLBuilder.buildLoadArrayExpression(loadArrayExpression, methodDeclaration, loadResult);
     resultCFG = resultCFG.concatenate(loadCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(
-      new LLCompare(zeroResult, loadResult)
+      new LLCompare(loadResult, ComparisonType.EQUAL, new LLConstantDeclaration(1))
     );
 
     LLBasicBlock.setTrueTarget(compareBB, trueTarget);
@@ -141,17 +129,12 @@ public class LLShortCircuit {
   public static LLBasicBlock shortInternalCallExpression(HLInternalCallExpression internalCallExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
-    resultCFG = resultCFG.concatenate(
-      new LLIntegerLiteral(0, zeroResult)
-    );
-
     final LLAliasDeclaration callResult = methodDeclaration.newAlias();
     final LLControlFlowGraph callCFG = LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, callResult);
     resultCFG = resultCFG.concatenate(callCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(
-      new LLCompare(zeroResult, callResult)
+      new LLCompare(callResult, ComparisonType.EQUAL, new LLConstantDeclaration(1))
     );
 
     LLBasicBlock.setTrueTarget(compareBB, trueTarget);
@@ -166,17 +149,12 @@ public class LLShortCircuit {
   public static LLBasicBlock shortIntegerLiteral(HLIntegerLiteral integerLiteral, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
-    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
-    resultCFG = resultCFG.concatenate(
-      new LLIntegerLiteral(0, zeroResult)
-    );
-
     final LLAliasDeclaration integerResult = methodDeclaration.newAlias();
     final LLControlFlowGraph integerCFG = LLBuilder.buildIntegerLiteral(integerLiteral, methodDeclaration, integerResult);
     resultCFG = resultCFG.concatenate(integerCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(
-      new LLCompare(zeroResult, integerResult)
+      new LLCompare(integerResult, ComparisonType.EQUAL, new LLConstantDeclaration(1))
     );
 
     LLBasicBlock.setTrueTarget(compareBB, trueTarget);

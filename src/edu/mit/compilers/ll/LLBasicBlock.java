@@ -243,10 +243,9 @@ public class LLBasicBlock implements LLDeclaration {
       s.append(indent(depth + 1) + instruction.prettyString(depth + 1) + "\n");
     }
     if (falseTarget.isPresent()) {
-      s.append(indent(depth + 1) + "je " + falseTarget.get().prettyString(depth) + "\n");
-    }
-    if (trueTarget.isPresent()) {
-      s.append(indent(depth + 1) + "jmp " + trueTarget.get().prettyString(depth) + "\n");
+      s.append(indent(depth + 1) + "br " + trueTarget.get().prettyString(depth + 1) + ", " + falseTarget.get().prettyString(depth) + "\n");
+    } else if (trueTarget.isPresent()) {
+      s.append(indent(depth + 1) + "br " + trueTarget.get().prettyString(depth) + "\n");
     }
     return s.toString().strip();
   }

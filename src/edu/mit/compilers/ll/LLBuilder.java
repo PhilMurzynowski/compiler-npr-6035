@@ -134,9 +134,8 @@ public class LLBuilder {
 
       methodDeclaration.addScalar(llLocalScalarFieldDeclaration);
 
-      final LLConstantDeclaration zeroResult = new LLConstantDeclaration(0);
       resultCFG = resultCFG.concatenate(
-        new LLStoreScalar(hlLocalScalarFieldDeclaration.getLL(), zeroResult)
+        new LLStoreScalar(hlLocalScalarFieldDeclaration.getLL(), new LLConstantDeclaration(0))
       );
     }
 
@@ -146,19 +145,17 @@ public class LLBuilder {
       methodDeclaration.addArray(llLocalArrayFieldDeclaration);
 
       final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
-      final LLConstantDeclaration lengthResult = new LLConstantDeclaration(llLocalArrayFieldDeclaration.getLength());
-      final LLConstantDeclaration zeroResult = new LLConstantDeclaration(0);
 
       final LLBasicBlock initialBB = new LLBasicBlock(
         new LLIntegerLiteral(0, indexResult)
       );
 
       final LLBasicBlock conditionBB = new LLBasicBlock(
-        new LLCompare(indexResult, lengthResult)
+        new LLCompare(indexResult, ComparisonType.LESS_THAN, new LLConstantDeclaration(llLocalArrayFieldDeclaration.getLength()))
       );
 
       final LLBasicBlock bodyBB = new LLBasicBlock(
-        new LLStoreArray(llLocalArrayFieldDeclaration, indexResult, zeroResult)
+        new LLStoreArray(llLocalArrayFieldDeclaration, indexResult, new LLConstantDeclaration(0))
       );
 
       final LLBasicBlock updateBB = new LLBasicBlock(
@@ -479,8 +476,12 @@ public class LLBuilder {
 
   public static LLControlFlowGraph buildBinaryExpression(HLBinaryExpression binaryExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result) {
     if (binaryExpression.getType() == BinaryExpressionType.AND || binaryExpression.getType() == BinaryExpressionType.OR) {
-      LLBasicBlock trueBB = new LLBasicBlock(new LLIntegerLiteral(1, result));
-      LLBasicBlock falseBB = new LLBasicBlock(new LLIntegerLiteral(0, result));
+      LLBasicBlock trueBB = new LLBasicBlock(
+        new LLIntegerLiteral(1, result)
+      );
+      LLBasicBlock falseBB = new LLBasicBlock(
+        new LLIntegerLiteral(0, result)
+      );
       LLBasicBlock entryBB = LLShortCircuit.shortExpression(binaryExpression, methodDeclaration, trueBB, falseBB);
       LLBasicBlock exitBB = new LLBasicBlock();
       
@@ -542,20 +543,14 @@ public class LLBuilder {
   }
 
   private static LLControlFlowGraph buildBoundsCheck(LLMethodDeclaration methodDeclaration, long length, LLDeclaration indexResult, LLBasicBlock targetBB) {
-    final LLConstantDeclaration lengthResult = new LLConstantDeclaration(length);
-    final LLConstantDeclaration zeroResult = new LLConstantDeclaration(0);
     final LLBasicBlock initialBB = new LLBasicBlock();
 
-    final LLAliasDeclaration isPositiveResult = methodDeclaration.newAlias();
     final LLBasicBlock isPositiveBB = new LLBasicBlock(
-      new LLBinary(indexResult, BinaryExpressionType.GREATER_THAN_OR_EQUAL, zeroResult, isPositiveResult),
-      new LLCompare(zeroResult, isPositiveResult)
+      new LLCompare(indexResult, ComparisonType.GREATER_THAN_OR_EQUAL, new LLConstantDeclaration(0))
     );
 
-    final LLAliasDeclaration isLessResult = methodDeclaration.newAlias();
     final LLBasicBlock isLessBB = new LLBasicBlock(
-      new LLBinary(indexResult, BinaryExpressionType.LESS_THAN, lengthResult, isLessResult),
-      new LLCompare(zeroResult, isLessResult)
+      new LLCompare(indexResult, ComparisonType.LESS_THAN, new LLConstantDeclaration(length))
     );
 
     final LLBasicBlock exceptionBB = new LLBasicBlock(
