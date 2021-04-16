@@ -134,9 +134,8 @@ public class LLBuilder {
 
       methodDeclaration.addScalar(llLocalScalarFieldDeclaration);
 
-      final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
+      final LLConstantDeclaration zeroResult = new LLConstantDeclaration(0);
       resultCFG = resultCFG.concatenate(
-        new LLIntegerLiteral(0, zeroResult),
         new LLStoreScalar(hlLocalScalarFieldDeclaration.getLL(), zeroResult)
       );
     }
@@ -147,13 +146,11 @@ public class LLBuilder {
       methodDeclaration.addArray(llLocalArrayFieldDeclaration);
 
       final LLAliasDeclaration indexResult = methodDeclaration.newAlias();
-      final LLAliasDeclaration lengthResult = methodDeclaration.newAlias();
-      final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
+      final LLConstantDeclaration lengthResult = new LLConstantDeclaration(llLocalArrayFieldDeclaration.getLength());
+      final LLConstantDeclaration zeroResult = new LLConstantDeclaration(0);
 
       final LLBasicBlock initialBB = new LLBasicBlock(
-        new LLIntegerLiteral(0, indexResult),
-        new LLIntegerLiteral(llLocalArrayFieldDeclaration.getLength(), lengthResult),
-        new LLIntegerLiteral(0, zeroResult)
+        new LLIntegerLiteral(0, indexResult)
       );
 
       final LLBasicBlock conditionBB = new LLBasicBlock(
@@ -545,12 +542,9 @@ public class LLBuilder {
   }
 
   private static LLControlFlowGraph buildBoundsCheck(LLMethodDeclaration methodDeclaration, long length, LLDeclaration indexResult, LLBasicBlock targetBB) {
-    final LLAliasDeclaration lengthResult = methodDeclaration.newAlias();
-    final LLAliasDeclaration zeroResult = methodDeclaration.newAlias();
-    final LLBasicBlock initialBB = new LLBasicBlock(
-      new LLIntegerLiteral(length, lengthResult),
-      new LLIntegerLiteral(0, zeroResult)
-    );
+    final LLConstantDeclaration lengthResult = new LLConstantDeclaration(length);
+    final LLConstantDeclaration zeroResult = new LLConstantDeclaration(0);
+    final LLBasicBlock initialBB = new LLBasicBlock();
 
     final LLAliasDeclaration isPositiveResult = methodDeclaration.newAlias();
     final LLBasicBlock isPositiveBB = new LLBasicBlock(
