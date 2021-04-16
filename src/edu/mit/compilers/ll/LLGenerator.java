@@ -206,17 +206,22 @@ public class LLGenerator {
             throw new RuntimeException("unreachable");
           }
 
-          s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
+          if (basicBlock.getTrueTarget().isGenerated()) {
+            s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
+          } else {
+            s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
+          }
 
-          s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
           s.append(LLGenerator.generateBasicBlock(basicBlock.getFalseTarget()));
         } else {
           throw new RuntimeException("expected last instruction to be a comparison");
         }
       } else if (basicBlock.hasTrueTarget()) {
-        s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
-
-        s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
+        if (basicBlock.getTrueTarget().isGenerated()) {
+          s.append(LLGenerator.generateInstruction("jmp", basicBlock.getTrueTarget().location()));
+        } else {
+          s.append(LLGenerator.generateBasicBlock(basicBlock.getTrueTarget()));
+        }
       }
     }
 
