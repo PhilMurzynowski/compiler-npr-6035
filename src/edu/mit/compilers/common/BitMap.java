@@ -54,6 +54,10 @@ public class BitMap<G> {
     this.map = new HashMap<>(other.map);
   }
 
+  public Set<G> getKeySet() {
+    return this.map.keySet();
+  }
+
   public boolean sameValue(BitMap<G> other) {
     if (this.map.size() != other.map.size()) {
       return false;

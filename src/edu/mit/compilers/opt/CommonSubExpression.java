@@ -8,7 +8,7 @@ import java.util.*;
 public class CommonSubExpression implements Optimization {
 
   // Perform GEN KILL update for available expressions
-  public static boolean update(LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExpr, BitMap<String> entryBitMap, BitMap<String> exitBitMap) {
+  public static boolean update(LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, BitMap<String> entryBitMap, BitMap<String> exitBitMap) {
 
     BitMap<String> currentBitMap = new BitMap<>(entryBitMap);
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
@@ -16,19 +16,28 @@ public class CommonSubExpression implements Optimization {
       if (instruction instanceof LLBinary || instruction instanceof LLUnary || instruction instanceof LLCompare) {
         String expr = instruction.getUniqueExpressionString();
         // GEN
+        // track all variables used in expr, if change need to KILL expr
+        for (LLDeclaration use : instruction.uses()) {
+          if (mapVarToExprs.containsKey(use)) {
+            mapVarToExprs.get(use).add(expr); 
+          } else {
+            mapVarToExprs.put(use, List.of(expr));
+          }
+        }
         currentBitMap.set(expr);
       }
 
       if (instruction.definition().isPresent()) {
         LLDeclaration definition = instruction.definition().get();
-        if(mapVarToExpr.containsKey(definition)) {
-          for (String expr : mapVarToExpr.get(definition)) {
+        if(mapVarToExprs.containsKey(definition)) {
+          for (String expr : mapVarToExprs.get(definition)) {
             // KILL
             exitBitMap.clear(expr);
           }
         }
       }
     }
+
     if (currentBitMap.sameValue(entryBitMap)) {
       return false;
     } else {
@@ -38,7 +47,7 @@ public class CommonSubExpression implements Optimization {
   }
 
   // Initialize maps with all expressions in a basic block
-  public static void initBitMap(LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExpr, BitMap<String> bitMap) {
+  public static void initBitMap(LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, BitMap<String> bitMap) {
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
@@ -46,10 +55,10 @@ public class CommonSubExpression implements Optimization {
         String expr = instruction.getUniqueExpressionString();
         // track all variables used in expr, if change need to KILL expr
         for (LLDeclaration use : instruction.uses()) {
-          if (mapVarToExpr.containsKey(use)) {
-            mapVarToExpr.get(use).add(expr); 
+          if (mapVarToExprs.containsKey(use)) {
+            mapVarToExprs.get(use).add(expr); 
           } else {
-            mapVarToExpr.put(use, List.of(expr));
+            mapVarToExprs.put(use, List.of(expr));
           }
 
         // assume available everywhere initially (optimisic)
@@ -60,7 +69,7 @@ public class CommonSubExpression implements Optimization {
   }
 
   // Initialize maps with all expressions in a CFG
-  public static void initBitMap(LLControlFlowGraph controlFlowGraph, Map<LLDeclaration, List<String>> mapVarToExpr, BitMap<String> bitMap) {
+  public static void initBitMap(LLControlFlowGraph controlFlowGraph, Map<LLDeclaration, List<String>> mapVarToExprs, BitMap<String> bitMap) {
 
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
     final Set<LLBasicBlock> visited = new LinkedHashSet<>();
@@ -72,7 +81,7 @@ public class CommonSubExpression implements Optimization {
       workSet.remove(block);
 
       if (!visited.contains(block)) {
-        initBitMap(block, mapVarToExpr, bitMap);
+        initBitMap(block, mapVarToExprs, bitMap);
         workSet.addAll(block.getSuccessors());
         visited.add(block);
       }
@@ -84,7 +93,8 @@ public class CommonSubExpression implements Optimization {
     final Map<LLBasicBlock, BitMap<String>> entryBitMaps = new HashMap<>();
     final Map<LLBasicBlock, BitMap<String>> exitBitMaps = new HashMap<>();
 
-    final Map<LLDeclaration, List<String>> mapVarToExpr = new HashMap<>();
+    final Map<LLDeclaration, List<String>> mapVarToExprs = new HashMap<>();
+    final Map<String, LLDeclaration> mapExprToTmp = new HashMap<>();
 
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
     final Set<LLBasicBlock> visited = new LinkedHashSet<>();
@@ -92,15 +102,15 @@ public class CommonSubExpression implements Optimization {
     // Initialize the entry block's bit maps
     final BitMap<String> globalEntryInBitMap = new BitMap<>();
     final BitMap<String> globalEntryOutBitMap = new BitMap<>();
-    update(controlFlowGraph.getEntry(), mapVarToExpr, globalEntryInBitMap, globalEntryOutBitMap);
+    update(controlFlowGraph.getEntry(), mapVarToExprs, globalEntryInBitMap, globalEntryOutBitMap);
     entryBitMaps.put(controlFlowGraph.getEntry(), globalEntryInBitMap); 
     exitBitMaps.put(controlFlowGraph.getExit(), globalEntryOutBitMap); 
     workSet.addAll(controlFlowGraph.getExit().getSuccessors());
     visited.add(controlFlowGraph.getEntry());
 
-    // Initialize all other bitmaps
+    // Initialize all bitmaps
     BitMap<String> defaultBitMap = new BitMap<>();
-    initBitMap(controlFlowGraph, mapVarToExpr, defaultBitMap);
+    initBitMap(controlFlowGraph, mapVarToExprs, defaultBitMap);
     while (!workSet.isEmpty()) {
       final LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
@@ -125,7 +135,7 @@ public class CommonSubExpression implements Optimization {
       workSet.remove(block);
 
       // Only update successors if entryBitMap changes
-      if (update(block, mapVarToExpr, entryBitMaps.get(block), exitBitMaps.get(block))) {
+      if (update(block, mapVarToExprs, entryBitMaps.get(block), exitBitMaps.get(block))) {
         for (LLBasicBlock s : block.getSuccessors()) {
           BitMap<String> exitMap = exitBitMaps.get(s);
           exitMap.and(entryBitMaps.get(block));
@@ -135,6 +145,14 @@ public class CommonSubExpression implements Optimization {
         }
       }
     }
+
+    // allocate a unique temporary for each expression
+    for (String expr : defaultBitMap.getKeySet()) {
+      LLDeclaration tmp = methodDeclaration.newAlias();
+      mapExprToTmp.put(expr, tmp);
+    }
+
+    // TODO: eliminate common sub expressions across blocks
   }
 
   // NOTE(phil): DEPRECATED, value numbering method, does not update bitmap, kept to reuse snippets and in case needed later
