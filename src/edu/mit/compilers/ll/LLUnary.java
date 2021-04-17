@@ -46,7 +46,8 @@ public class LLUnary implements LLInstruction {
     return new LLUnary(type, uses.get(0), result);
   }
 
-  public String toUniqueExpressionString() {
+  @Override
+  public String getUniqueExpressionString() {
     StringBuilder exprBuilder =  new StringBuilder();
 
     if (type == UnaryExpressionType.NOT || type ==  UnaryExpressionType.NEGATE) {

@@ -52,7 +52,8 @@ public class LLBinary implements LLInstruction {
     return new LLBinary(uses.get(0), type, uses.get(1), result);
   }
 
-  public String toUniqueExpressionString() {
+  @Override
+  public String getUniqueExpressionString() {
     StringBuilder exprBuilder =  new StringBuilder();
 
     exprBuilder.append(this.getLeft().toUniqueDeclarationString());
