@@ -110,8 +110,8 @@ public class CommonSubExpression implements Optimization {
     final BitMap<String> globalEntryOutBitMap = new BitMap<>();
     update(controlFlowGraph.getEntry(), mapVarToExprs, globalEntryInBitMap, globalEntryOutBitMap);
     entryBitMaps.put(controlFlowGraph.getEntry(), globalEntryInBitMap); 
-    exitBitMaps.put(controlFlowGraph.getExit(), globalEntryOutBitMap); 
-    workSet.addAll(controlFlowGraph.getExit().getSuccessors());
+    exitBitMaps.put(controlFlowGraph.getEntry(), globalEntryOutBitMap); 
+    workSet.addAll(controlFlowGraph.getEntry().getSuccessors());
     visited.add(controlFlowGraph.getEntry());
 
     // Initialize all bitmaps
