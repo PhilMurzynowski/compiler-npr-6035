@@ -35,7 +35,16 @@ public class LLLoadScalar implements LLInstruction {
 
   @Override
   public LLInstruction usesReplaced(List<LLDeclaration> uses) {
-    return new LLLoadScalar((LLScalarFieldDeclaration)uses.get(0), result);
+    if (uses.get(0) instanceof LLConstantDeclaration constantDeclaration) {
+      return new LLIntegerLiteral(constantDeclaration.getValue(), result);
+    } else if (uses.get(0) instanceof LLScalarFieldDeclaration scalarFieldDeclaration) {
+      return new LLLoadScalar(scalarFieldDeclaration, result);
+    } else if (uses.get(0) instanceof LLAliasDeclaration aliasDeclaration) {
+      return new LLCopy(aliasDeclaration, result);
+    } else {
+      System.err.println(uses.get(0));
+      throw new RuntimeException("not implemented");
+    }
   }
 
   @Override

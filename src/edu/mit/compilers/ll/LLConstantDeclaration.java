@@ -10,6 +10,10 @@ public class LLConstantDeclaration implements LLDeclaration {
     this.value = value;
   }
 
+  public long getValue() {
+    return value;
+  }
+
   @Override
   public String toUniqueDeclarationString() {
     return "$" + value;
