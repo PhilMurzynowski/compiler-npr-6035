@@ -10,16 +10,16 @@ import java.util.*;
 public class CommonSubExpression implements Optimization {
 
 
-  public static Set<LLBasicBlock> apply(CSETable cseTable, LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap)
+  public static boolean update(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap)
   {
 
+    CSETable cseTable = new CSETable(methodDeclaration); 
+
     List<LLInstruction> newLLInstructions = new ArrayList<>();
-    exitBitMap.subsume(entryBitMap);
-    boolean changed = false;
+    BitMap<LLDeclaration> currentBitMap = new BitMap<>(entryBitMap);
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
-      newLLInstructions.add(instruction);
       StringBuilder exprBuilder = new StringBuilder();
 
       if (instruction instanceof LLBinary binaryInstruction) {
@@ -44,11 +44,12 @@ public class CommonSubExpression implements Optimization {
       } else if (instruction instanceof LLCompare cmpInstruction) {
 
         exprBuilder.append(cseTable.varToVal(cmpInstruction.getLeft()));
-        exprBuilder.append(BinaryExpressionType.EQUAL);
+        exprBuilder.append(cmpInstruction.getType().toBinaryExpressionType());
         exprBuilder.append(cseTable.varToVal(cmpInstruction.getRight()));
 
       } else {
 
+        newLLInstructions.add(instruction);
         continue;
 
       }
@@ -56,20 +57,33 @@ public class CommonSubExpression implements Optimization {
       String expr = exprBuilder.toString();
       cseTable.exprToVal(expr);
 
-      if (cseTable.inExprToTmp(expr)) {
+      // NOTE(phil): may duplicate instructions if pass over same BB
+      if (!cseTable.inExprToTmp(expr)) {
         LLDeclaration tmp = cseTable.addExprToTmp(expr);
         LLCopy copyInstruction = new LLCopy(instruction.definition().get(), tmp);
+        newLLInstructions.add(instruction);
         newLLInstructions.add(copyInstruction);
+      } else {
+        LLDeclaration tmp = cseTable.getExprToTmp(expr);
+        // modified instruction as no longer using LLBinary, LLUnary, etc, just the tmp
+        LLCopy modifiedInstruction = new LLCopy(tmp, instruction.definition().get());
+        newLLInstructions.add(modifiedInstruction);
       }
 
     }
 
-    return changed ? llBasicBlock.getSuccessors() : new HashSet<>();
+    llBasicBlock.setInstructions(newLLInstructions);
+
+    if (currentBitMap.sameValue(exitBitMap)) {
+      return false;
+    } else {
+      exitBitMap.subsume(currentBitMap);
+      return true;
+    }
   }
 
   // NOTE(phil): pass in method declaration to create new aliases
   public void apply(LLMethodDeclaration methodDeclaration, LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
-    throw new RuntimeException("not implemented");
   }
 
 }

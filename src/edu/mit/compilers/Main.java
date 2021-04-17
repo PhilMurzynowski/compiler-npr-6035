@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.List;
 
 import edu.mit.compilers.opt.DeadCode;
+import edu.mit.compilers.opt.CommonSubExpression;
 import edu.mit.compilers.tk.*;
 import edu.mit.compilers.pt.*;
 import edu.mit.compilers.ast.*;
@@ -178,6 +179,7 @@ class Main {
     // System.err.println(hl.debugString(0));
     LLProgram ll = LLBuilder.buildProgram(hl);
     ll.accept(new DeadCode());
+    ll.accept(new CommonSubExpression());
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
 
