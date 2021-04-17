@@ -60,7 +60,9 @@ public class CommonSubExpression implements Optimization {
         // track all variables used in expr, if change need to KILL expr
         for (LLDeclaration use : instruction.uses()) {
           if (mapVarToExprs.containsKey(use)) {
-            mapVarToExprs.get(use).add(expr); 
+            List<String> exprs = new ArrayList<>(mapVarToExprs.get(use));
+            exprs.add(expr);
+            mapVarToExprs.put(use, exprs);
           } else {
             mapVarToExprs.put(use, List.of(expr));
           }
