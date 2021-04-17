@@ -626,7 +626,11 @@ public class LLGenerator {
     // }
 
     for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
-      s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
+      if (arguments.get(i) instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
+        s.append(generateInstruction("leaq", arguments.get(i).location()+"(%rip)", registers.get(i)));
+      } else {
+        s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
+      }
     }
 
     if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {

@@ -49,6 +49,8 @@ public class CopyPropagation implements Optimization {
             if (definitionInstruction instanceof LLIntegerLiteral integerLiteral) {
               newUse = new LLConstantDeclaration(integerLiteral.getValue());
               break;
+            } else if (definitionInstruction instanceof LLStringLiteral stringLiteral) {
+              newUse = stringLiteral.getDeclaration();
             } else if (definitionInstruction instanceof LLStoreScalar storeScalar) {
               newUse = storeScalar.uses().iterator().next();
             } else if (definitionInstruction instanceof LLLoadScalar loadScalar) {

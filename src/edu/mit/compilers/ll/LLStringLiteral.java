@@ -15,11 +15,11 @@ public class LLStringLiteral implements LLInstruction {
     this.result = result; 
   }
 
-  LLStringLiteralDeclaration getDeclaration() {
+  public LLStringLiteralDeclaration getDeclaration() {
     return this.declaration;
   }
 
-  LLDeclaration getResult() {
+  public LLDeclaration getResult() {
     return this.result;
   }
 
