@@ -5,7 +5,7 @@ import java.util.*;
 import edu.mit.compilers.ll.*;
 import edu.mit.compilers.common.*;
 
-public class ConstantPropagation implements Optimization {
+public class CopyPropagation implements Optimization {
 
   private static boolean update(LLBasicBlock basicBlock, BitMap<LLInstruction> entry, BitMap<LLInstruction> exit, boolean propagate, Set<LLDeclaration> globals) {
     final Map<LLDeclaration, Set<LLInstruction>> definitionInstructions = new HashMap<>();
