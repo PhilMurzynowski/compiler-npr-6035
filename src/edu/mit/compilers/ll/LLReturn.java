@@ -40,6 +40,12 @@ public class LLReturn implements LLInstruction {
     }
   }
 
+  // NOTE(phil): likely want support return expr
+  @Override
+  public String getUniqueExpressionString() {
+    throw new RuntimeException("no expression available");
+  }
+
   @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();

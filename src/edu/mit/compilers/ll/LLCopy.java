@@ -39,6 +39,11 @@ public class LLCopy implements LLInstruction {
   }
 
   @Override
+  public String getUniqueExpressionString() {
+    throw new RuntimeException("no expression available");
+  }
+
+  @Override
   public String prettyString(int depth) {
     return result.prettyString(depth) + " = " + input.prettyString(depth);
   }

@@ -46,7 +46,8 @@ public class LLCompare implements LLInstruction {
     return new LLCompare(uses.get(0), type, uses.get(1));
   }
 
-  public String toUniqueExpressionString() {
+  @Override
+  public String getUniqueExpressionString() {
     StringBuilder exprBuilder =  new StringBuilder();
 
     exprBuilder.append(this.getLeft().toUniqueDeclarationString());

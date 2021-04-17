@@ -7,7 +7,23 @@ import java.util.*;
 
 public class CommonSubExpression implements Optimization {
 
+  // TODO(phil): add return expr support
+  public static BitMap<String> gen(LLBasicBlock llBasicBlock, BitMap<String> entryBitMap) {
 
+    BitMap<String> exitBitMap = new BitMap<>(entryBitMap);
+    for (LLInstruction instruction : llBasicBlock.getInstructions()) {
+      if (instruction instanceof LLBinary || instruction instanceof LLUnary || instruction instanceof LLCompare) {
+        String expr = instruction.getUniqueExpressionString();
+      }
+    }
+    return exitBitMap;
+  }
+
+  // NOTE(phil): pass in method declaration to create new aliases
+  public void apply(LLMethodDeclaration methodDeclaration, LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
+  }
+
+  // NOTE(phil): DEPRECATED, value numbering method, does not update bitmap, kept to reuse snippets and in case needed later
   public static boolean update(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap)
   {
 
@@ -79,9 +95,4 @@ public class CommonSubExpression implements Optimization {
       return true;
     }
   }
-
-  // NOTE(phil): pass in method declaration to create new aliases
-  public void apply(LLMethodDeclaration methodDeclaration, LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
-  }
-
 }
