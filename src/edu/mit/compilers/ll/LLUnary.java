@@ -42,6 +42,11 @@ public class LLUnary implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLUnary(type, uses.get(0), result);
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 

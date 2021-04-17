@@ -31,12 +31,17 @@ public class LLStoreArray implements LLInstruction {
 
   @Override
   public List<LLDeclaration> uses() {
-    return List.of(expression, index);
+    return List.of(index, expression);
   }
 
   @Override
   public Optional<LLDeclaration> definition() {
     return Optional.of(declaration);
+  }
+
+  @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLStoreArray(declaration, uses.get(0), uses.get(1));
   }
   
   @Override

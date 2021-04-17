@@ -48,6 +48,11 @@ public class LLBinary implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLBinary(uses.get(0), type, uses.get(1), result);
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 

@@ -31,6 +31,11 @@ public class LLException implements LLInstruction {
   public Optional<LLDeclaration> definition() {
     return Optional.empty();
   }
+  
+  @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return this;
+  }
 
   @Override
   public String prettyString(int depth) {

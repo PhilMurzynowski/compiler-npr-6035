@@ -40,6 +40,11 @@ public class LLLoadArray implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLLoadArray((LLArrayFieldDeclaration)uses.get(0), uses.get(1), result);
+  }
+
+  @Override
   public String prettyString(int depth) {
     return result.prettyString(depth) + " = load " + location.prettyString(depth) + ", " + index.prettyString(depth);
   }

@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.util.Optional;
 import java.util.List;
 
-import edu.mit.compilers.opt.DeadCode;
+import edu.mit.compilers.opt.*;
 import edu.mit.compilers.tk.*;
 import edu.mit.compilers.pt.*;
 import edu.mit.compilers.ast.*;
@@ -177,6 +177,7 @@ class Main {
     HLProgram hl = HLBuilder.buildProgram(program);
     // System.err.println(hl.debugString(0));
     LLProgram ll = LLBuilder.buildProgram(hl);
+    ll.accept(new ConstantPropagation());
     ll.accept(new DeadCode());
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);

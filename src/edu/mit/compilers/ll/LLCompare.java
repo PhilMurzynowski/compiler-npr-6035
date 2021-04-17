@@ -42,6 +42,11 @@ public class LLCompare implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLCompare(uses.get(0), type, uses.get(1));
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "cmp " + type.prettyString(depth) + " " + left.prettyString(depth) + ", " + right.prettyString(depth);
   }

@@ -1,9 +1,9 @@
 package edu.mit.compilers.opt;
 
+import java.util.*;
+
 import edu.mit.compilers.ll.*;
 import edu.mit.compilers.common.*;
-
-import java.util.*;
 
 public class DeadCode implements Optimization {
 

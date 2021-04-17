@@ -32,6 +32,11 @@ public class LLStoreScalar implements LLInstruction {
   public Optional<LLDeclaration> definition() {
     return Optional.of(declaration);
   }
+
+  @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLStoreScalar(declaration, uses.get(0));
+  }
   
   @Override
   public String prettyString(int depth) {

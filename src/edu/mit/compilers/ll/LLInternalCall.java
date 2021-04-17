@@ -71,6 +71,11 @@ public class LLInternalCall implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLInternalCall((LLMethodDeclaration)uses.get(0), uses.subList(1, uses.size()), result);
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 

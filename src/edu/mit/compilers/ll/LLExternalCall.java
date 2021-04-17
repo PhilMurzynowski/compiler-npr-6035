@@ -75,6 +75,11 @@ public class LLExternalCall implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLExternalCall((LLImportDeclaration)uses.get(0), uses.subList(1, uses.size()), result);
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 
