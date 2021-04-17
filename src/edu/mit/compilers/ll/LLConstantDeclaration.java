@@ -11,6 +11,11 @@ public class LLConstantDeclaration implements LLDeclaration {
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    return "$" + value;
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "$" + value;
   }

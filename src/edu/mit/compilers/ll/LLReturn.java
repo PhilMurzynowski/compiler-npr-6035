@@ -30,6 +30,15 @@ public class LLReturn implements LLInstruction {
   public Optional<LLDeclaration> definition() {
     return Optional.empty();
   }
+  
+  @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    if (uses.size() > 0) {
+      return new LLReturn(Optional.of(uses.get(0)));
+    } else {
+      return new LLReturn(Optional.empty());
+    }
+  }
 
   @Override
   public String prettyString(int depth) {

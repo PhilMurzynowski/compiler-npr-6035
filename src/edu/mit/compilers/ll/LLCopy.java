@@ -1,7 +1,5 @@
 package edu.mit.compilers.ll;
 
-import edu.mit.compilers.common.*;
-
 import java.util.Optional;
 import java.util.List;
 
@@ -33,6 +31,11 @@ public class LLCopy implements LLInstruction {
   @Override
   public Optional<LLDeclaration> definition() {
     return Optional.of(result);
+  }
+
+  @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLCopy(uses.get(0), result);
   }
 
   @Override

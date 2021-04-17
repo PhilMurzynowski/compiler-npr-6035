@@ -27,6 +27,11 @@ public class LLStringLiteralDeclaration implements LLDeclaration {
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    throw new RuntimeException("Should not need string declaration as string");
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "@STR" + index;
   }

@@ -218,6 +218,11 @@ public class LLBasicBlock implements LLDeclaration {
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    throw new RuntimeException("Should not need basic block declaration as string");
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "@BB" + index;
   }

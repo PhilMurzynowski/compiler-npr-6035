@@ -34,6 +34,11 @@ public class LLIntegerLiteral implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return this;
+  }
+
+  @Override
   public String prettyString(int depth) {
     return result.prettyString(depth) + " = $" + value;
   }

@@ -20,6 +20,11 @@ public class LLImportDeclaration implements LLDeclaration {
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    throw new RuntimeException("Should not need import declaration as string");
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "@" + identifier;
   }

@@ -26,6 +26,12 @@ public class LLAliasDeclaration implements LLDeclaration {
     }
   }
 
+  // NOTE(phil): change with register allocation
+  @Override
+  public String toUniqueDeclarationString() {
+    return "%" + index;
+  }
+
   @Override
   public String prettyString(int depth) {
     return "%" + index;

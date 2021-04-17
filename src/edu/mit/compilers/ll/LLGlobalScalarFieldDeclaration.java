@@ -20,6 +20,11 @@ public class LLGlobalScalarFieldDeclaration implements LLScalarFieldDeclaration 
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    return "@" + identifier;
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "@" + identifier;
   }

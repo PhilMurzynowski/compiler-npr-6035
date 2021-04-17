@@ -42,6 +42,21 @@ public class LLCompare implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLCompare(uses.get(0), type, uses.get(1));
+  }
+
+  public String toUniqueExpressionString() {
+    StringBuilder exprBuilder =  new StringBuilder();
+
+    exprBuilder.append(this.getLeft().toUniqueDeclarationString());
+    exprBuilder.append(" " + this.getType().toBinaryExpressionType().toString() + " ");
+    exprBuilder.append(this.getRight().toUniqueDeclarationString());
+
+    return exprBuilder.toString();
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "cmp " + type.prettyString(depth) + " " + left.prettyString(depth) + ", " + right.prettyString(depth);
   }

@@ -2,6 +2,8 @@ package edu.mit.compilers.common;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -68,6 +70,18 @@ public class BitMap<G> {
     }
 
     return true;
+  }
+
+  public Set<G> trueSet() {
+    final Set<G> trueSet = new HashSet<>();
+
+    for (Map.Entry<G, Boolean> entry : map.entrySet()) {
+      if (entry.getValue()) {
+        trueSet.add(entry.getKey());
+      }
+    }
+
+    return trueSet;
   }
 
   public String debugString(int depth) {

@@ -42,6 +42,27 @@ public class LLUnary implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLUnary(type, uses.get(0), result);
+  }
+
+  public String toUniqueExpressionString() {
+    StringBuilder exprBuilder =  new StringBuilder();
+
+    if (type == UnaryExpressionType.NOT || type ==  UnaryExpressionType.NEGATE) {
+      exprBuilder.append(type.toString());
+      exprBuilder.append(expression.toUniqueDeclarationString());
+    } else if (type == UnaryExpressionType.INCREMENT || type == UnaryExpressionType.INCREMENT) {
+      exprBuilder.append(expression.toUniqueDeclarationString());
+      exprBuilder.append(type.toString());
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+
+    return exprBuilder.toString();
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 

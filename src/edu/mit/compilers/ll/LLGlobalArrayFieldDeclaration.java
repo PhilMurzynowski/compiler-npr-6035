@@ -28,6 +28,11 @@ public class LLGlobalArrayFieldDeclaration implements LLArrayFieldDeclaration {
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    throw new RuntimeException("Should not need array declaration as string");
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "@" + identifier;
   }

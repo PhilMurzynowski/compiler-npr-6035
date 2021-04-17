@@ -2,8 +2,6 @@ package edu.mit.compilers.opt;
 
 import edu.mit.compilers.ll.*;
 import edu.mit.compilers.common.*;
-import java.util.Map;
-import java.util.HashMap;
 
 import java.util.*;
 

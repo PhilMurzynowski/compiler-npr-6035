@@ -34,6 +34,11 @@ public class LLLength implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLLength((LLArrayFieldDeclaration)uses.get(0), result);
+  }
+
+  @Override
   public String prettyString(int depth) {
     return result.prettyString(depth) + " = len " + declaration.prettyString(depth);
   }

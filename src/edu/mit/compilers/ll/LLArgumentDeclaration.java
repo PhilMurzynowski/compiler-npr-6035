@@ -15,6 +15,11 @@ public class LLArgumentDeclaration implements LLScalarFieldDeclaration {
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    return "arg " + index;
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "arg " + index;
   }

@@ -9,5 +9,6 @@ public interface LLDeclaration extends LLNode {
   String location();
 
   public String prettyStringDeclaration(int depth);
+  public String toUniqueDeclarationString();
 
 }

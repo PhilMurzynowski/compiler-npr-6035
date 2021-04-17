@@ -48,6 +48,21 @@ public class LLBinary implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLBinary(uses.get(0), type, uses.get(1), result);
+  }
+
+  public String toUniqueExpressionString() {
+    StringBuilder exprBuilder =  new StringBuilder();
+
+    exprBuilder.append(this.getLeft().toUniqueDeclarationString());
+    exprBuilder.append(" " + this.getType().toString() + " ");
+    exprBuilder.append(this.getRight().toUniqueDeclarationString());
+
+    return exprBuilder.toString();
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 

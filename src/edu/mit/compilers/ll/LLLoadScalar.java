@@ -34,6 +34,11 @@ public class LLLoadScalar implements LLInstruction {
   }
 
   @Override
+  public LLInstruction usesReplaced(List<LLDeclaration> uses) {
+    return new LLLoadScalar((LLScalarFieldDeclaration)uses.get(0), result);
+  }
+
+  @Override
   public String prettyString(int depth) {
     return result.prettyString(depth) + " = load " + declaration.prettyString(depth);
   }

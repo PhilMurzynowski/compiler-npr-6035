@@ -32,6 +32,11 @@ public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
   }
 
   @Override
+  public String toUniqueDeclarationString() {
+    return "local " + index;
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "local " + index;
   }
