@@ -36,16 +36,18 @@ public class CommonSubExpression implements Optimization {
         if(mapVarToExprs.containsKey(definition)) {
           for (String expr : mapVarToExprs.get(definition)) {
             // KILL
-            exitBitMap.clear(expr);
+            //System.out.println("Killing\n");
+            //System.out.println(llBasicBlock.prettyString(0));
+            currentBitMap.clear(expr);
           }
         }
       }
     }
 
-    if (currentBitMap.sameValue(entryBitMap)) {
+    if (currentBitMap.sameValue(exitBitMap)) {
       return false;
     } else {
-      entryBitMap.subsume(currentBitMap);
+      exitBitMap.subsume(currentBitMap);
       return true;
     }
   }
@@ -117,6 +119,8 @@ public class CommonSubExpression implements Optimization {
     // Initialize all bitmaps
     BitMap<String> defaultBitMap = new BitMap<>();
     initBitMap(controlFlowGraph, mapVarToExprs, defaultBitMap);
+    //System.out.println("default bitmap\n");
+    //System.out.println(defaultBitMap.toString());
     while (!workSet.isEmpty()) {
       final LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
@@ -143,8 +147,8 @@ public class CommonSubExpression implements Optimization {
       // Only update successors if entryBitMap changes
       if (update(block, mapVarToExprs, entryBitMaps.get(block), exitBitMaps.get(block))) {
         for (LLBasicBlock s : block.getSuccessors()) {
-          BitMap<String> exitMap = exitBitMaps.get(s);
-          exitMap.and(entryBitMaps.get(block));
+          BitMap<String> entryMap = entryBitMaps.get(s);
+          entryMap.and(exitBitMaps.get(block));
 
           // Add all sucessors to work set
           workSet.add(s);
@@ -166,11 +170,11 @@ public class CommonSubExpression implements Optimization {
     while (!workSet.isEmpty()) {
       final LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
-      block.prettyString(0);
+      System.out.println(block.prettyString(0));
       System.out.println("Entry bitmap\n");
-      entryBitMaps.get(block).toString();
+      System.out.println(entryBitMaps.get(block).toString());
       System.out.println("Exit bitmap\n");
-      exitBitMaps.get(block).toString();
+      System.out.println(exitBitMaps.get(block).toString());
       if (!visited.contains(block)) {
         workSet.addAll(block.getSuccessors());
         visited.add(block);
