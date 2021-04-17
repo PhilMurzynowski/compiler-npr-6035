@@ -5,6 +5,7 @@ import edu.mit.compilers.common.*;
 
 import java.util.*;
 
+
 public class CommonSubExpression implements Optimization {
 
   // Perform GEN KILL update for available expressions
@@ -19,7 +20,10 @@ public class CommonSubExpression implements Optimization {
         // track all variables used in expr, if change need to KILL expr
         for (LLDeclaration use : instruction.uses()) {
           if (mapVarToExprs.containsKey(use)) {
-            mapVarToExprs.get(use).add(expr); 
+            //mapVarToExprs.get(use).add(expr);  I wish java let me do this hahah
+            List<String> exprs = new ArrayList<>(mapVarToExprs.get(use));
+            exprs.add(expr);
+            mapVarToExprs.put(use, exprs);
           } else {
             mapVarToExprs.put(use, List.of(expr));
           }
@@ -150,6 +154,25 @@ public class CommonSubExpression implements Optimization {
     for (String expr : defaultBitMap.getKeySet()) {
       LLDeclaration tmp = methodDeclaration.newAlias();
       mapExprToTmp.put(expr, tmp);
+    }
+
+    // DEBUGGING: print available expressions
+    System.out.println("DEBUGGING CSE\n");
+    workSet.clear();
+    visited.clear();
+    workSet.add(controlFlowGraph.getEntry());
+    while (!workSet.isEmpty()) {
+      final LLBasicBlock block = workSet.iterator().next();
+      workSet.remove(block);
+      block.prettyString(0);
+      System.out.println("Entry bitmap\n");
+      entryBitMaps.get(block).toString();
+      System.out.println("Exit bitmap\n");
+      exitBitMaps.get(block).toString();
+      if (!visited.contains(block)) {
+        workSet.addAll(block.getSuccessors());
+        visited.add(block);
+      }
     }
 
     // TODO: eliminate common sub expressions across blocks
