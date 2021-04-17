@@ -19,6 +19,7 @@ public class CommonSubExpression implements Optimization {
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
+      newLLInstructions.add(instruction);
       StringBuilder exprBuilder = new StringBuilder();
 
       if (instruction instanceof LLBinary binaryInstruction) {
@@ -47,12 +48,19 @@ public class CommonSubExpression implements Optimization {
         exprBuilder.append(cseTable.varToVal(cmpInstruction.getRight()));
 
       } else {
+
         continue;
+
       }
 
       String expr = exprBuilder.toString();
       cseTable.exprToVal(expr);
-      cseTable.exprToTmp(expr);
+
+      if (cseTable.inExprToTmp(expr)) {
+        LLDeclaration tmp = cseTable.addExprToTmp(expr);
+        LLCopy copyInstruction = new LLCopy(instruction.definition().get(), tmp);
+        newLLInstructions.add(copyInstruction);
+      }
 
     }
 
