@@ -5,9 +5,9 @@ import java.util.*;
 import edu.mit.compilers.ll.*;
 import edu.mit.compilers.common.*;
 
-public class ConstantPropagation implements Optimization {
+public class CopyPropagation implements Optimization {
 
-  private static boolean update(LLBasicBlock basicBlock, BitMap<LLInstruction> entry, BitMap<LLInstruction> exit, boolean propagate) {
+  private static boolean update(LLBasicBlock basicBlock, BitMap<LLInstruction> entry, BitMap<LLInstruction> exit, boolean propagate, Set<LLDeclaration> globals) {
     final Map<LLDeclaration, Set<LLInstruction>> definitionInstructions = new HashMap<>();
 
     for (LLInstruction definitionInstruction : entry.trueSet()) {
@@ -43,16 +43,23 @@ public class ConstantPropagation implements Optimization {
         final List<LLDeclaration> newUses = new ArrayList<>();
 
         for (LLDeclaration use : instruction.uses()) {
-          if (definitionInstructions.containsKey(use) && definitionInstructions.get(use).size() == 1) {
-            final LLInstruction definitionInstruction = definitionInstructions.get(use).iterator().next();
+          LLDeclaration newUse = use;
+          while (!globals.contains(newUse) && definitionInstructions.containsKey(newUse) && definitionInstructions.get(newUse).size() == 1) {
+            final LLInstruction definitionInstruction = definitionInstructions.get(newUse).iterator().next();
             if (definitionInstruction instanceof LLIntegerLiteral integerLiteral) {
-              newUses.add(new LLConstantDeclaration(integerLiteral.getValue()));
+              newUse = new LLConstantDeclaration(integerLiteral.getValue());
+              break;
+            } else if (definitionInstruction instanceof LLStringLiteral stringLiteral) {
+              newUse = stringLiteral.getDeclaration();
+            } else if (definitionInstruction instanceof LLStoreScalar storeScalar) {
+              newUse = storeScalar.uses().iterator().next();
+            } else if (definitionInstruction instanceof LLLoadScalar loadScalar) {
+              newUse = loadScalar.uses().iterator().next();
             } else {
-              newUses.add(use);
+              break;
             }
-          } else {
-            newUses.add(use);
           }
+          newUses.add(newUse);
         }
 
         newInstructions.add(instruction.usesReplaced(newUses));
@@ -100,7 +107,7 @@ public class ConstantPropagation implements Optimization {
       final LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
 
-      if (update(block, entries.get(block), exits.get(block), false)) {
+      if (update(block, entries.get(block), exits.get(block), false, new HashSet<>(globals))) {
         for (LLBasicBlock successor : block.getSuccessors()) {
           entries.get(successor).or(exits.get(block));
 
@@ -110,7 +117,7 @@ public class ConstantPropagation implements Optimization {
     }
 
     for (LLBasicBlock block : visited) {
-      boolean updated = update(block, entries.get(block), exits.get(block), true);
+      boolean updated = update(block, entries.get(block), exits.get(block), true, new HashSet<>(globals));
       assert !updated : "nothing should change at this point";
     }
   }

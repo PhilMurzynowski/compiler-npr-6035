@@ -339,6 +339,8 @@ public class LLGenerator {
       return LLGenerator.generateIntegerLiteral(integerLiteral);
     } else if (instruction instanceof LLStringLiteral stringLiteral) {
       return LLGenerator.generateStringLiteral(stringLiteral);
+    } else if (instruction instanceof LLCopy copy) {
+      return LLGenerator.generateCopy(copy);
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -624,7 +626,11 @@ public class LLGenerator {
     // }
 
     for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
-      s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
+      if (arguments.get(i) instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
+        s.append(generateInstruction("leaq", arguments.get(i).location()+"(%rip)", registers.get(i)));
+      } else {
+        s.append(generateInstruction("movq", arguments.get(i).location(), registers.get(i)));
+      }
     }
 
     if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {
@@ -677,6 +683,15 @@ public class LLGenerator {
 
     s.append(LLGenerator.generateInstruction("leaq", stringLiteral.getDeclaration().location()+"(%rip)", "%rax"));
     s.append(LLGenerator.generateInstruction("movq", "%rax", stringLiteral.getResult().location()));
+
+    return s.toString();
+  }
+
+  public static String generateCopy(LLCopy copy) {
+    StringBuilder s = new StringBuilder();
+
+    s.append(generateInstruction("movq", copy.getInput().location(), "%rax"));
+    s.append(generateInstruction("movq", "%rax", copy.getResult().location()));
 
     return s.toString();
   }

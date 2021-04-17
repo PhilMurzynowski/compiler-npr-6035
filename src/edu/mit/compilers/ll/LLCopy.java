@@ -45,12 +45,7 @@ public class LLCopy implements LLInstruction {
 
   @Override
   public String prettyString(int depth) {
-    StringBuilder s = new StringBuilder();
-
-    s.append(result.prettyString(depth) + " = ");
-    s.append(" " + input.prettyString(depth));
-
-    return s.toString();
+    return result.prettyString(depth) + " = " + input.prettyString(depth);
   }
 
   @Override
