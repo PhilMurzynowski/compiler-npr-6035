@@ -41,19 +41,28 @@ public class CSETable {
     }
   }
 
-  // TODO
-  public LLDeclaration exprToTmp(String expr) {
-    throw new RuntimeException("not implemented");
+  // Deviating from above pattern as exprToTmp more complicated
 
-    /*
+  public boolean inExprToTmp(String expr) {
+    return mapExprToTmp.containsKey(expr);
+  }
+
+  public LLDeclaration addExprToTmp(String expr) {
     if (mapExprToTmp.containsKey(expr)) {
-      return mapExprToTmp.get(expr);
+      throw new RuntimeException("Expr already in ExprToTmp");
     } else {
-
+      LLAliasDeclaration tmp = methodDeclaration.newAlias();
       mapExprToTmp.put(expr, tmp);
       return tmp;
     }
-    */
+  }
+
+  public LLDeclaration getExprToTmp(String expr) {
+    if (mapExprToTmp.containsKey(expr)) {
+      return mapExprToTmp.get(expr);
+    } else {
+      throw new RuntimeException("Expr not in ExprToTmp");
+    }
   }
 
 }
