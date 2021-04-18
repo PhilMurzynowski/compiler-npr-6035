@@ -7,6 +7,25 @@ import edu.mit.compilers.common.*;
 
 public class CopyPropagation implements Optimization {
 
+  private static LLDeclaration propagate(LLDeclaration use, Map<LLDeclaration, Set<LLInstruction>> definitionInstructions, Set<LLDeclaration> globals) {
+    if (!globals.contains(use) && definitionInstructions.containsKey(use) && definitionInstructions.get(use).size() == 1) {
+      final LLInstruction definitionInstruction = definitionInstructions.get(use).iterator().next();
+      if (definitionInstruction instanceof LLIntegerLiteral integerLiteral) {
+        return new LLConstantDeclaration(integerLiteral.getValue());
+      } else if (definitionInstruction instanceof LLStringLiteral stringLiteral) {
+        return stringLiteral.getDeclaration();
+      } else if (definitionInstruction instanceof LLStoreScalar storeScalar) {
+        return propagate(storeScalar.uses().iterator().next(), definitionInstructions, globals);
+      } else if (definitionInstruction instanceof LLLoadScalar loadScalar) {
+        return propagate(loadScalar.uses().iterator().next(), definitionInstructions, globals);
+      } else {
+        return use;
+      }
+    } else {
+      return use;
+    }
+  }
+
   private static boolean update(LLBasicBlock basicBlock, BitMap<LLInstruction> entry, BitMap<LLInstruction> exit, boolean propagate, Set<LLDeclaration> globals) {
     final Map<LLDeclaration, Set<LLInstruction>> definitionInstructions = new HashMap<>();
 
@@ -43,23 +62,7 @@ public class CopyPropagation implements Optimization {
         final List<LLDeclaration> newUses = new ArrayList<>();
 
         for (LLDeclaration use : instruction.uses()) {
-          LLDeclaration newUse = use;
-          while (!globals.contains(newUse) && definitionInstructions.containsKey(newUse) && definitionInstructions.get(newUse).size() == 1) {
-            final LLInstruction definitionInstruction = definitionInstructions.get(newUse).iterator().next();
-            if (definitionInstruction instanceof LLIntegerLiteral integerLiteral) {
-              newUse = new LLConstantDeclaration(integerLiteral.getValue());
-              break;
-            } else if (definitionInstruction instanceof LLStringLiteral stringLiteral) {
-              newUse = stringLiteral.getDeclaration();
-            } else if (definitionInstruction instanceof LLStoreScalar storeScalar) {
-              newUse = storeScalar.uses().iterator().next();
-            } else if (definitionInstruction instanceof LLLoadScalar loadScalar) {
-              newUse = loadScalar.uses().iterator().next();
-            } else {
-              break;
-            }
-          }
-          newUses.add(newUse);
+          newUses.add(propagate(use, definitionInstructions, globals));
         }
 
         newInstructions.add(instruction.usesReplaced(newUses));
