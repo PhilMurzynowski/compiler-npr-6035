@@ -20,6 +20,8 @@ public class CopyPropagation implements Optimization {
         return propagate(storeScalar.uses().iterator().next(), definitionInstructions, globals);
       } else if (definitionInstruction instanceof LLLoadScalar loadScalar) {
         return propagate(loadScalar.uses().iterator().next(), definitionInstructions, globals);
+      } else if (definitionInstruction instanceof LLCopy copy) {
+        return copy.uses().iterator().next();
       } else {
         return use;
       }
@@ -47,6 +49,19 @@ public class CopyPropagation implements Optimization {
     final List<LLInstruction> newInstructions = new ArrayList<>();
 
     for (LLInstruction instruction : basicBlock.getInstructions()) {
+      LLInstruction newInstruction = null; // NOTE(rbd): This will always be initialized before use, but Java doesn't believe me...
+
+      if (propagate) {
+        final List<LLDeclaration> newUses = new ArrayList<>();
+
+        for (LLDeclaration use : instruction.uses()) {
+          newUses.add(propagate(use, definitionInstructions, globals));
+        }
+
+        newInstruction = instruction.usesReplaced(newUses);
+        newInstructions.add(newInstruction);
+      }
+
       if (instruction.definition().isPresent()) {
         final LLDeclaration definition = instruction.definition().get();
 
@@ -56,18 +71,13 @@ public class CopyPropagation implements Optimization {
           }
         }
 
-        current.set(instruction);
-        definitionInstructions.put(definition, new HashSet<>(Set.of(instruction)));
-      }
-
-      if (propagate) {
-        final List<LLDeclaration> newUses = new ArrayList<>();
-
-        for (LLDeclaration use : instruction.uses()) {
-          newUses.add(propagate(use, definitionInstructions, globals));
+        if (propagate) {
+          current.set(newInstruction);
+          definitionInstructions.put(definition, new HashSet<>(Set.of(newInstruction)));
+        } else {
+          current.set(instruction);
+          definitionInstructions.put(definition, new HashSet<>(Set.of(instruction)));
         }
-
-        newInstructions.add(instruction.usesReplaced(newUses));
       }
     }
 
@@ -122,8 +132,7 @@ public class CopyPropagation implements Optimization {
     }
 
     for (LLBasicBlock block : visited) {
-      boolean updated = update(block, entries.get(block), exits.get(block), true, new HashSet<>(globals));
-      assert !updated : "nothing should change at this point";
+      update(block, entries.get(block), exits.get(block), true, new HashSet<>(globals));
     }
   }
 
