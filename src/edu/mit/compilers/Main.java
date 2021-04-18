@@ -179,6 +179,7 @@ class Main {
     LLProgram ll = LLBuilder.buildProgram(hl);
     // ll.accept(new CommonSubExpression());
     ll.accept(new CopyPropagation());
+    // ll.accept(new ConstantFolding());
     ll.accept(new DeadCode());
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
