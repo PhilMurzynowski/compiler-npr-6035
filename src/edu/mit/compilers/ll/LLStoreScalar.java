@@ -2,6 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -60,7 +61,22 @@ public class LLStoreScalar implements LLInstruction {
 
   @Override
   public String toString() {
-    throw new UnsupportedOperationException("not implemented");
+    return debugString(0);
+  }
+
+  private boolean sameValue(LLStoreScalar that) {
+    return declaration.equals(that.declaration)
+      && expression.equals(that.expression);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLStoreScalar && sameValue((LLStoreScalar)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(declaration, expression);
   }
 
 }

@@ -2,6 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -62,4 +63,20 @@ public class LLIntegerLiteral implements LLInstruction {
   public String toString() {
     return debugString(0);
   }
+
+  private boolean sameValue(LLIntegerLiteral that) {
+    return value == that.value
+      && result.equals(that.result);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLIntegerLiteral && sameValue((LLIntegerLiteral)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(value, result);
+  }
+
 }

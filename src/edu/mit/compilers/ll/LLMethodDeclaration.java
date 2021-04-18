@@ -222,4 +222,16 @@ public class LLMethodDeclaration implements LLDeclaration {
     return debugString(0);
   }
 
+  // NOTE(rbd): LLMethodDeclaration is mutable. Use default `.equals()` and `.hashCode()`
+
+  // @Override
+  // public boolean equals(Object that) {
+  //   throw new RuntimeException("not implemented");
+  // }
+
+  // @Override
+  // public int hashCode() {
+  //   throw new RuntimeException("not implemented");
+  // }
+
 }

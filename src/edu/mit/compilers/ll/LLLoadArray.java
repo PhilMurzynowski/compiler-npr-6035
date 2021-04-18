@@ -2,6 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -68,6 +69,22 @@ public class LLLoadArray implements LLInstruction {
   @Override
   public String toString() {
     return debugString(0);
+  }
+
+  private boolean sameValue(LLLoadArray that) {
+    return location.equals(that.location)
+      && index.equals(that.index)
+      && result.equals(that.result);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLLoadArray && sameValue((LLLoadArray)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(location, index, result);
   }
 
 }

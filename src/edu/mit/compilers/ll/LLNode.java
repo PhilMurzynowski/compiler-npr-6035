@@ -9,4 +9,10 @@ public interface LLNode {
   @Override
   public String toString();
 
+  @Override
+  public boolean equals(Object that);
+
+  @Override
+  public int hashCode();
+
 }

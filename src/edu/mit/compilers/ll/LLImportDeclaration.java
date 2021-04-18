@@ -1,5 +1,7 @@
 package edu.mit.compilers.ll;
 
+import java.util.Objects;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLImportDeclaration implements LLDeclaration {
@@ -46,6 +48,20 @@ public class LLImportDeclaration implements LLDeclaration {
   @Override
   public String toString() {
     return debugString(0);
+  }
+
+  private boolean sameValue(LLImportDeclaration that) {
+    return identifier.equals(that.identifier);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLImportDeclaration && sameValue((LLImportDeclaration)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(identifier);
   }
 
 }

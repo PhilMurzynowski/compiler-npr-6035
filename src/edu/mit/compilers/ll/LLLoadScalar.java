@@ -2,6 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -70,6 +71,21 @@ public class LLLoadScalar implements LLInstruction {
   @Override
   public String toString() {
     return debugString(0);
+  }
+
+  private boolean sameValue(LLLoadScalar that) {
+    return declaration.equals(that.declaration)
+      && result.equals(that.result);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLLoadScalar && sameValue((LLLoadScalar)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(declaration, result);
   }
 
 }

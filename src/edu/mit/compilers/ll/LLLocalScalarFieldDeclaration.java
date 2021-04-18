@@ -1,6 +1,7 @@
 package edu.mit.compilers.ll;
 
 import java.util.Optional;
+import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -56,8 +57,23 @@ public class LLLocalScalarFieldDeclaration implements LLScalarFieldDeclaration {
   }
 
   @Override
-  public String toString(){
-    throw new UnsupportedOperationException("not implemented");
+  public String toString() {
+    return debugString(0);
+  }
+
+  private boolean sameValue(LLLocalScalarFieldDeclaration that) {
+    return index == that.index
+      && stackIndex.equals(that.stackIndex);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLLocalScalarFieldDeclaration && sameValue((LLLocalScalarFieldDeclaration)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(index, stackIndex);
   }
 
 }

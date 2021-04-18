@@ -1,6 +1,7 @@
 package edu.mit.compilers.ll;
 
 import java.util.Optional;
+import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -66,6 +67,21 @@ public class LLAliasDeclaration implements LLDeclaration {
   @Override
   public String toString() {
     return debugString(0);
+  }
+
+  private boolean sameValue(LLAliasDeclaration that) {
+    return index == that.index
+      && stackIndex.equals(that.stackIndex);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLAliasDeclaration && sameValue((LLAliasDeclaration)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(index, stackIndex);
   }
 
 }

@@ -1,6 +1,7 @@
 package edu.mit.compilers.ll;
 
 import java.util.Optional;
+import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -62,6 +63,21 @@ public class LLArgumentDeclaration implements LLScalarFieldDeclaration {
   @Override
   public String toString() {
     return debugString(0);
+  }
+
+  private boolean sameValue(LLArgumentDeclaration that) {
+    return index == that.index
+      && stackIndex.equals(that.stackIndex);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLArgumentDeclaration && sameValue((LLArgumentDeclaration)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(index, stackIndex);
   }
 
 }

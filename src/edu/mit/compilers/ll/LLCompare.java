@@ -2,6 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Objects;
 
 import edu.mit.compilers.common.*;
 
@@ -76,6 +77,22 @@ public class LLCompare implements LLInstruction {
   @Override
   public String toString() {
     return debugString(0);
+  }
+
+  private boolean sameValue(LLCompare that) {
+    return left.equals(that.left)
+      && type.equals(that.type)
+      && right.equals(that.right);
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof LLCompare && sameValue((LLCompare)that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(left, type, right);
   }
 
 }
