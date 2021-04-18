@@ -7,9 +7,59 @@ import edu.mit.compilers.common.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
-public class CopyPropagation implements Optimization {
+public class ConstantFolding implements Optimization {
+
+  private static LLConstantDeclaration evaluateBinary(LLBinary binary, LLConstantDeclaration leftConstant, LLConstantDeclaration rightConstant) {
+    if (binary.getType() == BinaryExpressionType.OR) {
+      return new LLConstantDeclaration((leftConstant.getValue() == 1 || rightConstant.getValue() == 1) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.AND) {
+      return new LLConstantDeclaration((leftConstant.getValue() == 1 && rightConstant.getValue() == 1) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.EQUAL) {
+      return new LLConstantDeclaration((leftConstant.getValue() == rightConstant.getValue()) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.NOT_EQUAL) {
+      return new LLConstantDeclaration((leftConstant.getValue() != rightConstant.getValue()) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.LESS_THAN) {
+      return new LLConstantDeclaration((leftConstant.getValue() < rightConstant.getValue()) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.LESS_THAN_OR_EQUAL) {
+      return new LLConstantDeclaration((leftConstant.getValue() <= rightConstant.getValue()) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.GREATER_THAN) {
+      return new LLConstantDeclaration((leftConstant.getValue() > rightConstant.getValue()) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.GREATER_THAN_OR_EQUAL) {
+      return new LLConstantDeclaration((leftConstant.getValue() >= rightConstant.getValue()) ? 1 : 0);
+    } else if (binary.getType() == BinaryExpressionType.ADD) {
+      return new LLConstantDeclaration(leftConstant.getValue() + rightConstant.getValue());
+    } else if (binary.getType() == BinaryExpressionType.SUBTRACT) {
+      return new LLConstantDeclaration(leftConstant.getValue() - rightConstant.getValue());
+    } else if (binary.getType() == BinaryExpressionType.MULTIPLY) {
+      return new LLConstantDeclaration(leftConstant.getValue() * rightConstant.getValue());
+    } else if (binary.getType() == BinaryExpressionType.DIVIDE) {
+      return new LLConstantDeclaration(leftConstant.getValue() / rightConstant.getValue());
+    } else if (binary.getType() == BinaryExpressionType.MODULUS) {
+      return new LLConstantDeclaration(leftConstant.getValue() % rightConstant.getValue());
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+  }
+
+  private static LLConstantDeclaration evaluateUnary(LLUnary unary, LLConstantDeclaration constant) {
+    if (unary.getType() == UnaryExpressionType.NOT) {
+      return new LLConstantDeclaration((constant.getValue() == 1) ? 0 : 1);
+    } else if (unary.getType() == UnaryExpressionType.NEGATE) {
+      return new LLConstantDeclaration(-constant.getValue());
+    } else if (unary.getType() == UnaryExpressionType.INCREMENT) {
+      return new LLConstantDeclaration(constant.getValue() + 1);
+    } else if (unary.getType() == UnaryExpressionType.DECREMENT) {
+      return new LLConstantDeclaration(constant.getValue() - 1);
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+  }
 
   private static LLDeclaration propagate(LLDeclaration use, Map<LLDeclaration, Set<LLInstruction>> definitionInstructions, Set<LLDeclaration> globals, Set<LLDeclaration> visited) throws CycleDetectedException {
+    if (visited.contains(use)) {
+      throw new CycleDetectedException("cycle detected");
+    }
+
     if (!globals.contains(use) && definitionInstructions.containsKey(use) && definitionInstructions.get(use).size() == 1) {
       final LLInstruction definitionInstruction = definitionInstructions.get(use).iterator().next();
       if (definitionInstruction instanceof LLIntegerLiteral integerLiteral) {
@@ -27,6 +77,23 @@ public class CopyPropagation implements Optimization {
       } else if (definitionInstruction instanceof LLCopy copy) {
         visited.add(use);
         return propagate(copy.uses().iterator().next(), definitionInstructions, globals, visited);
+      } else if (definitionInstruction instanceof LLBinary binary) {
+        visited.add(use);
+        final LLDeclaration left = propagate(binary.getLeft(), definitionInstructions, globals, visited);
+        final LLDeclaration right = propagate(binary.getRight(), definitionInstructions, globals, visited);
+        if (left instanceof LLConstantDeclaration leftConstant && right instanceof LLConstantDeclaration rightConstant) {
+          return evaluateBinary(binary, leftConstant, rightConstant);
+        } else {
+          return use;
+        }
+      } else if (definitionInstruction instanceof LLUnary unary) {
+        visited.add(use);
+        final LLDeclaration expression = propagate(unary.getExpression(), definitionInstructions, globals, visited);
+        if (expression instanceof LLConstantDeclaration constant) {
+          return evaluateUnary(unary, constant);
+        } else {
+          return use;
+        }
       } else {
         return use;
       }

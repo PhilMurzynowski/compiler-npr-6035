@@ -34,7 +34,7 @@ public class LLGlobalArrayFieldDeclaration implements LLArrayFieldDeclaration {
 
   @Override
   public String prettyString(int depth) {
-    return "@" + identifier;
+    return "arr @" + identifier;
   }
 
   @Override
