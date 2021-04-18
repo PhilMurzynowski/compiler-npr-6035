@@ -188,16 +188,24 @@ public class CommonSubExpression implements Optimization {
     */
 
     // TODO: eliminate common sub expressions across blocks
+    for (LLBasicBlock block : visited) {
+      transform(methodDeclaration, block, entryBitMaps.get(block), exitBitMaps.get(block));
+    }
   }
 
-  // NOTE(phil): DEPRECATED, value numbering method, does not update bitmap, kept to reuse snippets and in case needed later
-  public static boolean transform(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, BitMap<LLDeclaration> entryBitMap, BitMap<LLDeclaration> exitBitMap)
+  // Value numbering method
+  // once set of available expressions for a method has been determined eliminate common subexpressions
+  // TODO:
+  //  not yet fully integrated
+  //  not yet using values from other blocks
+  //  not yet saving values to temporaries seen by the entire method
+  //    so can be shared across basic blocks
+  public static void transform(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, BitMap<String> entryBitMap, BitMap<String> exitBitMap)
   {
 
     CSETable cseTable = new CSETable(methodDeclaration); 
 
     List<LLInstruction> newLLInstructions = new ArrayList<>();
-    BitMap<LLDeclaration> currentBitMap = new BitMap<>(entryBitMap);
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
@@ -238,7 +246,6 @@ public class CommonSubExpression implements Optimization {
       String expr = exprBuilder.toString();
       cseTable.exprToVal(expr);
 
-      // NOTE(phil): may duplicate instructions if pass over same BB
       if (!cseTable.inExprToTmp(expr)) {
         LLDeclaration tmp = cseTable.addExprToTmp(expr);
         LLCopy copyInstruction = new LLCopy(instruction.definition().get(), tmp);
@@ -254,12 +261,5 @@ public class CommonSubExpression implements Optimization {
     }
 
     llBasicBlock.setInstructions(newLLInstructions);
-
-    if (currentBitMap.sameValue(exitBitMap)) {
-      return false;
-    } else {
-      exitBitMap.subsume(currentBitMap);
-      return true;
-    }
   }
 }
