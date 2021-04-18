@@ -2,7 +2,6 @@ package edu.mit.compilers.ll;
 
 import java.util.Set;
 import java.util.HashSet;
-// import java.util.Map;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -12,8 +11,6 @@ public class LLControlFlowGraph implements LLNode {
 
   private final LLBasicBlock entry;
   private final LLBasicBlock exit;
-
-  // NOTE(rbd): Please try not to add anything to this class. Let me know if you do. :)
 
   public LLControlFlowGraph(LLBasicBlock entry, LLBasicBlock exit) {
     this.entry = entry;

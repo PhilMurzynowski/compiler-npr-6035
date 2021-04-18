@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -58,19 +58,19 @@ public class LLStringLiteralDeclaration implements LLDeclaration {
     return debugString(0);
   }
 
-  private boolean sameValue(LLStringLiteralDeclaration that) {
-    return index == that.index
-      && value.equals(that.value);
-  }
+  // private boolean sameValue(LLStringLiteralDeclaration that) {
+  //   return index == that.index
+  //     && value.equals(that.value);
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLStringLiteralDeclaration && sameValue((LLStringLiteralDeclaration)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLStringLiteralDeclaration && sameValue((LLStringLiteralDeclaration)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(index, value);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(index, value);
+  // }
 
 }

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
 import edu.mit.compilers.common.*;
-import edu.mit.compilers.opt.Optimization;
+import edu.mit.compilers.opt.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 

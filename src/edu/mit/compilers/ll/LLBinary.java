@@ -4,7 +4,7 @@ import edu.mit.compilers.common.*;
 
 import java.util.Optional;
 import java.util.List;
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -122,21 +122,21 @@ public class LLBinary implements LLInstruction {
     return debugString(0);
   }
 
-  private boolean sameValue(LLBinary that) {
-    return left.equals(that.left)
-      && type.equals(that.type)
-      && right.equals(that.right)
-      && result.equals(that.result);
-  }
+  // private boolean sameValue(LLBinary that) {
+  //   return left.equals(that.left)
+  //     && type.equals(that.type)
+  //     && right.equals(that.right)
+  //     && result.equals(that.result);
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLBinary && sameValue((LLBinary)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLBinary && sameValue((LLBinary)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(left, type, right, result);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(left, type, right, result);
+  // }
 
 }

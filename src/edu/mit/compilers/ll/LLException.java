@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 import java.util.List;
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -65,18 +65,18 @@ public class LLException implements LLInstruction {
     return debugString(0);
   }
 
-  private boolean sameValue(LLException that) {
-    return type.equals(that.type);
-  }
+  // private boolean sameValue(LLException that) {
+  //   return type.equals(that.type);
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLException && sameValue((LLException)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLException && sameValue((LLException)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(type);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(type);
+  // }
 
 }

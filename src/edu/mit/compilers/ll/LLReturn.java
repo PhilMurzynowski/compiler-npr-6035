@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -72,18 +72,18 @@ public class LLReturn implements LLInstruction {
     return debugString(0);
   }
 
-  private boolean sameValue(LLReturn that) {
-    return expression.equals(that.expression);
-  }
+  // private boolean sameValue(LLReturn that) {
+  //   return expression.equals(that.expression);
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLReturn && sameValue((LLReturn)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLReturn && sameValue((LLReturn)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(expression);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(expression);
+  // }
 
 }

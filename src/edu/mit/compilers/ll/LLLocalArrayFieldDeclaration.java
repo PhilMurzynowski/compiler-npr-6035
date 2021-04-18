@@ -1,7 +1,7 @@
 package edu.mit.compilers.ll;
 
 import java.util.Optional;
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -81,20 +81,21 @@ public class LLLocalArrayFieldDeclaration implements LLArrayFieldDeclaration {
     return debugString(0);
   }
 
-  private boolean sameValue(LLLocalArrayFieldDeclaration that) {
-    return index == that.index
-      && length == that.length
-      && stackIndex.equals(that.stackIndex);
-  }
+  // private boolean sameValue(LLLocalArrayFieldDeclaration that) {
+  //   return index == that.index
+  //     && length == that.length
+  //     && stackIndex.equals(that.stackIndex);
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLLocalArrayFieldDeclaration && sameValue((LLLocalArrayFieldDeclaration)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLLocalArrayFieldDeclaration && sameValue((LLLocalArrayFieldDeclaration)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(index, length, stackIndex);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(index, length, stackIndex);
+  // }
+
 }
 

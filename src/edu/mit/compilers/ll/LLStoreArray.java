@@ -2,7 +2,7 @@ package edu.mit.compilers.ll;
 
 import java.util.Optional;
 import java.util.List;
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -71,20 +71,20 @@ public class LLStoreArray implements LLInstruction {
     return debugString(0);
   }
 
-  private boolean sameValue(LLStoreArray that) {
-    return declaration.equals(that.declaration)
-      && index.equals(that.index)
-      && expression.equals(that.expression);
-  }
+  // private boolean sameValue(LLStoreArray that) {
+  //   return declaration.equals(that.declaration)
+  //     && index.equals(that.index)
+  //     && expression.equals(that.expression);
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLStoreArray && sameValue((LLStoreArray)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLStoreArray && sameValue((LLStoreArray)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(declaration, index, expression);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(declaration, index, expression);
+  // }
 
 }

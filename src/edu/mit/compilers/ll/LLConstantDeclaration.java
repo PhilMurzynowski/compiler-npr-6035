@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -50,18 +50,18 @@ public class LLConstantDeclaration implements LLDeclaration {
     return debugString(0);
   }
 
-  private boolean sameValue(LLConstantDeclaration that) {
-    return value == that.value;
-  }
+  // private boolean sameValue(LLConstantDeclaration that) {
+  //   return value == that.value;
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLConstantDeclaration && sameValue((LLConstantDeclaration)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLConstantDeclaration && sameValue((LLConstantDeclaration)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(value);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(value);
+  // }
 
 }

@@ -3,7 +3,7 @@ package edu.mit.compilers.ll;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -124,20 +124,20 @@ public class LLExternalCall implements LLInstruction {
     return debugString(0);
   }
 
-  private boolean sameValue(LLExternalCall that) {
-    return declaration.equals(that.declaration)
-      && arguments.equals(that.arguments)
-      && result.equals(that.result);
-  }
+  // private boolean sameValue(LLExternalCall that) {
+  //   return declaration.equals(that.declaration)
+  //     && arguments.equals(that.arguments)
+  //     && result.equals(that.result);
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLExternalCall && sameValue((LLExternalCall)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLExternalCall && sameValue((LLExternalCall)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(declaration, arguments, result);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(declaration, arguments, result);
+  // }
 
 }

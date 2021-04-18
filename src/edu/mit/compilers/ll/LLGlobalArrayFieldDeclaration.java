@@ -1,6 +1,6 @@
 package edu.mit.compilers.ll;
 
-import java.util.Objects;
+// import java.util.Objects;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -59,19 +59,19 @@ public class LLGlobalArrayFieldDeclaration implements LLArrayFieldDeclaration {
     return debugString(0);
   }
 
-  private boolean sameValue(LLGlobalArrayFieldDeclaration that) {
-    return identifier.equals(that.identifier)
-      && length == that.length;
-  }
+  // private boolean sameValue(LLGlobalArrayFieldDeclaration that) {
+  //   return identifier.equals(that.identifier)
+  //     && length == that.length;
+  // }
 
-  @Override
-  public boolean equals(Object that) {
-    return that instanceof LLGlobalArrayFieldDeclaration && sameValue((LLGlobalArrayFieldDeclaration)that);
-  }
+  // @Override
+  // public boolean equals(Object that) {
+  //   return that instanceof LLGlobalArrayFieldDeclaration && sameValue((LLGlobalArrayFieldDeclaration)that);
+  // }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(identifier, length);
-  }
+  // @Override
+  // public int hashCode() {
+  //   return Objects.hash(identifier, length);
+  // }
 
 }
