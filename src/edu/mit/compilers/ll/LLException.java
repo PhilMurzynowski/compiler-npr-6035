@@ -11,6 +11,7 @@ public class LLException implements LLInstruction {
   public enum Type {
     OutOfBounds,
     NoReturnValue,
+    DivideByZero,
   }
 
   private final Type type;

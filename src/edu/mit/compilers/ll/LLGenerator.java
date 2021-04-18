@@ -51,6 +51,10 @@ public class LLGenerator {
     s.append(generateInstruction(".string \"Array index access is out-of-bounds.\\n\""));
     s.append(generateInstruction(".align", "16"));
 
+    s.append(generateLabel("divide_by_zero"));
+    s.append(generateInstruction(".string \"Attempted to divide by zero.\\n\""));
+    s.append(generateInstruction(".align", "16"));
+
     s.append("\n");
 
     // imports
@@ -404,6 +408,11 @@ public class LLGenerator {
       s.append(generateInstruction("leaq", "no_return_value(%rip)", "%rdi"));
       s.append(generateInstruction("callq", "printf"));
       s.append(generateInstruction("movq", "$-2", "%rdi"));
+      s.append(generateInstruction("callq", "exit"));
+    } else if (exception.getType().equals(LLException.Type.DivideByZero)) {
+      s.append(generateInstruction("leaq", "divide_by_zero(%rip)", "%rdi"));
+      s.append(generateInstruction("callq", "printf"));
+      s.append(generateInstruction("movq", "$-3", "%rdi"));
       s.append(generateInstruction("callq", "exit"));
     } else {
       throw new RuntimeException("unreachable");

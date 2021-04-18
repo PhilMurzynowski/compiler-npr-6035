@@ -3,10 +3,70 @@ package edu.mit.compilers.opt;
 import java.util.*;
 
 import edu.mit.compilers.ll.*;
+import edu.mit.compilers.common.*;
 
 public class CopyPropagation implements Optimization {
 
+  private final boolean constantFolding;
   private final List<LLInstruction> instructions = new ArrayList<>();
+
+  public CopyPropagation(final boolean constantFolding) {
+    this.constantFolding = constantFolding;
+  }
+
+  private static LLInstruction evaluateBinary(LLBinary binary, LLConstantDeclaration leftConstant, LLConstantDeclaration rightConstant) {
+    if (binary.getType() == BinaryExpressionType.OR) {
+      return new LLIntegerLiteral((leftConstant.getValue() == 1 || rightConstant.getValue() == 1) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.AND) {
+      return new LLIntegerLiteral((leftConstant.getValue() == 1 && rightConstant.getValue() == 1) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.EQUAL) {
+      return new LLIntegerLiteral((leftConstant.getValue() == rightConstant.getValue()) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.NOT_EQUAL) {
+      return new LLIntegerLiteral((leftConstant.getValue() != rightConstant.getValue()) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.LESS_THAN) {
+      return new LLIntegerLiteral((leftConstant.getValue() < rightConstant.getValue()) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.LESS_THAN_OR_EQUAL) {
+      return new LLIntegerLiteral((leftConstant.getValue() <= rightConstant.getValue()) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.GREATER_THAN) {
+      return new LLIntegerLiteral((leftConstant.getValue() > rightConstant.getValue()) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.GREATER_THAN_OR_EQUAL) {
+      return new LLIntegerLiteral((leftConstant.getValue() >= rightConstant.getValue()) ? 1 : 0, binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.ADD) {
+      return new LLIntegerLiteral(leftConstant.getValue() + rightConstant.getValue(), binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.SUBTRACT) {
+      return new LLIntegerLiteral(leftConstant.getValue() - rightConstant.getValue(), binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.MULTIPLY) {
+      return new LLIntegerLiteral(leftConstant.getValue() * rightConstant.getValue(), binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.DIVIDE) {
+      if (rightConstant.getValue() == 0) {
+        return new LLException(LLException.Type.DivideByZero);
+      } else {
+        return new LLIntegerLiteral(leftConstant.getValue() / rightConstant.getValue(), binary.getResult());
+      }
+    } else if (binary.getType() == BinaryExpressionType.MODULUS) {
+      if (rightConstant.getValue() == 0) {
+        return new LLException(LLException.Type.DivideByZero);
+      } else {
+        return new LLIntegerLiteral(leftConstant.getValue() % rightConstant.getValue(), binary.getResult());
+      }
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+  }
+
+  private static LLIntegerLiteral evaluateUnary(LLUnary unary, LLConstantDeclaration constant) {
+    if (unary.getType() == UnaryExpressionType.NOT) {
+      return new LLIntegerLiteral((constant.getValue() == 1) ? 0 : 1, unary.getResult());
+    } else if (unary.getType() == UnaryExpressionType.NEGATE) {
+      return new LLIntegerLiteral(-constant.getValue(), unary.getResult());
+    } else if (unary.getType() == UnaryExpressionType.INCREMENT) {
+      return new LLIntegerLiteral(constant.getValue() + 1, unary.getResult());
+    } else if (unary.getType() == UnaryExpressionType.DECREMENT) {
+      return new LLIntegerLiteral(constant.getValue() - 1, unary.getResult());
+    } else {
+      throw new RuntimeException("unreachable");
+    }
+  }
 
   private Map<LLDeclaration, Set<Integer>> getDefinitionIndices(final BitSet entry) {
     final Map<LLDeclaration, Set<Integer>> definitionIndices = new HashMap<>();
@@ -94,15 +154,32 @@ public class CopyPropagation implements Optimization {
         }
       }
 
-      if (usesChanged) {
-        final LLInstruction newInstruction = instruction.usesReplaced(newUses);
+      LLInstruction newInstruction;
 
+      if (usesChanged) {
+        newInstruction = instruction.usesReplaced(newUses);
         instructionsChanged = true;
-        instructions.set(i, newInstruction);
-        newInstructions.add(newInstruction);
       } else {
-        newInstructions.add(instruction);
+        newInstruction = instruction;
       }
+
+      if (constantFolding) {
+        if (newInstruction instanceof LLBinary binary) {
+          if (binary.getLeft() instanceof LLConstantDeclaration left 
+              && binary.getRight() instanceof LLConstantDeclaration right) {
+            instructionsChanged = true;
+            newInstruction = evaluateBinary(binary, left, right);
+          }
+        } else if (newInstruction instanceof LLUnary unary) {
+          if (unary.getExpression() instanceof LLConstantDeclaration expression) {
+            instructionsChanged = true;
+            newInstruction = evaluateUnary(unary, expression);
+          }
+        }
+      }
+
+      instructions.set(i, newInstruction);
+      newInstructions.add(newInstruction);
 
       if (instruction.definition().isPresent()) {
         final LLDeclaration definition = instruction.definition().get();
@@ -119,7 +196,7 @@ public class CopyPropagation implements Optimization {
     }
   }
 
-  public void apply(LLMethodDeclaration methodDeclaration, LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
+  public void apply(final LLMethodDeclaration methodDeclaration, final LLControlFlowGraph controlFlowGraph, final List<LLDeclaration> globals) {
     instructions.clear();
 
     final Map<LLBasicBlock, Integer> indices = new HashMap<>();
@@ -166,7 +243,7 @@ public class CopyPropagation implements Optimization {
 
     do {
       changed = false;
-      for (LLBasicBlock block : visited) {
+      for (final LLBasicBlock block : visited) {
         changed |= transform(block, indices.get(block), entries.get(block), exits.get(block), new HashSet<>(globals));
       }
     } while (changed);
