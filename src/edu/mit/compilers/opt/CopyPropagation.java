@@ -3,117 +3,128 @@ package edu.mit.compilers.opt;
 import java.util.*;
 
 import edu.mit.compilers.ll.*;
-import edu.mit.compilers.common.*;
-
-import static edu.mit.compilers.common.Utilities.indent;
 
 public class CopyPropagation implements Optimization {
 
-  private static LLDeclaration propagate(LLDeclaration use, Map<LLDeclaration, Set<LLInstruction>> definitionInstructions, Set<LLDeclaration> globals, Set<LLDeclaration> visited) throws CycleDetectedException {
-    if (!globals.contains(use) && definitionInstructions.containsKey(use) && definitionInstructions.get(use).size() == 1) {
-      final LLInstruction definitionInstruction = definitionInstructions.get(use).iterator().next();
-      if (definitionInstruction instanceof LLIntegerLiteral integerLiteral) {
-        return new LLConstantDeclaration(integerLiteral.getValue());
-      } else if (definitionInstruction instanceof LLLength length) {
-        return new LLConstantDeclaration(length.getDeclaration().getLength());
-      } else if (definitionInstruction instanceof LLStringLiteral stringLiteral) {
-        return stringLiteral.getDeclaration();
-      } else if (definitionInstruction instanceof LLStoreScalar storeScalar) {
-        visited.add(use);
-        return propagate(storeScalar.uses().iterator().next(), definitionInstructions, globals, visited);
-      } else if (definitionInstruction instanceof LLLoadScalar loadScalar) {
-        visited.add(use);
-        return propagate(loadScalar.uses().iterator().next(), definitionInstructions, globals, visited);
-      } else if (definitionInstruction instanceof LLCopy copy) {
-        visited.add(use);
-        return propagate(copy.uses().iterator().next(), definitionInstructions, globals, visited);
-      } else {
-        return use;
-      }
-    } else {
-      return use;
-    }
-  }
+  private final List<LLInstruction> instructions = new ArrayList<>();
 
-  private static boolean update(LLBasicBlock basicBlock, BitMap<LLInstruction> entry, BitMap<LLInstruction> exit, boolean propagate, Set<LLDeclaration> globals) {
-    final Map<LLDeclaration, Set<LLInstruction>> definitionInstructions = new HashMap<>();
+  private Map<LLDeclaration, Set<Integer>> getDefinitionIndices(final BitSet entry) {
+    final Map<LLDeclaration, Set<Integer>> definitionIndices = new HashMap<>();
 
-    for (LLInstruction definitionInstruction : entry.trueSet()) {
+    for (int i = entry.nextSetBit(0); i != -1; i = entry.nextSetBit(i + 1)) {
+      final LLInstruction definitionInstruction = instructions.get(i);
+
       assert definitionInstruction.definition().isPresent() : "should only contain definitions";
 
       final LLDeclaration definition = definitionInstruction.definition().get();
 
-      if (!definitionInstructions.containsKey(definition)) {
-        definitionInstructions.put(definition, new HashSet<>());
+      if (!definitionIndices.containsKey(definition)) {
+        definitionIndices.put(definition, new HashSet<>());
       }
 
-      definitionInstructions.get(definition).add(definitionInstruction);
+      definitionIndices.get(definition).add(i);
     }
 
-    final BitMap<LLInstruction> current = new BitMap<>(entry);
-    final List<LLInstruction> newInstructions = new ArrayList<>();
+    return definitionIndices;
+  }
 
-    for (LLInstruction instruction : basicBlock.getInstructions()) {
-      LLInstruction newInstruction = null; // NOTE(rbd): This will always be initialized before use, but Java doesn't believe me...
+  private boolean update(final LLBasicBlock block, final int index, final BitSet entry, final BitSet exit, final Set<LLDeclaration> globals) {
+    final Map<LLDeclaration, Set<Integer>> definitionIndices = getDefinitionIndices(entry);
+    final BitSet current = new BitSet();
+    current.or(entry);
 
-      if (propagate) {
-        final List<LLDeclaration> newUses = new ArrayList<>();
+    for (int i = index; i < index + block.getInstructions().size(); i++) {
+      final LLInstruction instruction = instructions.get(i);
 
-        for (LLDeclaration use : instruction.uses()) {
-          final Set<LLDeclaration> cycle = new LinkedHashSet<>();
-          try {
-            newUses.add(propagate(use, definitionInstructions, globals, cycle));
-          } catch (CycleDetectedException e) {
-            System.err.println("WARN(rbd): Cycle detected:\n");
-            for (LLDeclaration declaration : cycle) {
-              assert definitionInstructions.get(declaration).size() == 1 : "should only be able to form a cycle with definitions from single instructions";
-              System.err.println(indent(1) + definitionInstructions.get(declaration).iterator().next().prettyString(1));
-            }
-            System.err.println("\nIt is possible this wasn't handled optimally.");
+      if (instruction.definition().isPresent()) {
+        final LLDeclaration definition = instruction.definition().get();
 
-            newUses.add(use);
-            // throw new RuntimeException("cycle detected");
+        if (definitionIndices.containsKey(definition)) {
+          for (final int j : definitionIndices.get(definition)) {
+            current.clear(j);
           }
         }
 
-        newInstruction = instruction.usesReplaced(newUses);
+        current.set(i);
+        definitionIndices.put(definition, new HashSet<>(Set.of(i)));
+      }
+    }
+
+    if (current.equals(exit)) {
+      return false;
+    } else {
+      exit.clear();
+      exit.or(current);
+      return true;
+    }
+  }
+
+  private boolean transform(final LLBasicBlock block, final int index, final BitSet entry, final BitSet exit, final Set<LLDeclaration> globals) {
+    final Map<LLDeclaration, Set<Integer>> definitionIndices = getDefinitionIndices(entry);
+    final List<LLInstruction> newInstructions = new ArrayList<>();
+    boolean instructionsChanged = false;
+
+    for (int i = index; i < index + block.getInstructions().size(); i++) {
+      final LLInstruction instruction = instructions.get(i);
+      final List<LLDeclaration> newUses = new ArrayList<>();
+      boolean usesChanged = false;
+
+      for (final LLDeclaration use : instruction.uses()) {
+        if (!globals.contains(use) && definitionIndices.containsKey(use) && definitionIndices.get(use).size() == 1) {
+          final int j = definitionIndices.get(use).iterator().next();
+          final LLInstruction definitionInstruction = instructions.get(j);
+
+          if (definitionInstruction instanceof LLIntegerLiteral integerLiteral) {
+            usesChanged = true;
+            newUses.add(new LLConstantDeclaration(integerLiteral.getValue()));
+          } else if (definitionInstruction instanceof LLLength length) {
+            usesChanged = true;
+            newUses.add(new LLConstantDeclaration(length.getDeclaration().getLength()));
+          } else if (definitionInstruction instanceof LLStringLiteral
+              || definitionInstruction instanceof LLStoreScalar
+              || definitionInstruction instanceof LLLoadScalar
+              || definitionInstruction instanceof LLCopy) {
+            usesChanged = true;
+            newUses.add(definitionInstruction.uses().iterator().next());
+          } else {
+            newUses.add(use);
+          }
+        } else {
+          newUses.add(use);
+        }
+      }
+
+      if (usesChanged) {
+        final LLInstruction newInstruction = instruction.usesReplaced(newUses);
+
+        instructionsChanged = true;
+        instructions.set(i, newInstruction);
         newInstructions.add(newInstruction);
+      } else {
+        newInstructions.add(instruction);
       }
 
       if (instruction.definition().isPresent()) {
         final LLDeclaration definition = instruction.definition().get();
 
-        if (definitionInstructions.containsKey(definition)) {
-          for (LLInstruction definitionInstruction : definitionInstructions.get(definition)) {
-            current.clear(definitionInstruction);
-          }
-        }
-
-        if (propagate) {
-          current.set(newInstruction);
-          definitionInstructions.put(definition, new HashSet<>(Set.of(newInstruction)));
-        } else {
-          current.set(instruction);
-          definitionInstructions.put(definition, new HashSet<>(Set.of(instruction)));
-        }
+        definitionIndices.put(definition, new HashSet<>(Set.of(i)));
       }
     }
 
-    if (propagate) {
-      basicBlock.setInstructions(newInstructions);
-    }
-
-    if (current.sameValue(exit)) {
-      return false;
-    } else {
-      exit.subsume(current);
+    if (instructionsChanged) {
+      block.setInstructions(newInstructions);
       return true;
+    } else {
+      return false;
     }
   }
 
   public void apply(LLMethodDeclaration methodDeclaration, LLControlFlowGraph controlFlowGraph, List<LLDeclaration> globals) {
-    final Map<LLBasicBlock, BitMap<LLInstruction>> entries = new HashMap<>();
-    final Map<LLBasicBlock, BitMap<LLInstruction>> exits = new HashMap<>();
+    instructions.clear();
+
+    final Map<LLBasicBlock, Integer> indices = new HashMap<>();
+    final Map<LLBasicBlock, BitSet> entries = new HashMap<>();
+    final Map<LLBasicBlock, BitSet> exits = new HashMap<>();
 
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
     final Set<LLBasicBlock> visited = new HashSet<>();
@@ -125,11 +136,13 @@ public class CopyPropagation implements Optimization {
       workSet.remove(block);
 
       if (!visited.contains(block)) {
-        entries.put(block, new BitMap<>());
-        exits.put(block, new BitMap<>());
+        indices.put(block, instructions.size());
+        entries.put(block, new BitSet());
+        exits.put(block, new BitSet());
+
+        instructions.addAll(block.getInstructions());
 
         workSet.addAll(block.getSuccessors());
-
         visited.add(block);
       }
     }
@@ -140,7 +153,7 @@ public class CopyPropagation implements Optimization {
       final LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
 
-      if (update(block, entries.get(block), exits.get(block), false, new HashSet<>(globals))) {
+      if (update(block, indices.get(block), entries.get(block), exits.get(block), new HashSet<>(globals))) {
         for (LLBasicBlock successor : block.getSuccessors()) {
           entries.get(successor).or(exits.get(block));
 
@@ -149,9 +162,14 @@ public class CopyPropagation implements Optimization {
       }
     }
 
-    for (LLBasicBlock block : visited) {
-      update(block, entries.get(block), exits.get(block), true, new HashSet<>(globals));
-    }
+    boolean changed;
+
+    do {
+      changed = false;
+      for (LLBasicBlock block : visited) {
+        changed |= transform(block, indices.get(block), entries.get(block), exits.get(block), new HashSet<>(globals));
+      }
+    } while (changed);
   }
 
 }
