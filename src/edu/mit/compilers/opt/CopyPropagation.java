@@ -21,7 +21,7 @@ public class CopyPropagation implements Optimization {
       } else if (definitionInstruction instanceof LLLoadScalar loadScalar) {
         return propagate(loadScalar.uses().iterator().next(), definitionInstructions, globals);
       } else if (definitionInstruction instanceof LLCopy copy) {
-        return copy.uses().iterator().next();
+        return propagate(copy.uses().iterator().next(), definitionInstructions, globals);
       } else {
         return use;
       }
