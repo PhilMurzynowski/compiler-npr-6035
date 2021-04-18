@@ -107,20 +107,24 @@ public class CommonSubExpression implements Optimization {
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
     final Set<LLBasicBlock> visited = new LinkedHashSet<>();
 
+    // Initialize all bitmaps
+    BitMap<String> defaultBitMap = new BitMap<>();
+    initBitMap(controlFlowGraph, mapVarToExprs, defaultBitMap);
+    //System.out.println("default bitmap\n");
+    //System.out.println(defaultBitMap.toString());
+    
     // Initialize the entry block's bit maps
-    final BitMap<String> globalEntryInBitMap = new BitMap<>();
-    final BitMap<String> globalEntryOutBitMap = new BitMap<>();
+    final BitMap<String> globalEntryInBitMap = new BitMap<>(defaultBitMap);
+    final BitMap<String> globalEntryOutBitMap = new BitMap<>(defaultBitMap);
+    globalEntryInBitMap.zero();
+    globalEntryOutBitMap.zero();
     update(controlFlowGraph.getEntry(), mapVarToExprs, globalEntryInBitMap, globalEntryOutBitMap);
     entryBitMaps.put(controlFlowGraph.getEntry(), globalEntryInBitMap); 
     exitBitMaps.put(controlFlowGraph.getEntry(), globalEntryOutBitMap); 
     workSet.addAll(controlFlowGraph.getEntry().getSuccessors());
     visited.add(controlFlowGraph.getEntry());
 
-    // Initialize all bitmaps
-    BitMap<String> defaultBitMap = new BitMap<>();
-    initBitMap(controlFlowGraph, mapVarToExprs, defaultBitMap);
-    //System.out.println("default bitmap\n");
-    //System.out.println(defaultBitMap.toString());
+    // Initialize rest of bitmaps
     while (!workSet.isEmpty()) {
       final LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
@@ -163,6 +167,7 @@ public class CommonSubExpression implements Optimization {
     }
 
     // DEBUGGING: print available expressions
+    /*
     System.out.println("DEBUGGING CSE\n");
     workSet.clear();
     visited.clear();
@@ -180,6 +185,7 @@ public class CommonSubExpression implements Optimization {
         visited.add(block);
       }
     }
+    */
 
     // TODO: eliminate common sub expressions across blocks
   }

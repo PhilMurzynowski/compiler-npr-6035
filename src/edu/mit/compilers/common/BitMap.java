@@ -25,6 +25,12 @@ public class BitMap<G> {
     map.put(obj, false);
   }
 
+  public void zero() {
+    for (G key : this.map.keySet()) {
+      this.clear(key);
+    }
+  }
+
   /**
    * @param obj
    * @return false if the object does not exist in the bitmap or is set to false;
