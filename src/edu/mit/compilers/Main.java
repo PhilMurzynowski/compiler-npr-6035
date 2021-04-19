@@ -177,7 +177,7 @@ class Main {
     HLProgram hl = HLBuilder.buildProgram(program);
     // System.err.println(hl.debugString(0));
     LLProgram ll = LLBuilder.buildProgram(hl);
-    ll.accept(new CommonSubExpression());
+    // ll.accept(new CommonSubExpression());
     ll.accept(new CopyPropagation(/* constantFolding */ true));
     ll.accept(new DeadCode());
     System.err.println(ll.prettyString(0));

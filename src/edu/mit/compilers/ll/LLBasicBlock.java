@@ -135,7 +135,7 @@ public class LLBasicBlock implements LLDeclaration {
     return generated;
   }
 
-  public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified) {
+  public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified, Set<LLBasicBlock> exits, Set<LLBasicBlock> exceptions) {
     assert !generated : "cannot simplify because basic block has already been generated";
 
     if (falseTarget.isPresent()) {
@@ -143,12 +143,26 @@ public class LLBasicBlock implements LLDeclaration {
 
       if (!simplified.containsKey(getTrueTarget())) {
         simplified.put(getTrueTarget(), new LLBasicBlock());
-        simplified.get(getTrueTarget()).subsume(getTrueTarget().simplify(simplified));
+        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions);
+        simplified.get(getTrueTarget()).subsume(simplifiedBB);
+        if (exits.contains(simplifiedBB)) {
+          exits.add(simplified.get(getTrueTarget()));
+        }
+        if (exceptions.contains(simplifiedBB)) {
+          exceptions.add(simplified.get(getTrueTarget()));
+        }
       }
 
       if (!simplified.containsKey(getFalseTarget())) {
         simplified.put(getFalseTarget(), new LLBasicBlock());
-        simplified.get(getFalseTarget()).subsume(getFalseTarget().simplify(simplified));
+        final LLBasicBlock simplifiedBB = getFalseTarget().simplify(simplified, exits, exceptions);
+        simplified.get(getFalseTarget()).subsume(simplifiedBB);
+        if (exits.contains(simplifiedBB)) {
+          exits.add(simplified.get(getFalseTarget()));
+        }
+        if (exceptions.contains(simplifiedBB)) {
+          exceptions.add(simplified.get(getFalseTarget()));
+        }
       }
 
       final LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
@@ -164,7 +178,14 @@ public class LLBasicBlock implements LLDeclaration {
     } else if (trueTarget.isPresent()) {
       if (!simplified.containsKey(getTrueTarget())) {
         simplified.put(getTrueTarget(), new LLBasicBlock());
-        simplified.get(getTrueTarget()).subsume(getTrueTarget().simplify(simplified));
+        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions);
+        simplified.get(getTrueTarget()).subsume(simplifiedBB);
+        if (exits.contains(simplifiedBB)) {
+          exits.add(simplified.get(getTrueTarget()));
+        }
+        if (exceptions.contains(simplifiedBB)) {
+          exceptions.add(simplified.get(getTrueTarget()));
+        }
       }
 
       final LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
@@ -174,6 +195,14 @@ public class LLBasicBlock implements LLDeclaration {
         resultInstructions.addAll(simplifiedTrueTarget.instructions);
 
         final LLBasicBlock simplifiedBB = new LLBasicBlock(resultInstructions);
+
+        if (exits.contains(simplifiedTrueTarget)) {
+          exits.add(simplifiedBB);
+        }
+
+        if (exceptions.contains(simplifiedTrueTarget)) {
+          exceptions.add(simplifiedBB);
+        }
 
         if (simplifiedTrueTarget.hasTrueTarget()) {
           // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
