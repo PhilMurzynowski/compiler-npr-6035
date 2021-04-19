@@ -14,7 +14,7 @@ public class CommonSubExpression implements Optimization {
     BitMap<String> currentBitMap = new BitMap<>(entryBitMap);
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
-      if (instruction instanceof LLBinary || instruction instanceof LLUnary || instruction instanceof LLCompare) {
+      if (instruction instanceof LLBinary || instruction instanceof LLUnary /* || instruction instanceof LLCompare */) {
         String expr = instruction.getUniqueExpressionString();
         // GEN
         // track all variables used in expr, if change need to KILL expr
@@ -56,7 +56,7 @@ public class CommonSubExpression implements Optimization {
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
-      if (instruction instanceof LLBinary || instruction instanceof LLUnary || instruction instanceof LLCompare) {
+      if (instruction instanceof LLBinary || instruction instanceof LLUnary /* || instruction instanceof LLCompare */) {
         String expr = instruction.getUniqueExpressionString();
         // track all variables used in expr, if change need to KILL expr
         for (LLDeclaration use : instruction.uses()) {
@@ -223,13 +223,13 @@ public class CommonSubExpression implements Optimization {
           throw new RuntimeException("unreachable");
         }
  
-      } else if (instruction instanceof LLCompare cmpInstruction) {
+      } /* else if (instruction instanceof LLCompare cmpInstruction) {
 
         valueExprBuilder.append(localCSETable.varToVal(cmpInstruction.getLeft()));
         valueExprBuilder.append(cmpInstruction.getType().toBinaryExpressionType());
         valueExprBuilder.append(localCSETable.varToVal(cmpInstruction.getRight()));
 
-      } else {
+      } */ else {
 
         newLLInstructions.add(instruction);
 
@@ -300,7 +300,6 @@ public class CommonSubExpression implements Optimization {
           currentBitMap.clear(expr);
         }
       }
-
     }
 
     llBasicBlock.setInstructions(newLLInstructions);

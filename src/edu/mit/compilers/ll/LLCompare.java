@@ -49,6 +49,8 @@ public class LLCompare implements LLInstruction {
 
   @Override
   public String getUniqueExpressionString() {
+    throw new RuntimeException("no expression available");
+    /*
     StringBuilder exprBuilder =  new StringBuilder();
 
     exprBuilder.append(this.getLeft().toUniqueDeclarationString());
@@ -56,6 +58,7 @@ public class LLCompare implements LLInstruction {
     exprBuilder.append(this.getRight().toUniqueDeclarationString());
 
     return exprBuilder.toString();
+    */
   }
 
   @Override
