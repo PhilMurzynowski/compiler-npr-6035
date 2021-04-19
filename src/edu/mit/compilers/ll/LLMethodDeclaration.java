@@ -16,9 +16,10 @@ public class LLMethodDeclaration implements LLDeclaration {
   private final List<LLLocalScalarFieldDeclaration> scalarFieldDeclarations;
   private final List<LLLocalArrayFieldDeclaration> arrayFieldDeclarations;
   private final List<LLAliasDeclaration> aliasDeclarations;
+  private final LLBasicBlock outOfBoundsExceptionBB;
   private Optional<LLControlFlowGraph> body;
 
-  public LLMethodDeclaration(String identifier, MethodType type) {
+  public LLMethodDeclaration(String identifier, MethodType type, LLBasicBlock outOfBoundsExceptionBB) {
     this.identifier = identifier;
     this.type = type;
     argumentDeclarations = new ArrayList<>();
@@ -26,6 +27,7 @@ public class LLMethodDeclaration implements LLDeclaration {
     arrayFieldDeclarations = new ArrayList<>();
     aliasDeclarations = new ArrayList<>();
     body = Optional.empty();
+    this.outOfBoundsExceptionBB = outOfBoundsExceptionBB;
   }
 
   public MethodType getMethodType() {
@@ -108,6 +110,10 @@ public class LLMethodDeclaration implements LLDeclaration {
 
   public List<LLAliasDeclaration> getAliasDeclarations() {
     return this.aliasDeclarations;
+  }
+
+  public LLBasicBlock getOutOfBoundsExceptionBB() {
+    return outOfBoundsExceptionBB;
   }
 
   public int setStackIndices() {
@@ -210,6 +216,7 @@ public class LLMethodDeclaration implements LLDeclaration {
       s.append(indent(depth + 2) + aliasDeclaration.debugString(depth + 2) + ",\n");
     }
     s.append(indent(depth + 1) + "],\n");
+    s.append(indent(depth + 1) + "outOfBoundsExceptionBB: " + outOfBoundsExceptionBB.debugString(depth + 1) + ",\n");
     if (body.isPresent()) {
       s.append(indent(depth + 1) + "body: " + body.get().debugString(depth + 1) + ",\n");
     }

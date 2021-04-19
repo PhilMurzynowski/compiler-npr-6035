@@ -75,12 +75,21 @@ public class DeadCode implements Optimization {
     for (LLDeclaration global : globals) {
       globalExitBitMap.set(global);
     }
+
     entryBitMaps.put(controlFlowGraph.getExit(), new BitMap<>());
     exitBitMaps.put(controlFlowGraph.getExit(), globalExitBitMap);
 
     workSet.addAll(controlFlowGraph.getExit().getPredecessors());
-
     visited.add(controlFlowGraph.getExit());
+
+    // Initialize the exception blocks' bit maps
+    for (LLBasicBlock block : controlFlowGraph.getExceptions()) {
+      entryBitMaps.put(block, new BitMap<>());
+      exitBitMaps.put(block, new BitMap<>());
+
+      workSet.addAll(block.getPredecessors());
+      visited.add(block);
+    }
 
     // Initialize all blocks' bit maps
     while (!workSet.isEmpty()) {

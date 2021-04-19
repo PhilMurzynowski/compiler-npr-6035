@@ -72,7 +72,10 @@ public class LLBuilder {
   }
 
   public static LLMethodDeclaration buildMethodDeclaration(HLMethodDeclaration hlMethodDeclaration) {
-    final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier(), hlMethodDeclaration.getMethodType());
+    final LLBasicBlock outOfBoundsExceptionBB = new LLBasicBlock(
+      new LLException(LLException.Type.OutOfBounds)
+    );
+    final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier(), hlMethodDeclaration.getMethodType(), outOfBoundsExceptionBB);
     hlMethodDeclaration.setLL(llMethodDeclaration);
 
     // WARN(rbd): The lines above MUST be executed before the lines below. (Think: Recursive method calls.)
@@ -88,6 +91,7 @@ public class LLBuilder {
         new LLException(LLException.Type.NoReturnValue)
       );
     }
+    bodyCFG.addException(outOfBoundsExceptionBB);
 
     // NOTE(rbd): You can remove `.simplify()` here if you think simplification is the problem. :)
     llMethodDeclaration.setBody(bodyCFG.simplify());
@@ -553,20 +557,16 @@ public class LLBuilder {
       new LLCompare(indexResult, ComparisonType.LESS_THAN, new LLConstantDeclaration(length))
     );
 
-    final LLBasicBlock exceptionBB = new LLBasicBlock(
-      new LLException(LLException.Type.OutOfBounds)
-    );
-
     LLBasicBlock.setTrueTarget(initialBB, isPositiveBB);
 
     LLBasicBlock.setTrueTarget(isPositiveBB, isLessBB);
-    LLBasicBlock.setFalseTarget(isPositiveBB, exceptionBB);
+    LLBasicBlock.setFalseTarget(isPositiveBB, methodDeclaration.getOutOfBoundsExceptionBB());
 
     LLBasicBlock.setTrueTarget(isLessBB, targetBB);
-    LLBasicBlock.setFalseTarget(isLessBB, exceptionBB);
+    LLBasicBlock.setFalseTarget(isLessBB, methodDeclaration.getOutOfBoundsExceptionBB());
 
     // NOTE(rbd): just to satisfy the single exit property of CFGs (will never be visited).
-    LLBasicBlock.setTrueTarget(exceptionBB, targetBB);
+    // LLBasicBlock.setTrueTarget(exceptionBB, targetBB);
 
     return new LLControlFlowGraph(initialBB, targetBB);
   }

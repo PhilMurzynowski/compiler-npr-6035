@@ -96,6 +96,10 @@ public class LLBinary implements LLInstruction {
       s.append("div");
     } else if (type.equals(BinaryExpressionType.MODULUS)) {
       s.append("mod");
+    } else if (type.equals(BinaryExpressionType.SHIFT_LEFT)) {
+      s.append("shl");
+    } else if (type.equals(BinaryExpressionType.SHIFT_RIGHT)) {
+      s.append("shr");
     } else {
       throw new RuntimeException("unreachable");
     }

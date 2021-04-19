@@ -384,8 +384,6 @@ public class HLBuilder {
       return builder.build();
 
     } else {
-      System.out.println(symbolTable.debugString(0));
-      System.out.println(methodCallExpression.debugString(0));
       throw new RuntimeException("unreachable");
     }
   }

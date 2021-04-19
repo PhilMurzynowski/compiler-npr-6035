@@ -43,7 +43,6 @@ public class LLLoadScalar implements LLInstruction {
     } else if (uses.get(0) instanceof LLAliasDeclaration aliasDeclaration) {
       return new LLCopy(aliasDeclaration, result);
     } else {
-      System.err.println(uses.get(0));
       throw new RuntimeException("not implemented");
     }
   }
