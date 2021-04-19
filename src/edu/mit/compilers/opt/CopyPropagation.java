@@ -8,10 +8,169 @@ import edu.mit.compilers.common.*;
 public class CopyPropagation implements Optimization {
 
   private final boolean constantFolding;
+  private final boolean algebraicSimplification;
   private final List<LLInstruction> instructions = new ArrayList<>();
 
-  public CopyPropagation(final boolean constantFolding) {
+  public CopyPropagation(final boolean constantFolding, final boolean algebraicSimplification) {
     this.constantFolding = constantFolding;
+    this.algebraicSimplification = algebraicSimplification;
+  }
+
+  private static boolean isPowerOf2(long x) {
+    return (x & (x - 1)) == 0;
+  }
+  private static long floorLog2(long x) {
+    return 63 - Long.numberOfLeadingZeros(x);
+  }
+
+  private static Optional<LLInstruction> trySimplifyBinary(LLBinary binary) {
+    if (binary.getType() == BinaryExpressionType.OR) {
+      if (binary.getLeft() instanceof LLConstantDeclaration orLeft) {
+        if (orLeft.getValue() == 1) { // true || a => true
+          return Optional.of(new LLIntegerLiteral(1, binary.getResult()));
+        } else if (orLeft.getValue() == 0) { // false || a => a
+          return Optional.of(new LLCopy(binary.getRight(), binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else if (binary.getRight() instanceof LLConstantDeclaration orRight) {
+        if (orRight.getValue() == 1) { // a || true => true
+          return Optional.of(new LLIntegerLiteral(1 , binary.getResult()));
+        } else if (orRight.getValue() == 0) { // a || false => a
+          return Optional.of(new LLCopy(binary.getLeft(), binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else {
+        return Optional.empty();
+      }
+    } else if (binary.getType() == BinaryExpressionType.AND) {
+      if (binary.getLeft() instanceof LLConstantDeclaration andLeft) {
+        if (andLeft.getValue() == 1) { // true && a => a
+          return Optional.of(new LLCopy(binary.getRight(), binary.getResult()));
+        } else if (andLeft.getValue() == 0) { // false && a => false
+          return Optional.of(new LLIntegerLiteral(0, binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else if (binary.getRight() instanceof LLConstantDeclaration andRight) {
+        if (andRight.getValue() == 1) { // a && true => a
+          return Optional.of(new LLCopy(binary.getLeft(), binary.getResult()));
+        } else if (andRight.getValue() == 0) { // a && false => false
+          return Optional.of(new LLIntegerLiteral(0, binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else {
+        return Optional.empty();
+      }
+    } else if (binary.getType() == BinaryExpressionType.EQUAL
+        || binary.getType() == BinaryExpressionType.NOT_EQUAL
+        || binary.getType() == BinaryExpressionType.LESS_THAN
+        || binary.getType() == BinaryExpressionType.LESS_THAN_OR_EQUAL
+        || binary.getType() == BinaryExpressionType.GREATER_THAN
+        || binary.getType() == BinaryExpressionType.GREATER_THAN_OR_EQUAL) {
+      return Optional.empty(); // NOTE(rbd): I cannot think of any simplifications for these...
+    } else if (binary.getType() == BinaryExpressionType.ADD) {
+      if (binary.getLeft() instanceof LLConstantDeclaration addLeft) {
+        if (addLeft.getValue() == 0) { // 0 + a => a
+          return Optional.of(new LLCopy(binary.getRight(), binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else if (binary.getRight() instanceof LLConstantDeclaration addRight) {
+        if (addRight.getValue() == 0) { // a + 0 => a
+          return Optional.of(new LLCopy(binary.getLeft(), binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else {
+        return Optional.empty();
+      }
+    } else if (binary.getType() == BinaryExpressionType.SUBTRACT) {
+      if (binary.getLeft() instanceof LLConstantDeclaration subLeft) {
+        if (subLeft.getValue() == 0) { // 0 - a => -a
+          return Optional.of(new LLUnary(UnaryExpressionType.NEGATE, binary.getRight(), binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else if (binary.getRight() instanceof LLConstantDeclaration subRight) {
+        if (subRight.getValue() == 0) { // a - 0 => a
+          return Optional.of(new LLCopy(binary.getLeft(), binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else {
+        return Optional.empty();
+      }
+    } else if (binary.getType() == BinaryExpressionType.MULTIPLY) {
+      if (binary.getLeft() instanceof LLConstantDeclaration mulLeft) {
+        if (mulLeft.getValue() == 1) { // 1 * a => a
+          return Optional.of(new LLCopy(binary.getRight(), binary.getResult()));
+        } else if (mulLeft.getValue() == 0) { // 0 * a => a
+          return Optional.of(new LLIntegerLiteral(0, binary.getResult()));
+        } else if (isPowerOf2(mulLeft.getValue())) { // 2^n * a => a << n
+          final LLConstantDeclaration n = new LLConstantDeclaration(floorLog2(mulLeft.getValue()));
+          return Optional.of(new LLBinary(binary.getRight(), BinaryExpressionType.SHIFT_LEFT, n, binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else if (binary.getRight() instanceof LLConstantDeclaration mulRight) {
+        if (mulRight.getValue() == 1) { // a * 1 => a
+          return Optional.of(new LLCopy(binary.getLeft(), binary.getResult()));
+        } else if (mulRight.getValue() == 0) { // a * 0 => 0
+          return Optional.of(new LLIntegerLiteral(0, binary.getResult()));
+        } else if (isPowerOf2(mulRight.getValue())) { // a * 2^n => a << n
+          final LLConstantDeclaration n = new LLConstantDeclaration(floorLog2(mulRight.getValue()));
+          return Optional.of(new LLBinary(binary.getLeft(), BinaryExpressionType.SHIFT_LEFT, n, binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else {
+        return Optional.empty();
+      }
+    } else if (binary.getType() == BinaryExpressionType.DIVIDE) {
+      if (binary.getLeft() instanceof LLConstantDeclaration divLeft) {
+        if (divLeft.getValue() == 0) { // 0 / a => 0
+          return Optional.of(new LLIntegerLiteral(0, binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else if (binary.getRight() instanceof LLConstantDeclaration divRight) {
+        if (divRight.getValue() == 1) { // a / 1 => a
+          return Optional.of(new LLCopy(binary.getLeft(), binary.getResult()));
+        } else if (divRight.getValue() == 0) { // a / 0 => DivideByZero
+          return Optional.of(new LLException(LLException.Type.DivideByZero));
+        } else {
+          return Optional.empty();
+        }
+      } else {
+        return Optional.empty();
+      }
+    } else if (binary.getType() == BinaryExpressionType.MODULUS) {
+      if (binary.getLeft() instanceof LLConstantDeclaration modLeft) {
+        if (modLeft.getValue() == 0) { // 0 % a => 0
+          return Optional.of(new LLIntegerLiteral(0, binary.getResult()));
+        } else {
+          return Optional.empty();
+        }
+      } else if (binary.getRight() instanceof LLConstantDeclaration modRight) {
+        if (modRight.getValue() == 1) { // a % 1 => 0
+          return Optional.of(new LLIntegerLiteral(0, binary.getResult()));
+        } else if (modRight.getValue() == 0) { // a % 0 => DivideByZero
+          return Optional.of(new LLException(LLException.Type.DivideByZero));
+        } else {
+          return Optional.empty();
+        }
+      } else {
+        return Optional.empty();
+      }
+    } else if (binary.getType() == BinaryExpressionType.SHIFT_LEFT
+        || binary.getType() == BinaryExpressionType.SHIFT_RIGHT) {
+      return Optional.empty(); // NOTE(rbd): There are simplifications for these, but these are not exposed to the programmer...
+    } else {
+      throw new RuntimeException("unreachable");
+    }
   }
 
   private static LLInstruction evaluateBinary(LLBinary binary, LLConstantDeclaration leftConstant, LLConstantDeclaration rightConstant) {
@@ -49,6 +208,10 @@ public class CopyPropagation implements Optimization {
       } else {
         return new LLIntegerLiteral(leftConstant.getValue() % rightConstant.getValue(), binary.getResult());
       }
+    } else if (binary.getType() == BinaryExpressionType.SHIFT_LEFT) {
+      return new LLIntegerLiteral(leftConstant.getValue() << rightConstant.getValue(), binary.getResult());
+    } else if (binary.getType() == BinaryExpressionType.SHIFT_RIGHT) {
+      return new LLIntegerLiteral(leftConstant.getValue() >> rightConstant.getValue(), binary.getResult());
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -169,6 +332,12 @@ public class CopyPropagation implements Optimization {
               && binary.getRight() instanceof LLConstantDeclaration right) {
             instructionsChanged = true;
             newInstruction = evaluateBinary(binary, left, right);
+          } else if (algebraicSimplification) {
+            final Optional<LLInstruction> simplified = trySimplifyBinary(binary);
+            if (simplified.isPresent()) {
+              instructionsChanged = true;
+              newInstruction = simplified.get();
+            }
           }
         } else if (newInstruction instanceof LLUnary unary) {
           if (unary.getExpression() instanceof LLConstantDeclaration expression) {

@@ -130,6 +130,26 @@ public enum BinaryExpressionType {
     public String toString() {
       return "mod";
     }
+  },
+  SHIFT_LEFT {
+    @Override
+    public ComparisonType toComparisonType() {
+      throw new RuntimeException("Cannot convert BinaryExceptionType.SHIFT_LEFT to comparisonType");
+    }
+    @Override
+    public String toString() {
+      return "shl";
+    }
+  },
+  SHIFT_RIGHT {
+    @Override
+    public ComparisonType toComparisonType() {
+      throw new RuntimeException("Cannot convert BinaryExceptionType.SHIFT_RIGHT to comparisonType");
+    }
+    @Override
+    public String toString() {
+      return "shr";
+    }
   };
 
   public abstract ComparisonType toComparisonType();

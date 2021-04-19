@@ -177,8 +177,10 @@ class Main {
     HLProgram hl = HLBuilder.buildProgram(program);
     // System.err.println(hl.debugString(0));
     LLProgram ll = LLBuilder.buildProgram(hl);
+    System.err.println(ll.prettyString(0));
+    System.err.println("--------------------------------------------------Optimization--------------------------------------------------");
     // ll.accept(new CommonSubExpression());
-    ll.accept(new CopyPropagation(/* constantFolding */ true));
+    ll.accept(new CopyPropagation(/* constantFolding */ true, /* algebraicSimplification */ true));
     ll.accept(new DeadCode());
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
