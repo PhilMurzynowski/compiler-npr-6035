@@ -98,7 +98,7 @@ public enum BinaryExpressionType {
     }
     @Override
     public String toString() {
-      return "mul";
+      return "sub";
     }
   },
   MULTIPLY {

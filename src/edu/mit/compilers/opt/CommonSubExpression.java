@@ -36,8 +36,8 @@ public class CommonSubExpression implements Optimization {
         if(mapVarToExprs.containsKey(definition)) {
           for (String expr : mapVarToExprs.get(definition)) {
             // KILL
-            //System.out.println("Killing\n");
-            //System.out.println(llBasicBlock.prettyString(0));
+            //System.err.println("Killing\n");
+            //System.err.println(llBasicBlock.prettyString(0));
             currentBitMap.clear(expr);
           }
         }
@@ -317,7 +317,7 @@ public class CommonSubExpression implements Optimization {
       if (currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
         
         // Expression available from previous block, use result from global temporary
-        //System.out.println("using global for: " + globalExpr);
+        //System.err.println("using global for: " + globalExpr);
 
         LLDeclaration globalTmp = mapExprToTmp.get(globalExpr);
         LLCopy globalCopyInstruction = new LLCopy(globalTmp, instruction.definition().get());
@@ -326,7 +326,7 @@ public class CommonSubExpression implements Optimization {
       } else if (!localCSETable.inExprToTmp(valueExpr)) {
 
         // Evaluate instruction and copy result into local temporary 
-        //System.out.println("copying to local: " + valueExpr + ", copying to global: " + globalExpr);
+        //System.err.println("copying to local: " + valueExpr + ", copying to global: " + globalExpr);
 
         LLDeclaration localTmp = localCSETable.addExprToTmp(valueExpr);
         newLLInstructions.add(instruction);
@@ -341,7 +341,7 @@ public class CommonSubExpression implements Optimization {
       } else {
 
         // Expression available in local temporary
-        //System.out.println("using local for: " + valueExpr);
+        //System.err.println("using local for: " + valueExpr);
 
         LLDeclaration localTmp = localCSETable.getExprToTmp(valueExpr);
         // modified instruction as no longer using LLBinary, LLUnary, etc, just the tmp
@@ -350,7 +350,7 @@ public class CommonSubExpression implements Optimization {
       }
 
       // GEN
-      //System.out.println("GEN: " + globalExpr);
+      //System.err.println("GEN: " + globalExpr);
       currentBitMap.set(globalExpr);
 
       // Update Bitmap, KILL as needed
@@ -358,7 +358,7 @@ public class CommonSubExpression implements Optimization {
       if(mapVarToExprs.containsKey(definition)) {
         for (String expr : mapVarToExprs.get(definition)) {
           // KILL
-          //System.out.println("KILL: " + expr);
+          //System.err.println("KILL: " + expr);
           currentBitMap.clear(expr);
         }
       }
