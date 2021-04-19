@@ -192,13 +192,6 @@ public class CommonSubExpression implements Optimization {
     }
   }
 
-  // Value numbering method
-  // once set of available expressions for a method has been determined eliminate common subexpressions
-  // TODO:
-  //  not yet fully integrated
-  //  not yet using values from other blocks
-  //  not yet saving values to temporaries seen by the entire method
-  //    so can be shared across basic blocks
   public static void transform(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, Map<String, LLDeclaration> mapExprToTmp, BitMap<String> entryBitMap, BitMap<String> exitBitMap)
   {
 
@@ -239,6 +232,19 @@ public class CommonSubExpression implements Optimization {
       } else {
 
         newLLInstructions.add(instruction);
+
+        // No GEN possible
+        // Update Bitmap, KILL as needed
+        if (instruction.definition().isPresent()) {
+          LLDeclaration definition = instruction.definition().get();
+          if(mapVarToExprs.containsKey(definition)) {
+            for (String expr : mapVarToExprs.get(definition)) {
+              // KILL
+              currentBitMap.clear(expr);
+            }
+          }
+        }
+
         continue;
 
       }
@@ -250,60 +256,48 @@ public class CommonSubExpression implements Optimization {
       localCSETable.exprToVal(valueExpr);
       String globalExpr = instruction.getUniqueExpressionString();
 
-      if (!currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
 
-        newLLInstructions.add(instruction);
+      if (currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
+        
+        // Expression available from previous block, use result from global temporary
+        
+        LLDeclaration globalTmp = mapExprToTmp.get(globalExpr);
+        LLCopy globalCopyInstruction = new LLCopy(globalTmp, instruction.definition().get());
+        newLLInstructions.add(globalCopyInstruction);
 
-        // add to local tmps
+      } else if (!localCSETable.inExprToTmp(valueExpr)) {
+
+        // Evaluate instruction and copy result into local temporary 
+
         LLDeclaration localTmp = localCSETable.addExprToTmp(valueExpr);
+        newLLInstructions.add(instruction);
+        // copy into local tmp
         LLCopy localCopyInstruction = new LLCopy(instruction.definition().get(), localTmp);
         newLLInstructions.add(localCopyInstruction);
-
-        // add to bitMap
-        currentBitMap.set(globalExpr);
-
         // copy into global tmp
         LLDeclaration globalTmp = mapExprToTmp.get(globalExpr);
         LLCopy globalCopyInstruction = new LLCopy(localTmp, globalTmp);
         newLLInstructions.add(globalCopyInstruction);
 
-      } else if (currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
+      } else {
 
-        // Case when expression was evaluated in previous basic block
-
-        LLDeclaration globalTmp = mapExprToTmp.get(globalExpr);
-        // modified instruction as copying in expression from evaluation in previous basic block
-        LLCopy modifiedInstruction = new LLCopy(globalTmp, instruction.definition().get());
-        newLLInstructions.add(modifiedInstruction);
-
-        // nothing else needs to be done locally
-
-      } else if (!currentBitMap.get(globalExpr) && localCSETable.inExprToTmp(valueExpr)) {
-
+        // Expression available in local temporary
+        
         LLDeclaration localTmp = localCSETable.getExprToTmp(valueExpr);
         // modified instruction as no longer using LLBinary, LLUnary, etc, just the tmp
         LLCopy modifiedInstruction = new LLCopy(localTmp, instruction.definition().get());
         newLLInstructions.add(modifiedInstruction);
-
-      } else if (currentBitMap.get(globalExpr) && localCSETable.inExprToTmp(valueExpr)) {
-
-      } else {
-        throw new RuntimeException("not reachable");
       }
-        /*
-        LLDeclaration tmp = localCSETable.getExprToTmp(valueExpr);
-        // modified instruction as no longer using LLBinary, LLUnary, etc, just the tmp
-        LLCopy modifiedInstruction = new LLCopy(tmp, instruction.definition().get());
-        newLLInstructions.add(modifiedInstruction);
-        */
 
-      if (instruction.definition().isPresent()) {
-        LLDeclaration definition = instruction.definition().get();
-        if(mapVarToExprs.containsKey(definition)) {
-          for (String expr : mapVarToExprs.get(definition)) {
-            // KILL
-            currentBitMap.clear(expr);
-          }
+      // GEN
+      currentBitMap.set(globalExpr);
+
+      // Update Bitmap, KILL as needed
+      LLDeclaration definition = instruction.definition().get();
+      if(mapVarToExprs.containsKey(definition)) {
+        for (String expr : mapVarToExprs.get(definition)) {
+          // KILL
+          currentBitMap.clear(expr);
         }
       }
 
