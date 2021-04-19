@@ -20,7 +20,6 @@ public class CommonSubExpression implements Optimization {
         // track all variables used in expr, if change need to KILL expr
         for (LLDeclaration use : instruction.uses()) {
           if (mapVarToExprs.containsKey(use)) {
-            //mapVarToExprs.get(use).add(expr);  I wish java let me do this hahah
             List<String> exprs = new ArrayList<>(mapVarToExprs.get(use));
             exprs.add(expr);
             mapVarToExprs.put(use, exprs);
@@ -189,7 +188,7 @@ public class CommonSubExpression implements Optimization {
 
     // TODO: eliminate common sub expressions across blocks
     for (LLBasicBlock block : visited) {
-      transform(methodDeclaration, block, entryBitMaps.get(block), exitBitMaps.get(block));
+      transform(methodDeclaration, block, mapVarToExprs, mapExprToTmp, entryBitMaps.get(block), exitBitMaps.get(block));
     }
   }
 
@@ -200,41 +199,42 @@ public class CommonSubExpression implements Optimization {
   //  not yet using values from other blocks
   //  not yet saving values to temporaries seen by the entire method
   //    so can be shared across basic blocks
-  public static void transform(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, BitMap<String> entryBitMap, BitMap<String> exitBitMap)
+  public static void transform(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, Map<String, LLDeclaration> mapExprToTmp, BitMap<String> entryBitMap, BitMap<String> exitBitMap)
   {
 
-    CSETable cseTable = new CSETable(methodDeclaration); 
+    LocalCSETable localCSETable = new LocalCSETable(methodDeclaration); 
+    BitMap<String> currentBitMap = new BitMap<>(entryBitMap);
 
     List<LLInstruction> newLLInstructions = new ArrayList<>();
 
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
 
-      StringBuilder exprBuilder = new StringBuilder();
+      StringBuilder valueExprBuilder = new StringBuilder();
 
       if (instruction instanceof LLBinary binaryInstruction) {
 
-        exprBuilder.append(cseTable.varToVal(binaryInstruction.getLeft()));
-        exprBuilder.append(binaryInstruction.getType());
-        exprBuilder.append(cseTable.varToVal(binaryInstruction.getRight()));
+        valueExprBuilder.append(localCSETable.varToVal(binaryInstruction.getLeft()));
+        valueExprBuilder.append(binaryInstruction.getType());
+        valueExprBuilder.append(localCSETable.varToVal(binaryInstruction.getRight()));
 
       } else if (instruction instanceof LLUnary unaryInstruction) {
 
         UnaryExpressionType type = unaryInstruction.getType();
         if (type == UnaryExpressionType.NOT || type ==  UnaryExpressionType.NEGATE) {
-          exprBuilder.append(type);
-          exprBuilder.append(cseTable.varToVal(unaryInstruction.getExpression()));
+          valueExprBuilder.append(type);
+          valueExprBuilder.append(localCSETable.varToVal(unaryInstruction.getExpression()));
         } else if (type == UnaryExpressionType.INCREMENT || type == UnaryExpressionType.INCREMENT) {
-          exprBuilder.append(cseTable.varToVal(unaryInstruction.getExpression()));
-          exprBuilder.append(type);
+          valueExprBuilder.append(localCSETable.varToVal(unaryInstruction.getExpression()));
+          valueExprBuilder.append(type);
         } else {
           throw new RuntimeException("unreachable");
         }
  
       } else if (instruction instanceof LLCompare cmpInstruction) {
 
-        exprBuilder.append(cseTable.varToVal(cmpInstruction.getLeft()));
-        exprBuilder.append(cmpInstruction.getType().toBinaryExpressionType());
-        exprBuilder.append(cseTable.varToVal(cmpInstruction.getRight()));
+        valueExprBuilder.append(localCSETable.varToVal(cmpInstruction.getLeft()));
+        valueExprBuilder.append(cmpInstruction.getType().toBinaryExpressionType());
+        valueExprBuilder.append(localCSETable.varToVal(cmpInstruction.getRight()));
 
       } else {
 
@@ -243,23 +243,74 @@ public class CommonSubExpression implements Optimization {
 
       }
 
-      String expr = exprBuilder.toString();
-      cseTable.exprToVal(expr);
+      // each expression has two string representations
+      //  one for the local basic block based on value numbering
+      //  one for the global control flow graph bitmap
+      String valueExpr = valueExprBuilder.toString();
+      localCSETable.exprToVal(valueExpr);
+      String globalExpr = instruction.getUniqueExpressionString();
 
-      if (!cseTable.inExprToTmp(expr)) {
-        LLDeclaration tmp = cseTable.addExprToTmp(expr);
-        LLCopy copyInstruction = new LLCopy(instruction.definition().get(), tmp);
+      if (!currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
+
         newLLInstructions.add(instruction);
-        newLLInstructions.add(copyInstruction);
+
+        // add to local tmps
+        LLDeclaration localTmp = localCSETable.addExprToTmp(valueExpr);
+        LLCopy localCopyInstruction = new LLCopy(instruction.definition().get(), localTmp);
+        newLLInstructions.add(localCopyInstruction);
+
+        // add to bitMap
+        currentBitMap.set(globalExpr);
+
+        // copy into global tmp
+        LLDeclaration globalTmp = mapExprToTmp.get(globalExpr);
+        LLCopy globalCopyInstruction = new LLCopy(localTmp, globalTmp);
+        newLLInstructions.add(globalCopyInstruction);
+
+      } else if (currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
+
+        // Case when expression was evaluated in previous basic block
+
+        LLDeclaration globalTmp = mapExprToTmp.get(globalExpr);
+        // modified instruction as copying in expression from evaluation in previous basic block
+        LLCopy modifiedInstruction = new LLCopy(globalTmp, instruction.definition().get());
+        newLLInstructions.add(modifiedInstruction);
+
+        // nothing else needs to be done locally
+
+      } else if (!currentBitMap.get(globalExpr) && localCSETable.inExprToTmp(valueExpr)) {
+
+        LLDeclaration localTmp = localCSETable.getExprToTmp(valueExpr);
+        // modified instruction as no longer using LLBinary, LLUnary, etc, just the tmp
+        LLCopy modifiedInstruction = new LLCopy(localTmp, instruction.definition().get());
+        newLLInstructions.add(modifiedInstruction);
+
+      } else if (currentBitMap.get(globalExpr) && localCSETable.inExprToTmp(valueExpr)) {
+
       } else {
-        LLDeclaration tmp = cseTable.getExprToTmp(expr);
+        throw new RuntimeException("not reachable");
+      }
+        /*
+        LLDeclaration tmp = localCSETable.getExprToTmp(valueExpr);
         // modified instruction as no longer using LLBinary, LLUnary, etc, just the tmp
         LLCopy modifiedInstruction = new LLCopy(tmp, instruction.definition().get());
         newLLInstructions.add(modifiedInstruction);
+        */
+
+      if (instruction.definition().isPresent()) {
+        LLDeclaration definition = instruction.definition().get();
+        if(mapVarToExprs.containsKey(definition)) {
+          for (String expr : mapVarToExprs.get(definition)) {
+            // KILL
+            currentBitMap.clear(expr);
+          }
+        }
       }
 
     }
 
     llBasicBlock.setInstructions(newLLInstructions);
+
+    assert currentBitMap.sameValue(exitBitMap);
   }
 }

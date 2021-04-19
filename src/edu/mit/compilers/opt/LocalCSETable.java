@@ -4,7 +4,7 @@ import edu.mit.compilers.ll.*;
 import java.util.Map;
 import java.util.HashMap;
 
-public class CSETable {
+public class LocalCSETable {
 
   private final LLMethodDeclaration methodDeclaration;
   private Map<LLDeclaration, String> mapVarToVal = new HashMap<>();
@@ -13,7 +13,7 @@ public class CSETable {
 
   private int valCount;
 
-  public CSETable(LLMethodDeclaration methodDeclaration) {
+  public LocalCSETable(LLMethodDeclaration methodDeclaration) {
     this.methodDeclaration = methodDeclaration;
   }
 
