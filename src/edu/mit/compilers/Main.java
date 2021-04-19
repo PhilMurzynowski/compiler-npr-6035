@@ -21,7 +21,7 @@ import edu.mit.compilers.ll.*;
 class Main {
 
   // list of available optimizations
-  private static final List<String> optimizations = List.of("cp", "cse", "cf", "dce", "uce");
+  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "uce");
 
   private static String tokenString(Token token) {
     StringBuilder output = new StringBuilder();
@@ -191,14 +191,14 @@ class Main {
     if (CLI.opts[optimizations.indexOf("cse")]) {
       ll.accept(new CommonSubExpression());
     }
-    if (CLI.opts[optimizations.indexOf("cf")]) {
-      ll.accept(new CopyPropagation(true, true));
+    if (CLI.opts[optimizations.indexOf("cp")]) {
+      ll.accept(new CopyPropagation(CLI.opts[optimizations.indexOf("cf")], CLI.opts[optimizations.indexOf("as")]));
     }
     if (CLI.opts[optimizations.indexOf("dce")]) {
       ll.accept(new DeadCodeElimination());
     }
     if (CLI.opts[optimizations.indexOf("uce")]) {
-      ll.accept(new UnreachableCodeElimination()); // (UCE)
+      ll.accept(new UnreachableCodeElimination());
     }
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
