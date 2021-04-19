@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.List;
 
@@ -18,6 +19,9 @@ import edu.mit.compilers.hl.*;
 import edu.mit.compilers.ll.*;
 
 class Main {
+
+  // list of available optimizations
+  private static final List<String> optimizations = List.of("cp", "cse", "cf", "dce", "uce");
 
   private static String tokenString(Token token) {
     StringBuilder output = new StringBuilder();
@@ -178,13 +182,24 @@ class Main {
     // System.err.println(hl.debugString(0));
     LLProgram ll = LLBuilder.buildProgram(hl);
     System.err.println(ll.prettyString(0));
+
     System.err.println("--------------------------------------------------Optimization--------------------------------------------------");
     // an extra copy propagation helpful for CSE
-    ll.accept(new CopyPropagation(false, false)); // (CP)
-    ll.accept(new CommonSubExpression()); // (CSE)
-    ll.accept(new CopyPropagation(/* constantFolding (CF) */ true, /* algebraicSimplification (AS) */ true)); // (CP)
-    ll.accept(new DeadCodeElimination()); // (DCE)
-    ll.accept(new UnreachableCodeElimination()); // (UCE)
+    if (CLI.opts[optimizations.indexOf("cp")]) {
+      ll.accept(new CopyPropagation(false, false));
+    }
+    if (CLI.opts[optimizations.indexOf("cse")]) {
+      ll.accept(new CommonSubExpression());
+    }
+    if (CLI.opts[optimizations.indexOf("cf")]) {
+      ll.accept(new CopyPropagation(true, true));
+    }
+    if (CLI.opts[optimizations.indexOf("dce")]) {
+      ll.accept(new DeadCodeElimination());
+    }
+    if (CLI.opts[optimizations.indexOf("uce")]) {
+      ll.accept(new UnreachableCodeElimination()); // (UCE)
+    }
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
 
@@ -203,7 +218,7 @@ class Main {
 
   public static void main(String[] args) {
     try {
-      CLI.parse(args, new String[0]);
+      CLI.parse(args, optimizations.toArray(new String[0]));
       String input = streamToString(CLI.infile == null ? System.in : new FileInputStream(CLI.infile));
       PrintStream outputStream = CLI.outfile == null ? System.out : new PrintStream(new FileOutputStream(CLI.outfile));
       switch (CLI.target) {
