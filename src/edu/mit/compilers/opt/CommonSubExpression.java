@@ -16,7 +16,7 @@ public class CommonSubExpression implements Optimization {
 
       if (instruction instanceof LLBinary || instruction instanceof LLUnary /* || instruction instanceof LLCompare */) {
         String expr = instruction.getUniqueExpressionString();
-        System.err.println("Block update: encountered expr => " + expr);
+        //System.err.println("Block update: encountered expr => " + expr);
         // GEN
         // track all variables used in expr, if change need to KILL expr
         for (LLDeclaration use : instruction.uses()) {
@@ -152,11 +152,11 @@ public class CommonSubExpression implements Optimization {
       if (update(block, mapVarToExprs, entryBitMaps.get(block), exitBitMaps.get(block))) {
         for (LLBasicBlock s : block.getSuccessors()) {
           BitMap<String> entryMap = entryBitMaps.get(s);
-          System.err.println("Current block exit bitmap");
-          System.err.println(exitBitMaps.get(block).toString());
+          //System.err.println("Current block exit bitmap");
+          //System.err.println(exitBitMaps.get(block).toString());
           entryMap.and(exitBitMaps.get(block));
-          System.err.println("Successor block exit bitmap");
-          System.err.println(entryMap.toString());
+          //System.err.println("Successor block exit bitmap");
+          //System.err.println(entryMap.toString());
 
           // Add all sucessors to work set
           workSet.add(s);
@@ -170,6 +170,7 @@ public class CommonSubExpression implements Optimization {
       mapExprToTmp.put(expr, tmp);
     }
 
+    /*
     // DEBUGGING: print available expressions
     System.err.println("DEBUGGING CSE\n");
     workSet.clear();
@@ -188,6 +189,7 @@ public class CommonSubExpression implements Optimization {
         visited.add(block);
       }
     }
+    */
 
     for (LLBasicBlock block : visited) {
       transform(methodDeclaration, block, mapVarToExprs, mapExprToTmp, entryBitMaps.get(block), exitBitMaps.get(block));
@@ -307,9 +309,9 @@ public class CommonSubExpression implements Optimization {
       //  one for the local basic block based on value numbering
       //  one for the global control flow graph bitmap
       String globalExpr = instruction.getUniqueExpressionString();
-      System.err.println("globalExpr: " + globalExpr);
-      System.err.println("currentBitMap.get(globalExpr) " + currentBitMap.get(globalExpr));
-      System.err.println("localCSETable.inExprToTmp(valueExpr) " + localCSETable.inExprToTmp(valueExpr));
+      //System.err.println("globalExpr: " + globalExpr);
+      //System.err.println("currentBitMap.get(globalExpr) " + currentBitMap.get(globalExpr));
+      //System.err.println("localCSETable.inExprToTmp(valueExpr) " + localCSETable.inExprToTmp(valueExpr));
 
 
       if (currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
