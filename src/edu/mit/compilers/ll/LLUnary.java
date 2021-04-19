@@ -51,14 +51,14 @@ public class LLUnary implements LLInstruction {
   public String getUniqueExpressionString() {
     StringBuilder exprBuilder =  new StringBuilder();
 
-    if (type == UnaryExpressionType.NOT || type ==  UnaryExpressionType.NEGATE) {
+    if (this.type == UnaryExpressionType.NOT || this.type ==  UnaryExpressionType.NEGATE) {
       exprBuilder.append(type.toString());
       exprBuilder.append(expression.toUniqueDeclarationString());
-    } else if (type == UnaryExpressionType.INCREMENT || type == UnaryExpressionType.INCREMENT) {
+    } else if (this.type == UnaryExpressionType.INCREMENT || this.type == UnaryExpressionType.DECREMENT) {
       exprBuilder.append(expression.toUniqueDeclarationString());
       exprBuilder.append(type.toString());
     } else {
-      throw new RuntimeException("unreachable");
+      throw new RuntimeException("unreachable\n");
     }
 
     return exprBuilder.toString();
