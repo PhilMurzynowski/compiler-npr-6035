@@ -17,16 +17,49 @@ public class LocalCSETable {
     this.methodDeclaration = methodDeclaration;
   }
 
-  // Adds var to value mapping if does not exist and return value
-  public String varToVal(LLDeclaration llVar) {
+  public boolean inVarToVal(LLDeclaration llvar) {
+    return mapVarToVal.containsKey(llvar);
+  }
+
+  public String getVarToVal(LLDeclaration llVar) {
     if (mapVarToVal.containsKey(llVar)) {
       return mapVarToVal.get(llVar);
     } else {
-      String val = "v"+valCount;
-      mapVarToVal.put(llVar, val);
-      this.valCount++;
-      return val;
+      throw new RuntimeException("value for var not set");
     }
+  }
+
+  public String addVarToVal(LLDeclaration llVar) {
+    String val = "v"+valCount;
+    mapVarToVal.put(llVar, val);
+    this.valCount++;
+    return val;
+  }
+
+  // Adds var to value mapping if does not exist and return value
+  public String varToVal(LLDeclaration llVar) {
+    if (inVarToVal(llVar)) {
+      return getVarToVal(llVar);
+    } else {
+      return addVarToVal(llVar);
+    }
+  }
+
+  // Set Var to specific Value
+  public void setVarToVal(LLDeclaration llVar, String val) {
+    mapVarToVal.put(llVar, val);
+  }
+
+  public String copyVarToVal(LLDeclaration llVar1, LLDeclaration llvar2) {
+
+    if (!inVarToVal(llVar1)) {
+      throw new RuntimeException("cannot copy var as not in table");
+    }
+
+    String val = getVarToVal(llVar1);
+    setVarToVal(llvar2, val);
+
+    return val;
   }
 
   public String exprToVal(String expr) {
