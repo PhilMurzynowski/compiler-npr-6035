@@ -179,7 +179,9 @@ class Main {
     LLProgram ll = LLBuilder.buildProgram(hl);
     System.err.println(ll.prettyString(0));
     System.err.println("--------------------------------------------------Optimization--------------------------------------------------");
-    // ll.accept(new CommonSubExpression()); // (CSE)
+    // an extra copy propagation helpful for CSE
+    ll.accept(new CopyPropagation(false, false)); // (CP)
+    ll.accept(new CommonSubExpression()); // (CSE)
     ll.accept(new CopyPropagation(/* constantFolding (CF) */ true, /* algebraicSimplification (AS) */ true)); // (CP)
     ll.accept(new DeadCodeElimination()); // (DCE)
     ll.accept(new UnreachableCodeElimination()); // (UCE)

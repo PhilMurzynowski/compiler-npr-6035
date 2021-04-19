@@ -16,6 +16,7 @@ public class CommonSubExpression implements Optimization {
 
       if (instruction instanceof LLBinary || instruction instanceof LLUnary /* || instruction instanceof LLCompare */) {
         String expr = instruction.getUniqueExpressionString();
+        //System.err.println("Block update: encountered expr => " + expr);
         // GEN
         // track all variables used in expr, if change need to KILL expr
         for (LLDeclaration use : instruction.uses()) {
@@ -35,8 +36,8 @@ public class CommonSubExpression implements Optimization {
         if(mapVarToExprs.containsKey(definition)) {
           for (String expr : mapVarToExprs.get(definition)) {
             // KILL
-            //System.out.println("Killing\n");
-            //System.out.println(llBasicBlock.prettyString(0));
+            //System.err.println("Killing\n");
+            //System.err.println(llBasicBlock.prettyString(0));
             currentBitMap.clear(expr);
           }
         }
@@ -109,15 +110,15 @@ public class CommonSubExpression implements Optimization {
     // Initialize all bitmaps
     BitMap<String> defaultBitMap = new BitMap<>();
     initBitMap(controlFlowGraph, mapVarToExprs, defaultBitMap);
-    //System.out.println("default bitmap\n");
-    //System.out.println(defaultBitMap.toString());
+    //System.err.println("default bitmap\n");
+    //System.err.println(defaultBitMap.toString());
     
     // Initialize the entry block's bit maps
     final BitMap<String> globalEntryInBitMap = new BitMap<>(defaultBitMap);
     final BitMap<String> globalEntryOutBitMap = new BitMap<>(defaultBitMap);
     globalEntryInBitMap.zero();
-    globalEntryOutBitMap.zero();
-    update(controlFlowGraph.getEntry(), mapVarToExprs, globalEntryInBitMap, globalEntryOutBitMap);
+    //globalEntryOutBitMap.zero();
+    //update(controlFlowGraph.getEntry(), mapVarToExprs, globalEntryInBitMap, globalEntryOutBitMap);
     entryBitMaps.put(controlFlowGraph.getEntry(), globalEntryInBitMap); 
     exitBitMaps.put(controlFlowGraph.getEntry(), globalEntryOutBitMap); 
     workSet.addAll(controlFlowGraph.getEntry().getSuccessors());
@@ -151,7 +152,11 @@ public class CommonSubExpression implements Optimization {
       if (update(block, mapVarToExprs, entryBitMaps.get(block), exitBitMaps.get(block))) {
         for (LLBasicBlock s : block.getSuccessors()) {
           BitMap<String> entryMap = entryBitMaps.get(s);
+          //System.err.println("Current block exit bitmap");
+          //System.err.println(exitBitMaps.get(block).toString());
           entryMap.and(exitBitMaps.get(block));
+          //System.err.println("Successor block exit bitmap");
+          //System.err.println(entryMap.toString());
 
           // Add all sucessors to work set
           workSet.add(s);
@@ -165,20 +170,20 @@ public class CommonSubExpression implements Optimization {
       mapExprToTmp.put(expr, tmp);
     }
 
-    // DEBUGGING: print available expressions
     /*
-    System.out.println("DEBUGGING CSE\n");
+    // DEBUGGING: print available expressions
+    System.err.println("DEBUGGING CSE\n");
     workSet.clear();
     visited.clear();
     workSet.add(controlFlowGraph.getEntry());
     while (!workSet.isEmpty()) {
       final LLBasicBlock block = workSet.iterator().next();
       workSet.remove(block);
-      System.out.println(block.prettyString(0));
-      System.out.println("Entry bitmap\n");
-      System.out.println(entryBitMaps.get(block).toString());
-      System.out.println("Exit bitmap\n");
-      System.out.println(exitBitMaps.get(block).toString());
+      System.err.println(block.prettyString(0));
+      System.err.println("Entry bitmap\n");
+      System.err.println(entryBitMaps.get(block).toString());
+      System.err.println("Exit bitmap\n");
+      System.err.println(exitBitMaps.get(block).toString());
       if (!visited.contains(block)) {
         workSet.addAll(block.getSuccessors());
         visited.add(block);
@@ -186,7 +191,6 @@ public class CommonSubExpression implements Optimization {
     }
     */
 
-    // TODO: eliminate common sub expressions across blocks
     for (LLBasicBlock block : visited) {
       transform(methodDeclaration, block, mapVarToExprs, mapExprToTmp, entryBitMaps.get(block), exitBitMaps.get(block));
     }
@@ -305,12 +309,15 @@ public class CommonSubExpression implements Optimization {
       //  one for the local basic block based on value numbering
       //  one for the global control flow graph bitmap
       String globalExpr = instruction.getUniqueExpressionString();
+      //System.err.println("globalExpr: " + globalExpr);
+      //System.err.println("currentBitMap.get(globalExpr) " + currentBitMap.get(globalExpr));
+      //System.err.println("localCSETable.inExprToTmp(valueExpr) " + localCSETable.inExprToTmp(valueExpr));
 
 
       if (currentBitMap.get(globalExpr) && !localCSETable.inExprToTmp(valueExpr)) {
         
         // Expression available from previous block, use result from global temporary
-        //System.out.println("using global for: " + globalExpr);
+        //System.err.println("using global for: " + globalExpr);
 
         LLDeclaration globalTmp = mapExprToTmp.get(globalExpr);
         LLCopy globalCopyInstruction = new LLCopy(globalTmp, instruction.definition().get());
@@ -319,7 +326,7 @@ public class CommonSubExpression implements Optimization {
       } else if (!localCSETable.inExprToTmp(valueExpr)) {
 
         // Evaluate instruction and copy result into local temporary 
-        //System.out.println("copying to local: " + valueExpr + ", copying to global: " + globalExpr);
+        //System.err.println("copying to local: " + valueExpr + ", copying to global: " + globalExpr);
 
         LLDeclaration localTmp = localCSETable.addExprToTmp(valueExpr);
         newLLInstructions.add(instruction);
@@ -334,7 +341,7 @@ public class CommonSubExpression implements Optimization {
       } else {
 
         // Expression available in local temporary
-        //System.out.println("using local for: " + valueExpr);
+        //System.err.println("using local for: " + valueExpr);
 
         LLDeclaration localTmp = localCSETable.getExprToTmp(valueExpr);
         // modified instruction as no longer using LLBinary, LLUnary, etc, just the tmp
@@ -343,7 +350,7 @@ public class CommonSubExpression implements Optimization {
       }
 
       // GEN
-      //System.out.println("GEN: " + globalExpr);
+      //System.err.println("GEN: " + globalExpr);
       currentBitMap.set(globalExpr);
 
       // Update Bitmap, KILL as needed
@@ -351,7 +358,7 @@ public class CommonSubExpression implements Optimization {
       if(mapVarToExprs.containsKey(definition)) {
         for (String expr : mapVarToExprs.get(definition)) {
           // KILL
-          //System.out.println("KILL: " + expr);
+          //System.err.println("KILL: " + expr);
           currentBitMap.clear(expr);
         }
       }
