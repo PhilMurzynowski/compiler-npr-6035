@@ -179,9 +179,10 @@ class Main {
     LLProgram ll = LLBuilder.buildProgram(hl);
     System.err.println(ll.prettyString(0));
     System.err.println("--------------------------------------------------Optimization--------------------------------------------------");
-    ll.accept(new CommonSubExpression());
-    ll.accept(new CopyPropagation(/* constantFolding */ true, /* algebraicSimplification */ true));
-    ll.accept(new DeadCode());
+    // ll.accept(new CommonSubExpression()); // (CSE)
+    ll.accept(new CopyPropagation(/* constantFolding (CF) */ true, /* algebraicSimplification (AS) */ true)); // (CP)
+    ll.accept(new DeadCodeElimination()); // (DCE)
+    ll.accept(new UnreachableCodeElimination()); // (UCE)
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
 

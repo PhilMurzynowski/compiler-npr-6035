@@ -94,7 +94,7 @@ public class LLBuilder {
     bodyCFG.addException(outOfBoundsExceptionBB);
 
     // NOTE(rbd): You can remove `.simplify()` here if you think simplification is the problem. :)
-    llMethodDeclaration.setBody(bodyCFG.simplify());
+    llMethodDeclaration.setBody(bodyCFG.simplify(/* unreachableCodeElimination */ false));
 
     return llMethodDeclaration;
   }
@@ -291,7 +291,7 @@ public class LLBuilder {
       loadBB
     );
 
-    LLBasicBlock.setTrueTarget(resultCFG.getExit(), boundsCheckCFG.getEntry());
+    LLBasicBlock.setTrueTarget(resultCFG.expectExit(), boundsCheckCFG.getEntry());
 
     resultCFG = new LLControlFlowGraph(resultCFG.getEntry(), loadBB);
 
@@ -348,15 +348,15 @@ public class LLBuilder {
     final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), otherCFG.getEntry());
 
     if (breakTarget.isPresent()) {
-      if (bodyCFG.getExit() != breakTarget.get() && bodyCFG.getExit() != continueTarget.get()) {
-        LLBasicBlock.setTrueTarget(bodyCFG.getExit(), exitBB);
+      if (bodyCFG.expectExit() != breakTarget.get() && bodyCFG.expectExit() != continueTarget.get()) {
+        LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), exitBB);
       }
-      if (otherCFG.getExit() != breakTarget.get() && otherCFG.getExit() != continueTarget.get()) {
-        LLBasicBlock.setTrueTarget(otherCFG.getExit(), exitBB);
+      if (otherCFG.expectExit() != breakTarget.get() && otherCFG.expectExit() != continueTarget.get()) {
+        LLBasicBlock.setTrueTarget(otherCFG.expectExit(), exitBB);
       }
     } else {
-      LLBasicBlock.setTrueTarget(bodyCFG.getExit(), exitBB);
-      LLBasicBlock.setTrueTarget(otherCFG.getExit(), exitBB);
+      LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), exitBB);
+      LLBasicBlock.setTrueTarget(otherCFG.expectExit(), exitBB);
     }
 
     return new LLControlFlowGraph(entryBB, exitBB);
@@ -377,12 +377,12 @@ public class LLBuilder {
       forStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB
     );
 
-    LLBasicBlock.setTrueTarget(initialCFG.getExit(), conditionBB);
+    LLBasicBlock.setTrueTarget(initialCFG.expectExit(), conditionBB);
 
-    if (bodyCFG.getExit() != updateCFG.getEntry() && bodyCFG.getExit() != breakBB) {
-      LLBasicBlock.setTrueTarget(bodyCFG.getExit(), updateCFG.getEntry());
+    if (bodyCFG.expectExit() != updateCFG.getEntry() && bodyCFG.expectExit() != breakBB) {
+      LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), updateCFG.getEntry());
     }
-    LLBasicBlock.setTrueTarget(updateCFG.getExit(), conditionBB);
+    LLBasicBlock.setTrueTarget(updateCFG.expectExit(), conditionBB);
 
     return new LLControlFlowGraph(initialCFG.getEntry(), breakBB);
   }
@@ -394,8 +394,8 @@ public class LLBuilder {
     final LLControlFlowGraph bodyCFG = buildBlock(whileStatement.getBody(), methodDeclaration, Optional.of(breakBB), Optional.of(continueBB));
     final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB);
 
-    if (bodyCFG.getExit() != breakBB && bodyCFG.getExit() != continueBB) {
-      LLBasicBlock.setTrueTarget(bodyCFG.getExit(), continueBB);
+    if (bodyCFG.expectExit() != breakBB && bodyCFG.expectExit() != continueBB) {
+      LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), continueBB);
     }
 
     LLBasicBlock.setTrueTarget(continueBB, conditionBB);

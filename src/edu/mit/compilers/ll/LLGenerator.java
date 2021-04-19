@@ -237,8 +237,12 @@ public class LLGenerator {
 
     s.append(generateBasicBlock(controlFlowGraph.getEntry()));
 
-    if (!controlFlowGraph.getExit().isGenerated()) {
-      throw new RuntimeException("failed to generate controlFlowGraph");
+    if (controlFlowGraph.hasExit()) {
+      assert controlFlowGraph.expectExit().isGenerated() : "failed to generate control flow graph exit";
+    }
+
+    for (LLBasicBlock exception : controlFlowGraph.getExceptions()) {
+      assert exception.isGenerated() : "failed to generate control flow graph exception";
     }
 
     return s.toString();

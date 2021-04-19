@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
+import edu.mit.compilers.common.*;
+
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLBasicBlock implements LLDeclaration {
@@ -149,7 +151,42 @@ public class LLBasicBlock implements LLDeclaration {
     }
   }
 
-  public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified, Set<LLBasicBlock> exits, Set<LLBasicBlock> exceptions) {
+  private enum ComparisonResult {
+    ALWAYS_TRUE,
+    ALWAYS_FALSE,
+    AMBIGUOUS;
+
+    public static ComparisonResult fromBoolean(boolean x) {
+      return x ? ALWAYS_TRUE : ALWAYS_FALSE;
+    }
+  }
+
+  private static ComparisonResult evaluateComparison(LLCompare comparison) {
+    if (comparison.getLeft() instanceof LLConstantDeclaration left
+        && comparison.getRight() instanceof LLConstantDeclaration right) {
+      if (comparison.getType().equals(ComparisonType.EQUAL)) {
+        return ComparisonResult.fromBoolean(left.getValue() == right.getValue());
+      } else if (comparison.getType().equals(ComparisonType.NOT_EQUAL)) {
+        return ComparisonResult.fromBoolean(left.getValue() != right.getValue());
+      } else if (comparison.getType().equals(ComparisonType.LESS_THAN)) {
+        return ComparisonResult.fromBoolean(left.getValue() < right.getValue());
+      } else if (comparison.getType().equals(ComparisonType.LESS_THAN_OR_EQUAL)) {
+        return ComparisonResult.fromBoolean(left.getValue() <= right.getValue());
+      } else if (comparison.getType().equals(ComparisonType.GREATER_THAN)) {
+        return ComparisonResult.fromBoolean(left.getValue() > right.getValue());
+      } else if (comparison.getType().equals(ComparisonType.GREATER_THAN_OR_EQUAL)) {
+        return ComparisonResult.fromBoolean(left.getValue() >= right.getValue());
+      } else {
+        throw new RuntimeException("unreachable");
+      }
+    } else {
+      return ComparisonResult.AMBIGUOUS;
+    }
+  }
+
+  // TODO(rbd): Yep, this has become quite a mess...
+
+  public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified, Set<LLBasicBlock> exits, Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
     assert !generated : "cannot simplify because basic block has already been generated";
 
     if (falseTarget.isPresent()) {
@@ -157,7 +194,7 @@ public class LLBasicBlock implements LLDeclaration {
 
       if (!simplified.containsKey(getTrueTarget())) {
         simplified.put(getTrueTarget(), new LLBasicBlock());
-        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions);
+        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions, unreachableCodeElimination);
         simplified.get(getTrueTarget()).subsume(simplifiedBB);
         if (exits.contains(simplifiedBB)) {
           exits.add(simplified.get(getTrueTarget()));
@@ -169,7 +206,7 @@ public class LLBasicBlock implements LLDeclaration {
 
       if (!simplified.containsKey(getFalseTarget())) {
         simplified.put(getFalseTarget(), new LLBasicBlock());
-        final LLBasicBlock simplifiedBB = getFalseTarget().simplify(simplified, exits, exceptions);
+        final LLBasicBlock simplifiedBB = getFalseTarget().simplify(simplified, exits, exceptions, unreachableCodeElimination);
         simplified.get(getFalseTarget()).subsume(simplifiedBB);
         if (exits.contains(simplifiedBB)) {
           exits.add(simplified.get(getFalseTarget()));
@@ -182,17 +219,109 @@ public class LLBasicBlock implements LLDeclaration {
       final LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
       final LLBasicBlock simplifiedFalseTarget = simplified.get(getFalseTarget());
 
-      final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
+      if (unreachableCodeElimination) {
+        if (instructions.size() < 1) {
+          throw new RuntimeException("should have at least one instruction (a comparison)");
+        }
 
-      // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-      simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
-      simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget));
+        if (instructions.get(instructions.size() - 1) instanceof LLCompare comparison) {
+          switch (evaluateComparison(comparison)) {
+            case ALWAYS_TRUE: {
+              if (getTrueTarget().predecessors.size() == 1) {
+                final List<LLInstruction> resultInstructions = new ArrayList<>(instructions.subList(0, instructions.size() - 1));
+                resultInstructions.addAll(simplifiedTrueTarget.instructions);
 
-      return simplifiedBB;
+                final LLBasicBlock simplifiedBB = new LLBasicBlock(resultInstructions);
+
+                if (exits.contains(simplifiedTrueTarget)) {
+                  exits.add(simplifiedBB);
+                }
+
+                if (exceptions.contains(simplifiedTrueTarget)) {
+                  exceptions.add(simplifiedBB);
+                }
+
+                if (simplifiedTrueTarget.hasTrueTarget()) {
+                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+                  simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget.getTrueTarget()));
+                }
+
+                if (simplifiedTrueTarget.hasFalseTarget()) {
+                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+                  simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedTrueTarget.getFalseTarget()));
+                }
+
+                return simplifiedBB;
+              } else {
+                final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions.subList(0, instructions.size() - 1));
+
+                // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+                simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
+
+                return simplifiedBB;
+              }
+            } case ALWAYS_FALSE: {
+              if (getFalseTarget().predecessors.size() == 1) {
+                final List<LLInstruction> resultInstructions = new ArrayList<>(instructions.subList(0, instructions.size() - 1));
+                resultInstructions.addAll(simplifiedFalseTarget.instructions);
+
+                final LLBasicBlock simplifiedBB = new LLBasicBlock(resultInstructions);
+
+                if (exits.contains(simplifiedFalseTarget)) {
+                  exits.add(simplifiedBB);
+                }
+
+                if (exceptions.contains(simplifiedFalseTarget)) {
+                  exceptions.add(simplifiedBB);
+                }
+
+                if (simplifiedFalseTarget.hasTrueTarget()) {
+                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+                  simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedFalseTarget.getTrueTarget()));
+                }
+
+                if (simplifiedFalseTarget.hasFalseTarget()) {
+                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+                  simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget.getFalseTarget()));
+                }
+
+                return simplifiedBB;
+              } else {
+                final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions.subList(0, instructions.size() - 1));
+
+                // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+                simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedFalseTarget));
+
+                return simplifiedBB;
+              }
+            } case AMBIGUOUS: {
+              final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
+
+              // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+              simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
+              simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget));
+
+              return simplifiedBB;
+            } default: {
+              throw new RuntimeException("unreachable");
+            }
+          }
+        } else {
+          throw new RuntimeException("expected last instruction to be a comparison");
+        }
+      } else {
+        final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
+
+        // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
+        simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
+        simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget));
+
+        return simplifiedBB;
+      }
     } else if (trueTarget.isPresent()) {
       if (!simplified.containsKey(getTrueTarget())) {
         simplified.put(getTrueTarget(), new LLBasicBlock());
-        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions);
+        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions, unreachableCodeElimination);
         simplified.get(getTrueTarget()).subsume(simplifiedBB);
         if (exits.contains(simplifiedBB)) {
           exits.add(simplified.get(getTrueTarget()));

@@ -80,6 +80,15 @@ public class LLMethodDeclaration implements LLDeclaration {
     }
   }
 
+  // NOTE(rbd): this is used in UnreachableCodeElimination
+  public void replaceBody(LLControlFlowGraph body) {
+    if (this.body.isEmpty()) {
+      throw new RuntimeException("no body has been set");
+    } else {
+      this.body = Optional.of(body);
+    }
+  }
+
   public boolean hasBody() {
     return this.body.isPresent();
   }

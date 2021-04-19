@@ -5,7 +5,7 @@ import java.util.*;
 import edu.mit.compilers.ll.*;
 import edu.mit.compilers.common.*;
 
-public class DeadCode implements Optimization {
+public class DeadCodeElimination implements Optimization {
 
   /**
    *
@@ -76,11 +76,13 @@ public class DeadCode implements Optimization {
       globalExitBitMap.set(global);
     }
 
-    entryBitMaps.put(controlFlowGraph.getExit(), new BitMap<>());
-    exitBitMaps.put(controlFlowGraph.getExit(), globalExitBitMap);
+    if (controlFlowGraph.hasExit()) {
+      entryBitMaps.put(controlFlowGraph.expectExit(), new BitMap<>());
+      exitBitMaps.put(controlFlowGraph.expectExit(), globalExitBitMap);
 
-    workSet.addAll(controlFlowGraph.getExit().getPredecessors());
-    visited.add(controlFlowGraph.getExit());
+      workSet.addAll(controlFlowGraph.expectExit().getPredecessors());
+      visited.add(controlFlowGraph.expectExit());
+    }
 
     // Initialize the exception blocks' bit maps
     for (LLBasicBlock block : controlFlowGraph.getExceptions()) {

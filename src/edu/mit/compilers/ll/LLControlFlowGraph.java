@@ -4,23 +4,24 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.Optional;
 
 import static edu.mit.compilers.common.Utilities.*;
 
 public class LLControlFlowGraph implements LLNode {
 
   private final LLBasicBlock entry;
-  private final LLBasicBlock exit;
+  private final Optional<LLBasicBlock> exit;
   private final Set<LLBasicBlock> exceptions;
 
-  private LLControlFlowGraph(LLBasicBlock entry, LLBasicBlock exit, Set<LLBasicBlock> exceptions) {
+  private LLControlFlowGraph(LLBasicBlock entry, Optional<LLBasicBlock> exit, Set<LLBasicBlock> exceptions) {
     this.entry = entry;
     this.exit = exit;
     this.exceptions = new HashSet<>(exceptions);
   }
 
   public LLControlFlowGraph(LLBasicBlock entry, LLBasicBlock exit) {
-    this(entry, exit, Set.of());
+    this(entry, Optional.of(exit), Set.of());
   }
 
   public static LLControlFlowGraph single(LLBasicBlock basicBlock) {
@@ -35,8 +36,16 @@ public class LLControlFlowGraph implements LLNode {
     return entry;
   }
 
-  public LLBasicBlock getExit() {
-    return exit;
+  public LLBasicBlock expectExit() {
+    if (exit.isEmpty()) {
+      throw new RuntimeException("exit does not exist. this suggests that UnreachableCodeElimination has been run already.");
+    } else {
+      return exit.get();
+    }
+  }
+
+  public boolean hasExit() {
+    return exit.isPresent();
   }
 
   public Set<LLBasicBlock> getExceptions() {
@@ -44,8 +53,8 @@ public class LLControlFlowGraph implements LLNode {
   }
 
   public LLControlFlowGraph concatenate(LLControlFlowGraph that) {
-    LLBasicBlock.setTrueTarget(this.exit, that.entry);
-    return new LLControlFlowGraph(this.entry, that.exit);
+    LLBasicBlock.setTrueTarget(this.expectExit(), that.entry);
+    return new LLControlFlowGraph(this.entry, that.expectExit());
   }
 
   public LLControlFlowGraph concatenate(LLBasicBlock basicBlock) {
@@ -60,10 +69,15 @@ public class LLControlFlowGraph implements LLNode {
     exceptions.add(exception);
   }
 
-  public LLControlFlowGraph simplify() {
-    final Set<LLBasicBlock> allExits = new HashSet<>(Set.of(exit));
+  public LLControlFlowGraph simplify(boolean unreachableCodeElimination) {
+    final Set<LLBasicBlock> allExits;
+    if (exit.isPresent()) {
+      allExits = new HashSet<>(Set.of(exit.get()));
+    } else {
+      allExits = new HashSet<>();
+    }
     final Set<LLBasicBlock> allExceptions = new HashSet<>(exceptions);
-    LLBasicBlock simplifiedEntry = entry.simplify(new HashMap<>(), allExits, allExceptions);
+    LLBasicBlock simplifiedEntry = entry.simplify(new HashMap<>(), allExits, allExceptions, unreachableCodeElimination);
 
     final Set<LLBasicBlock> visited = new HashSet<>();
     final Stack<LLBasicBlock> toVisit = new Stack<>();
@@ -100,10 +114,18 @@ public class LLControlFlowGraph implements LLNode {
       }
     }
 
-    assert simplifiedExits.size() == 1 : "more than one exit";
-    assert simplifiedExceptions.size() <= exceptions.size() : "after simplification, should have at most the number of exceptions from before simplification";
+    if (simplifiedExits.size() == 0) {
+      assert simplifiedExceptions.size() > 0 : "if there is no exit, there should be at least one exception";
+      assert simplifiedExceptions.size() <= exceptions.size() : "after simplification, should have at most the number of exceptions from before simplification";
 
-    return new LLControlFlowGraph(simplifiedEntry, simplifiedExits.iterator().next(), simplifiedExceptions);
+      return new LLControlFlowGraph(simplifiedEntry, Optional.empty(), simplifiedExceptions);
+    } else if (simplifiedExits.size() == 1) {
+      assert simplifiedExceptions.size() <= exceptions.size() : "after simplification, should have at most the number of exceptions from before simplification";
+
+      return new LLControlFlowGraph(simplifiedEntry, Optional.of(simplifiedExits.iterator().next()), simplifiedExceptions);
+    } else {
+      throw new RuntimeException("too many exits");
+    }
   }
 
   @Override
@@ -141,7 +163,9 @@ public class LLControlFlowGraph implements LLNode {
     StringBuilder s = new StringBuilder();
     s.append("LLControlFlowGraph {\n");
     s.append(indent(depth + 1) + "entry: " + entry.getIndex() + ",\n");
-    s.append(indent(depth + 1) + "exit: " + exit.getIndex() + ",\n");
+    if (exit.isPresent()) {
+      s.append(indent(depth + 1) + "exit: " + exit.get().getIndex() + ",\n");
+    }
     s.append(indent(depth + 1) + "basicBlocks: [\n");
 
     final Set<LLBasicBlock> visited = new HashSet<>();
