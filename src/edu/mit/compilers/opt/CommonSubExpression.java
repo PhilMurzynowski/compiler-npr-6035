@@ -216,7 +216,7 @@ public class CommonSubExpression implements Optimization {
         if (type == UnaryExpressionType.NOT || type ==  UnaryExpressionType.NEGATE) {
           valueExprBuilder.append(type);
           valueExprBuilder.append(localCSETable.varToVal(unaryInstruction.getExpression()));
-        } else if (type == UnaryExpressionType.INCREMENT || type == UnaryExpressionType.INCREMENT) {
+        } else if (type == UnaryExpressionType.INCREMENT || type == UnaryExpressionType.DECREMENT) {
           valueExprBuilder.append(localCSETable.varToVal(unaryInstruction.getExpression()));
           valueExprBuilder.append(type);
         } else {
