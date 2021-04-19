@@ -135,6 +135,20 @@ public class LLBasicBlock implements LLDeclaration {
     return generated;
   }
 
+  private static LLBasicBlock getNextNonEmpty(LLBasicBlock block) {
+    if (block.getInstructions().size() == 0) {
+      if (block.hasFalseTarget()) {
+        throw new RuntimeException("an empty block should not have a false target");
+      } else if (block.hasTrueTarget()) {
+        return getNextNonEmpty(block.getTrueTarget());
+      } else {
+        return block;
+      }
+    } else {
+      return block;
+    }
+  }
+
   public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified, Set<LLBasicBlock> exits, Set<LLBasicBlock> exceptions) {
     assert !generated : "cannot simplify because basic block has already been generated";
 
@@ -171,8 +185,8 @@ public class LLBasicBlock implements LLDeclaration {
       final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
 
       // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-      simplifiedBB.setTrueTarget(simplifiedTrueTarget);
-      simplifiedBB.setFalseTarget(simplifiedFalseTarget);
+      simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
+      simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget));
 
       return simplifiedBB;
     } else if (trueTarget.isPresent()) {
@@ -206,12 +220,12 @@ public class LLBasicBlock implements LLDeclaration {
 
         if (simplifiedTrueTarget.hasTrueTarget()) {
           // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-          simplifiedBB.setTrueTarget(simplifiedTrueTarget.getTrueTarget());
+          simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget.getTrueTarget()));
         }
 
         if (simplifiedTrueTarget.hasFalseTarget()) {
           // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-          simplifiedBB.setFalseTarget(simplifiedTrueTarget.getFalseTarget());
+          simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedTrueTarget.getFalseTarget()));
         }
 
         return simplifiedBB;
@@ -219,7 +233,7 @@ public class LLBasicBlock implements LLDeclaration {
         final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
 
         // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-        simplifiedBB.setTrueTarget(simplifiedTrueTarget);
+        simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
 
         return simplifiedBB;
       }
