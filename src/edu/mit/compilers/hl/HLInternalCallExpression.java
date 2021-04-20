@@ -9,12 +9,10 @@ public class HLInternalCallExpression implements HLCallExpression {
 
   private final HLMethodDeclaration declaration;
   private final List<HLArgument> arguments;
-  private boolean inline;
 
   private HLInternalCallExpression(HLMethodDeclaration declaration, List<HLArgument> arguments) {
     this.declaration = declaration;
     this.arguments = arguments;
-    this.inline = false;
   }
 
   public static class Builder {
@@ -46,14 +44,6 @@ public class HLInternalCallExpression implements HLCallExpression {
     return arguments;
   }
 
-  public void setInline() {
-    inline = true;
-  }
-
-  public boolean shouldInline() {
-    return inline;
-  }
-
   @Override
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
@@ -64,7 +54,6 @@ public class HLInternalCallExpression implements HLCallExpression {
       s.append(indent(depth + 2) + argument.debugString(depth + 2) + ",\n");
     }
     s.append(indent(depth + 1) + "],\n");
-    s.append(indent(depth + 1) + "inline: " + inline + ",\n");
     s.append(indent(depth) + "}");
     return s.toString();
   }
