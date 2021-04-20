@@ -29,7 +29,7 @@ public class FunctionInlining {
 
   // NOTE(rbd): If the cost is below this threshold, the function will be inlined. However, if a function is only called
   // once, it will always be inlined no matter the cost.
-  private static final int COST_THRESHOLD = 20;
+  private static final int COST_THRESHOLD = 1000000;
 
   // NOTE(rbd): This tries to yield costs (roughly) proportional to the number of instructions necessary to generate for
   // any given function. In other words, this is not the *time* complexity of the function, but the *space* complexity.
@@ -191,9 +191,10 @@ public class FunctionInlining {
 
   private static void apply(final HLCallExpression callExpression, final Map<HLMethodDeclaration, Integer> uses, final Map<HLMethodDeclaration, Integer> costs) {
     if (callExpression instanceof HLInternalCallExpression internalCallExpression) {
-      for (final HLArgument argument : internalCallExpression.getArguments()) {
-        apply(argument, uses, costs);
-      }
+      // NOTE(rbd): There is a weird case that prevents any call expressions within arguments to be inlined.
+      // for (final HLArgument argument : internalCallExpression.getArguments()) {
+      //   apply(argument, uses, costs);
+      // }
 
       final HLMethodDeclaration methodDeclaration = internalCallExpression.getDeclaration();
 
@@ -201,9 +202,10 @@ public class FunctionInlining {
         internalCallExpression.setInline();
       }
     } else if (callExpression instanceof HLExternalCallExpression externalCallExpression) {
-      for (final HLArgument argument : externalCallExpression.getArguments()) {
-        apply(argument, uses, costs);
-      }
+      // NOTE(rbd): There is a weird case that prevents any call expressions within arguments to be inlined. 
+      // for (final HLArgument argument : externalCallExpression.getArguments()) {
+      //   apply(argument, uses, costs);
+      // }
     } else {
       throw new RuntimeException("unreachable");
     }
@@ -234,15 +236,16 @@ public class FunctionInlining {
     }
   }
 
-  private static void apply(final HLArgument argument, final Map<HLMethodDeclaration, Integer> uses, final Map<HLMethodDeclaration, Integer> costs) {
-    if (argument instanceof HLStringLiteral stringLiteral) {
-      // NOTE(rbd): Nothing to apply.
-    } else if (argument instanceof HLExpression expression) {
-      apply(expression, uses, costs);
-    } else {
-      throw new RuntimeException("unreachable");
-    }
-  }
+  // NOTE(rbd): There is a weird case that prevents any call expressions within arguments to be inlined. 
+  // private static void apply(final HLArgument argument, final Map<HLMethodDeclaration, Integer> uses, final Map<HLMethodDeclaration, Integer> costs) {
+  //   if (argument instanceof HLStringLiteral stringLiteral) {
+  //     // NOTE(rbd): Nothing to apply.
+  //   } else if (argument instanceof HLExpression expression) {
+  //     apply(expression, uses, costs);
+  //   } else {
+  //     throw new RuntimeException("unreachable");
+  //   }
+  // }
 
   private static void apply(final HLStoreScalarStatement storeScalarStatement, final Map<HLMethodDeclaration, Integer> uses, final Map<HLMethodDeclaration, Integer> costs) {
     apply(storeScalarStatement.getExpression(), uses, costs);
