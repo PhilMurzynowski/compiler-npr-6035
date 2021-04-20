@@ -3,6 +3,7 @@ package edu.mit.compilers.ll;
 import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.mit.compilers.hl.*;
 import edu.mit.compilers.common.*;
@@ -85,6 +86,7 @@ public class LLBuilder {
     LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty(), Map.of(), Optional.empty());
 
     if (llMethodDeclaration.getMethodType() == MethodType.VOID) {
+      System.err.println("RETURN 1");
       bodyCFG = bodyCFG.concatenate(
         new LLReturn(Optional.empty())
       );
@@ -428,6 +430,7 @@ public class LLBuilder {
           new LLCopy(expressionResult, returnResult.get())
         );
       } else {
+        System.err.println("RETURN 2");
         resultCFG = resultCFG.concatenate(
           new LLReturn(Optional.of(expressionResult))
         );
@@ -436,6 +439,7 @@ public class LLBuilder {
       if (returnResult.isPresent()) {
         // NOTE(rbd): Nothing to return
       } else {
+        System.err.println("RETURN 3");
         resultCFG = resultCFG.concatenate(
           new LLReturn(Optional.empty())
         );
@@ -654,7 +658,33 @@ public class LLBuilder {
         newArgumentAliases.put(argumentDeclaration, argumentResult);
       }
 
-      resultCFG = resultCFG.concatenate(buildBlock(inlineMethodDeclaration.getBody(), methodDeclaration, Optional.empty(), Optional.empty(), newArgumentAliases, Optional.of(result)));
+      LLControlFlowGraph bodyCFG = buildBlock(inlineMethodDeclaration.getBody(), methodDeclaration, Optional.empty(), Optional.empty(), newArgumentAliases, Optional.of(result));
+
+      if (inlineMethodDeclaration.getMethodType() != MethodType.VOID) {
+        final List<LLInstruction> instructions = bodyCFG.expectExit().getInstructions();
+        if (instructions.size() > 0) {
+          final LLInstruction instruction = instructions.get(instructions.size() - 1);
+          if (instruction instanceof LLCopy copy) {
+            if (copy.getResult() == result) {
+              // NOTE(rbd): All good, the return value was set.
+            } else {
+              bodyCFG = bodyCFG.concatenate(
+                new LLException(LLException.Type.NoReturnValue)
+              );
+            }
+          } else {
+            bodyCFG = bodyCFG.concatenate(
+              new LLException(LLException.Type.NoReturnValue)
+            );
+          }
+        } else {
+          bodyCFG = bodyCFG.concatenate(
+            new LLException(LLException.Type.NoReturnValue)
+          );
+        }
+      }
+
+      resultCFG = resultCFG.concatenate(bodyCFG);
     } else {
       final LLMethodDeclaration declaration = internalCallExpression.getDeclaration().getLL();
       final LLInternalCall.Builder builder = new LLInternalCall.Builder(declaration, result);
