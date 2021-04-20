@@ -201,9 +201,9 @@ public class LLMethodDeclaration implements LLDeclaration {
       s.append(indent(depth + 1) + arrayFieldDeclaration.prettyStringDeclaration(depth + 1) + "\n");
     }
 
-     for (LLAliasDeclaration aliasDeclaration : aliasDeclarations) {
-       s.append(indent(depth + 1) + aliasDeclaration.prettyStringDeclaration(depth + 1) + ",\n");
-     }
+    // for (LLAliasDeclaration aliasDeclaration : aliasDeclarations) {
+    //   s.append(indent(depth + 1) + aliasDeclaration.prettyStringDeclaration(depth + 1) + ",\n");
+    // }
 
     if (body.isPresent()) {
       s.append(indent(depth + 1) + body.get().prettyString(depth + 1));

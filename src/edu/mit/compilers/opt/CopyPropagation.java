@@ -571,7 +571,6 @@ public class CopyPropagation implements Optimization {
     do {
       changed = false;
       for (final LLBasicBlock block : visited) {
-        System.err.println(block.prettyString(0));
         changed |= transform(block, indices.get(block), entries.get(block), exits.get(block), new HashSet<>(globals));
       }
     } while (changed);
