@@ -1,22 +1,24 @@
 package edu.mit.compilers.ll;
 
+import java.util.Map;
+
 import edu.mit.compilers.hl.*;
 import edu.mit.compilers.common.*;
 
 public class LLShortCircuit {
 
   // DONE: Phil
-  public static LLBasicBlock shortExpression(HLExpression expression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
+  public static LLBasicBlock shortExpression(HLExpression expression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     if (expression instanceof HLBinaryExpression binaryExpression) {
-      return LLShortCircuit.shortBinaryExpression(binaryExpression, methodDeclaration, trueTarget, falseTarget);
+      return LLShortCircuit.shortBinaryExpression(binaryExpression, methodDeclaration, trueTarget, falseTarget, argumentAliases);
     } else if (expression instanceof HLUnaryExpression unaryExpression) {
-      return LLShortCircuit.shortUnaryExpression(unaryExpression, methodDeclaration, trueTarget, falseTarget);
+      return LLShortCircuit.shortUnaryExpression(unaryExpression, methodDeclaration, trueTarget, falseTarget, argumentAliases);
     } else if (expression instanceof HLLoadScalarExpression loadScalarExpression) {
-      return LLShortCircuit.shortLoadScalarExpression(loadScalarExpression, methodDeclaration, trueTarget, falseTarget);
+      return LLShortCircuit.shortLoadScalarExpression(loadScalarExpression, methodDeclaration, trueTarget, falseTarget, argumentAliases);
     } else if (expression instanceof HLLoadArrayExpression loadArrayExpression) {
-      return LLShortCircuit.shortLoadArrayExpression(loadArrayExpression, methodDeclaration, trueTarget, falseTarget);
+      return LLShortCircuit.shortLoadArrayExpression(loadArrayExpression, methodDeclaration, trueTarget, falseTarget, argumentAliases);
     } else if (expression instanceof HLCallExpression callExpression) {
-      return LLShortCircuit.shortCallExpression(callExpression, methodDeclaration, trueTarget, falseTarget);
+      return LLShortCircuit.shortCallExpression(callExpression, methodDeclaration, trueTarget, falseTarget, argumentAliases);
     //} else if (expression instanceof HLLengthExpression lengthExpression) {
     //  return LLShortCircuit.shortLengthExpression(lengthExpression, methodDeclaration, trueTarget, falseTarget);
     } else if (expression instanceof HLIntegerLiteral integerLiteral) {
@@ -28,13 +30,13 @@ public class LLShortCircuit {
   }
 
   // DONE: Robert
-  public static LLBasicBlock shortBinaryExpression(HLBinaryExpression binaryExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
+  public static LLBasicBlock shortBinaryExpression(HLBinaryExpression binaryExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     if (binaryExpression.getType() == BinaryExpressionType.OR) {
-      LLBasicBlock rightBB = shortExpression(binaryExpression.getRight(), methodDeclaration, trueTarget, falseTarget);
-      return shortExpression(binaryExpression.getLeft(), methodDeclaration, trueTarget, rightBB);
+      LLBasicBlock rightBB = shortExpression(binaryExpression.getRight(), methodDeclaration, trueTarget, falseTarget, argumentAliases);
+      return shortExpression(binaryExpression.getLeft(), methodDeclaration, trueTarget, rightBB, argumentAliases);
     } else if (binaryExpression.getType() == BinaryExpressionType.AND) {
-      LLBasicBlock rightBB = shortExpression(binaryExpression.getRight(), methodDeclaration, trueTarget, falseTarget);
-      return shortExpression(binaryExpression.getLeft(), methodDeclaration, rightBB, falseTarget);
+      LLBasicBlock rightBB = shortExpression(binaryExpression.getRight(), methodDeclaration, trueTarget, falseTarget, argumentAliases);
+      return shortExpression(binaryExpression.getLeft(), methodDeclaration, rightBB, falseTarget, argumentAliases);
     } else if (binaryExpression.getType() == BinaryExpressionType.EQUAL
         || binaryExpression.getType() == BinaryExpressionType.NOT_EQUAL
         || binaryExpression.getType() == BinaryExpressionType.LESS_THAN
@@ -44,11 +46,11 @@ public class LLShortCircuit {
       LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
       final LLAliasDeclaration leftResult = methodDeclaration.newAlias();
-      final LLControlFlowGraph leftCFG = LLBuilder.buildExpression(binaryExpression.getLeft(), methodDeclaration, leftResult);
+      final LLControlFlowGraph leftCFG = LLBuilder.buildExpression(binaryExpression.getLeft(), methodDeclaration, leftResult, argumentAliases);
       resultCFG = resultCFG.concatenate(leftCFG);
 
       final LLAliasDeclaration rightResult = methodDeclaration.newAlias();
-      final LLControlFlowGraph rightCFG = LLBuilder.buildExpression(binaryExpression.getRight(), methodDeclaration, rightResult);
+      final LLControlFlowGraph rightCFG = LLBuilder.buildExpression(binaryExpression.getRight(), methodDeclaration, rightResult, argumentAliases);
       resultCFG = resultCFG.concatenate(rightCFG);
 
       final LLBasicBlock compareBB = new LLBasicBlock(
@@ -67,9 +69,9 @@ public class LLShortCircuit {
   }
 
   // DONE: Noah
-  public static LLBasicBlock shortUnaryExpression(HLUnaryExpression unaryExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
+  public static LLBasicBlock shortUnaryExpression(HLUnaryExpression unaryExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     if (unaryExpression.getType().equals(UnaryExpressionType.NOT)) {
-      return shortExpression(unaryExpression.getExpression(), methodDeclaration, falseTarget, trueTarget);
+      return shortExpression(unaryExpression.getExpression(), methodDeclaration, falseTarget, trueTarget, argumentAliases);
     } else {
       throw new RuntimeException("cannot short-circuit unary of type " + unaryExpression.getType().name());
     }
@@ -77,11 +79,11 @@ public class LLShortCircuit {
   }
 
   // DONE: Phil
-  public static LLBasicBlock shortLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
+  public static LLBasicBlock shortLoadScalarExpression(HLLoadScalarExpression loadScalarExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph loadCFG = LLBuilder.buildLoadScalarExpression(loadScalarExpression, loadResult);
+    final LLControlFlowGraph loadCFG = LLBuilder.buildLoadScalarExpression(loadScalarExpression, loadResult, argumentAliases);
     resultCFG = resultCFG.concatenate(loadCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(
@@ -97,11 +99,11 @@ public class LLShortCircuit {
   }
 
   // DONE: Robert
-  public static LLBasicBlock shortLoadArrayExpression(HLLoadArrayExpression loadArrayExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
+  public static LLBasicBlock shortLoadArrayExpression(HLLoadArrayExpression loadArrayExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     final LLAliasDeclaration loadResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph loadCFG = LLBuilder.buildLoadArrayExpression(loadArrayExpression, methodDeclaration, loadResult);
+    final LLControlFlowGraph loadCFG = LLBuilder.buildLoadArrayExpression(loadArrayExpression, methodDeclaration, loadResult, argumentAliases);
     resultCFG = resultCFG.concatenate(loadCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(
@@ -117,20 +119,20 @@ public class LLShortCircuit {
   }
 
   // DONE: Noah
-  public static LLBasicBlock shortCallExpression(HLCallExpression callExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
+  public static LLBasicBlock shortCallExpression(HLCallExpression callExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     if (callExpression instanceof HLInternalCallExpression internalCallExpression) {
-      return shortInternalCallExpression(internalCallExpression, methodDeclaration, trueTarget, falseTarget);
+      return shortInternalCallExpression(internalCallExpression, methodDeclaration, trueTarget, falseTarget, argumentAliases);
     } else {
       throw new RuntimeException("unreachable");
     }
   }
 
   // DONE: Phil
-  public static LLBasicBlock shortInternalCallExpression(HLInternalCallExpression internalCallExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget) {
+  public static LLBasicBlock shortInternalCallExpression(HLInternalCallExpression internalCallExpression, LLMethodDeclaration methodDeclaration, LLBasicBlock trueTarget, LLBasicBlock falseTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     final LLAliasDeclaration callResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph callCFG = LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, callResult);
+    final LLControlFlowGraph callCFG = LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, callResult, argumentAliases);
     resultCFG = resultCFG.concatenate(callCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(
