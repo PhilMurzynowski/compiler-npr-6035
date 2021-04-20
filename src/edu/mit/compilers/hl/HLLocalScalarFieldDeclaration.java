@@ -26,11 +26,11 @@ public class HLLocalScalarFieldDeclaration implements HLScalarFieldDeclaration {
   }
 
   public void setLL(LLLocalScalarFieldDeclaration ll) {
-    if (this.ll.isPresent()) {
-      throw new RuntimeException("ll has already been set");
-    } else {
+    // if (this.ll.isPresent()) {
+    //   throw new RuntimeException("ll has already been set");
+    // } else {
       this.ll = Optional.of(ll);
-    }
+    // }
   }
 
   @Override

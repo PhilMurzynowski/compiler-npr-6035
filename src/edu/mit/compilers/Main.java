@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.List;
 
@@ -21,7 +20,7 @@ import edu.mit.compilers.ll.*;
 class Main {
 
   // list of available optimizations
-  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "uce");
+  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "uce" /*, "fi" */);
 
   private static String tokenString(Token token) {
     StringBuilder output = new StringBuilder();
@@ -179,6 +178,9 @@ class Main {
     }
 
     HLProgram hl = HLBuilder.buildProgram(program);
+    // if (CLI.opts[optimizations.indexOf("fi")]) {
+    //   FunctionInlining.apply(hl);
+    // }
     // System.err.println(hl.debugString(0));
     LLProgram ll = LLBuilder.buildProgram(hl);
     System.err.println(ll.prettyString(0));
