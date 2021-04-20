@@ -186,7 +186,7 @@ class Main {
     System.err.println("--------------------------------------------------Optimization--------------------------------------------------");
     // an extra copy propagation helpful for CSE
     if (CLI.opts[optimizations.indexOf("cp")]) {
-      ll.accept(new CopyPropagation(false, false));
+      ll.accept(new CopyPropagation(CLI.opts[optimizations.indexOf("cf")], CLI.opts[optimizations.indexOf("as")]));
     }
     if (CLI.opts[optimizations.indexOf("cse")]) {
       ll.accept(new CommonSubExpression());
