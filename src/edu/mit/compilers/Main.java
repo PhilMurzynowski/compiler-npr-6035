@@ -195,13 +195,13 @@ class Main {
     }
     if (CLI.opts[optimizations.indexOf("dce")]) {
       ll.accept(new DeadCodeElimination());
+      // ll.accept(new UnusedLocalElimination());
     }
     if (CLI.opts[optimizations.indexOf("uce")]) {
       ll.accept(new UnreachableCodeElimination());
     }
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);
-
     outputStream.print(assembly);
   }
 

@@ -10,6 +10,7 @@ public class CopyPropagation implements Optimization {
   private final boolean constantFolding;
   private final boolean algebraicSimplification;
   private final List<LLInstruction> instructions = new ArrayList<>();
+  private final Map<LLDeclaration, Integer> identityIndices = new HashMap<>();
 
   public CopyPropagation(final boolean constantFolding, final boolean algebraicSimplification) {
     this.constantFolding = constantFolding;
@@ -259,6 +260,61 @@ public class CopyPropagation implements Optimization {
     for (int i = index; i < index + block.getInstructions().size(); i++) {
       final LLInstruction instruction = instructions.get(i);
 
+      if (instruction instanceof LLInternalCall internalCall) {
+        // NOTE(rbd): Replace all global definitions with identity
+        for (final LLDeclaration global : globals) {
+          if (!identityIndices.containsKey(global)) {
+            identityIndices.put(global, instructions.size());
+            instructions.add(new LLCopy(global, global));
+          }
+
+          final int j = identityIndices.get(global);
+
+          if (definitionIndices.containsKey(global)) {
+            for (final int k : definitionIndices.get(global)) {
+              current.clear(k);
+            }
+          }
+
+          current.set(j);
+          definitionIndices.put(global, new HashSet<>(Set.of(j)));
+        }
+
+        // NOTE(rbd): Replace all definitions using a global with identity
+        for (final Map.Entry<LLDeclaration, Set<Integer>> definitionIndexEntry : definitionIndices.entrySet()) {
+          final LLDeclaration definition = definitionIndexEntry.getKey();
+
+          for (final int j : definitionIndexEntry.getValue()) {
+            final LLInstruction definitionInstruction = instructions.get(j);
+            boolean usesGlobal = false;
+
+            for (final LLDeclaration use : definitionInstruction.uses()) {
+              if (globals.contains(use)) {
+                usesGlobal = true;
+              }
+            }
+
+            if (usesGlobal) {
+              if (!identityIndices.containsKey(definition)) {
+                identityIndices.put(definition, instructions.size());
+                instructions.add(new LLCopy(definition, definition));
+              }
+
+              final int k = identityIndices.get(definition);
+
+              if (definitionIndices.containsKey(definition)) {
+                for (final int l : definitionIndices.get(definition)) {
+                  current.clear(l);
+                }
+              }
+
+              current.set(k);
+              definitionIndices.put(definition, new HashSet<>(Set.of(k)));
+            }
+          }
+        }
+      }
+
       if (instruction.definition().isPresent()) {
         final LLDeclaration definition = instruction.definition().get();
 
@@ -270,6 +326,39 @@ public class CopyPropagation implements Optimization {
 
         current.set(i);
         definitionIndices.put(definition, new HashSet<>(Set.of(i)));
+
+        for (final Map.Entry<LLDeclaration, Set<Integer>> definitionIndexEntry : definitionIndices.entrySet()) {
+          final LLDeclaration newDefinition = definitionIndexEntry.getKey();
+
+          for (final int j : definitionIndexEntry.getValue()) {
+            final LLInstruction definitionInstruction = instructions.get(j);
+            boolean uses = false;
+
+            for (final LLDeclaration use : definitionInstruction.uses()) {
+              if (use == definition) {
+                uses = true;
+              }
+            }
+
+            if (uses) {
+              if (!identityIndices.containsKey(newDefinition)) {
+                identityIndices.put(newDefinition, instructions.size());
+                instructions.add(new LLCopy(newDefinition, newDefinition));
+              }
+
+              final int k = identityIndices.get(newDefinition);
+
+              if (definitionIndices.containsKey(newDefinition)) {
+                for (final int l : definitionIndices.get(newDefinition)) {
+                  current.clear(l);
+                }
+              }
+
+              current.set(k);
+              definitionIndices.put(newDefinition, new HashSet<>(Set.of(k)));
+            }
+          }
+        }
       }
     }
 
@@ -293,7 +382,7 @@ public class CopyPropagation implements Optimization {
       boolean usesChanged = false;
 
       for (final LLDeclaration use : instruction.uses()) {
-        if (!globals.contains(use) && definitionIndices.containsKey(use) && definitionIndices.get(use).size() == 1) {
+        if (definitionIndices.containsKey(use) && definitionIndices.get(use).size() == 1) {
           final int j = definitionIndices.get(use).iterator().next();
           final LLInstruction definitionInstruction = instructions.get(j);
 
@@ -307,8 +396,9 @@ public class CopyPropagation implements Optimization {
               || definitionInstruction instanceof LLStoreScalar
               || definitionInstruction instanceof LLLoadScalar
               || definitionInstruction instanceof LLCopy) {
-            usesChanged = true;
-            newUses.add(definitionInstruction.uses().iterator().next());
+            final LLDeclaration newUse = definitionInstruction.uses().iterator().next();
+            usesChanged = (use != newUse);
+            newUses.add(newUse);
           } else {
             newUses.add(use);
           }
@@ -350,10 +440,77 @@ public class CopyPropagation implements Optimization {
       instructions.set(i, newInstruction);
       newInstructions.add(newInstruction);
 
+      if (instruction instanceof LLInternalCall internalCall) {
+        // NOTE(rbd): Replace all global definitions with identity
+        for (final LLDeclaration global : globals) {
+          if (!identityIndices.containsKey(global)) {
+            identityIndices.put(global, instructions.size());
+            instructions.add(new LLCopy(global, global));
+          }
+
+          final int j = identityIndices.get(global);
+
+          definitionIndices.put(global, new HashSet<>(Set.of(j)));
+        }
+
+        // NOTE(rbd): Replace all definitions using a global with identity
+        for (final Map.Entry<LLDeclaration, Set<Integer>> definitionIndexEntry : definitionIndices.entrySet()) {
+          final LLDeclaration definition = definitionIndexEntry.getKey();
+
+          for (final int j : definitionIndexEntry.getValue()) {
+            final LLInstruction definitionInstruction = instructions.get(j);
+            boolean usesGlobal = false;
+
+            for (final LLDeclaration use : definitionInstruction.uses()) {
+              if (globals.contains(use)) {
+                usesGlobal = true;
+              }
+            }
+
+            if (usesGlobal) {
+              if (!identityIndices.containsKey(definition)) {
+                identityIndices.put(definition, instructions.size());
+                instructions.add(new LLCopy(definition, definition));
+              }
+
+              final int k = identityIndices.get(definition);
+
+              definitionIndices.put(definition, new HashSet<>(Set.of(k)));
+            }
+          }
+        }
+      }
+
       if (instruction.definition().isPresent()) {
         final LLDeclaration definition = instruction.definition().get();
 
         definitionIndices.put(definition, new HashSet<>(Set.of(i)));
+
+        for (final Map.Entry<LLDeclaration, Set<Integer>> definitionIndexEntry : definitionIndices.entrySet()) {
+          final LLDeclaration newDefinition = definitionIndexEntry.getKey();
+
+          for (final int j : definitionIndexEntry.getValue()) {
+            final LLInstruction definitionInstruction = instructions.get(j);
+            boolean uses = false;
+
+            for (final LLDeclaration use : definitionInstruction.uses()) {
+              if (use == definition) {
+                uses = true;
+              }
+            }
+
+            if (uses) {
+              if (!identityIndices.containsKey(newDefinition)) {
+                identityIndices.put(newDefinition, instructions.size());
+                instructions.add(new LLCopy(newDefinition, newDefinition));
+              }
+
+              final int k = identityIndices.get(newDefinition);
+
+              definitionIndices.put(newDefinition, new HashSet<>(Set.of(k)));
+            }
+          }
+        }
       }
     }
 
@@ -367,6 +524,7 @@ public class CopyPropagation implements Optimization {
 
   public void apply(final LLMethodDeclaration methodDeclaration, final LLControlFlowGraph controlFlowGraph, final List<LLDeclaration> globals) {
     instructions.clear();
+    identityIndices.clear();
 
     final Map<LLBasicBlock, Integer> indices = new HashMap<>();
     final Map<LLBasicBlock, BitSet> entries = new HashMap<>();

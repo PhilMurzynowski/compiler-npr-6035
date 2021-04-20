@@ -46,6 +46,10 @@ public class LLMethodDeclaration implements LLDeclaration {
     scalarFieldDeclarations.add(scalar);
   }
 
+  public void removeScalar(LLLocalScalarFieldDeclaration scalar) {
+    scalarFieldDeclarations.remove(scalar);
+  }
+
   public int scalarIndex() {
     return scalarFieldDeclarations.size();
   }
@@ -54,12 +58,20 @@ public class LLMethodDeclaration implements LLDeclaration {
     arrayFieldDeclarations.add(array);
   }
 
+  public void removeArray(LLArrayFieldDeclaration array) {
+    arrayFieldDeclarations.remove(array);
+  }
+
   public int arrayIndex() {
     return arrayFieldDeclarations.size();
   }
 
   private void addAlias(LLAliasDeclaration alias) {
     aliasDeclarations.add(alias);
+  }
+
+  public void removeAlias(LLAliasDeclaration alias) {
+    aliasDeclarations.remove(alias);
   }
 
   private int aliasIndex() {
