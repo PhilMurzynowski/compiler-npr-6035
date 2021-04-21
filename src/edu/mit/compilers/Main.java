@@ -195,7 +195,7 @@ class Main {
     }
     if (CLI.opts[optimizations.indexOf("dce")]) {
       ll.accept(new DeadCodeElimination());
-      // ll.accept(new UnusedLocalElimination());
+      ll.accept(new UnusedLocalElimination());
     }
     if (CLI.opts[optimizations.indexOf("uce")]) {
       ll.accept(new UnreachableCodeElimination());

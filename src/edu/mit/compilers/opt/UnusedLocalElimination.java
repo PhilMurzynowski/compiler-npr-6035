@@ -20,11 +20,6 @@ public class UnusedLocalElimination implements Optimization{
    */
   public static void eliminateMethod(LLMethodDeclaration method) {
     Set<LLDeclaration> usedLocals = findUsedLocals(method.getBody());
-    // void methods always use alias 0 in return, but this is not captured
-    // by current usage of LLReturn
-    if (method.getMethodType() == MethodType.VOID) {
-      usedLocals.add(method.getAliasDeclarations().get(0));
-    }
 
     // remove unused aliases
     final Set<LLAliasDeclaration> unusedAliases = new HashSet<>();
@@ -103,6 +98,12 @@ public class UnusedLocalElimination implements Optimization{
     for (LLBasicBlock block : visited) {
       for (LLInstruction instruction : block.getInstructions()) {
         usedLocals.addAll(instruction.uses());
+        // method results must always be used, never eliminated
+        if (instruction instanceof LLInternalCall internalCall) {
+          usedLocals.add(internalCall.getResult());
+        } else if (instruction instanceof  LLExternalCall externalCall) {
+          usedLocals.add(externalCall.getResult());
+        }
       }
     }
 

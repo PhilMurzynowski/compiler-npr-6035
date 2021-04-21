@@ -46,7 +46,7 @@ public class LLAliasDeclaration implements LLDeclaration {
   @Override
   public String location() {
     if (this.stackIndex.isEmpty()) {
-      throw new RuntimeException("stackIndex has not been set");
+      throw new RuntimeException("stackIndex has not been set for alias with index " + index);
     } else {
       return stackIndex.get() + "(%rbp)";
     }
