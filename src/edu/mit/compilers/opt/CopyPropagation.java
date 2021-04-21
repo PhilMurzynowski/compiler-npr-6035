@@ -526,6 +526,11 @@ public class CopyPropagation implements Optimization {
     instructions.clear();
     identityIndices.clear();
 
+    for (final LLDeclaration global : globals) {
+      identityIndices.put(global, instructions.size());
+      instructions.add(new LLCopy(global, global));
+    }
+
     final Map<LLBasicBlock, Integer> indices = new HashMap<>();
     final Map<LLBasicBlock, BitSet> entries = new HashMap<>();
     final Map<LLBasicBlock, BitSet> exits = new HashMap<>();
@@ -533,7 +538,19 @@ public class CopyPropagation implements Optimization {
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
     final Set<LLBasicBlock> visited = new HashSet<>();
 
-    workSet.add(controlFlowGraph.getEntry());
+    final BitSet globalEntry = new BitSet();
+    for (final LLDeclaration global : globals) {
+      globalEntry.set(identityIndices.get(global));
+    }
+
+    indices.put(controlFlowGraph.getEntry(), instructions.size());
+    entries.put(controlFlowGraph.getEntry(), globalEntry);
+    exits.put(controlFlowGraph.getEntry(), new BitSet());
+
+    instructions.addAll(controlFlowGraph.getEntry().getInstructions());
+
+    workSet.addAll(controlFlowGraph.getEntry().getSuccessors());
+    visited.add(controlFlowGraph.getEntry());
 
     while (!workSet.isEmpty()) {
       final LLBasicBlock block = workSet.iterator().next();
