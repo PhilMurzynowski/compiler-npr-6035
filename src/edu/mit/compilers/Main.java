@@ -237,7 +237,6 @@ class Main {
           break;
       }
     } catch (Exception exception) {
-      System.err.print(exception);
       exception.printStackTrace(System.err);
       System.exit(-1);
     }

@@ -86,7 +86,6 @@ public class LLBuilder {
     LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty(), Map.of(), Optional.empty());
 
     if (llMethodDeclaration.getMethodType() == MethodType.VOID) {
-      System.err.println("RETURN 1");
       bodyCFG = bodyCFG.concatenate(
         new LLReturn(Optional.empty())
       );
@@ -430,7 +429,6 @@ public class LLBuilder {
           new LLCopy(expressionResult, returnResult.get())
         );
       } else {
-        System.err.println("RETURN 2");
         resultCFG = resultCFG.concatenate(
           new LLReturn(Optional.of(expressionResult))
         );
@@ -439,7 +437,6 @@ public class LLBuilder {
       if (returnResult.isPresent()) {
         // NOTE(rbd): Nothing to return
       } else {
-        System.err.println("RETURN 3");
         resultCFG = resultCFG.concatenate(
           new LLReturn(Optional.empty())
         );
