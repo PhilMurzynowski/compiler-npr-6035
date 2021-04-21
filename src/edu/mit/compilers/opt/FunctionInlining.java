@@ -29,7 +29,7 @@ public class FunctionInlining {
 
   // NOTE(rbd): If the cost is below this threshold, the function will be inlined. However, if a function is only called
   // once, it will always be inlined no matter the cost.
-  private static final int COST_THRESHOLD = 30;
+  private static final int COST_THRESHOLD = 100;
 
   // NOTE(rbd): This tries to yield costs (roughly) proportional to the number of instructions necessary to generate for
   // any given function. In other words, this is not the *time* complexity of the function, but the *space* complexity.
@@ -47,9 +47,9 @@ public class FunctionInlining {
     entry(HLStoreArrayStatement.class,         1),
     entry(HLStoreArrayCompoundStatement.class, 1),
     entry(HLCallStatement.class,               1),
-    entry(HLIfStatement.class,                 COST_THRESHOLD),
-    entry(HLForStatement.class,                COST_THRESHOLD),
-    entry(HLWhileStatement.class,              COST_THRESHOLD),
+    entry(HLIfStatement.class,                 1 /* COST_THRESHOLD */), // NOTE(rbd): If weird stuff starts happening with the control flow, try disabling inlining of if/for/while.
+    entry(HLForStatement.class,                1 /* COST_THRESHOLD */),
+    entry(HLWhileStatement.class,              1 /* COST_THRESHOLD */),
     entry(HLReturnStatement.class,             1),
     entry(HLBreakStatement.class,              1),
     entry(HLContinueStatement.class,           1),

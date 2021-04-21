@@ -70,7 +70,6 @@ public class LLControlFlowGraph implements LLNode {
   }
 
   public LLControlFlowGraph simplify(boolean unreachableCodeElimination) {
-
     final Set<LLBasicBlock> allExits;
     if (exit.isPresent()) {
       allExits = new HashSet<>(Set.of(exit.get()));

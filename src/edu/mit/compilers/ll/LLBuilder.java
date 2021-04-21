@@ -3,7 +3,6 @@ package edu.mit.compilers.ll;
 import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.List;
 
 import edu.mit.compilers.hl.*;
 import edu.mit.compilers.common.*;
@@ -83,7 +82,7 @@ public class LLBuilder {
 
     // WARN(rbd): The lines above MUST be executed before the lines below. (Think: Recursive method calls.)
 
-    LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty(), Map.of(), Optional.empty());
+    LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(hlMethodDeclaration.getBody(), llMethodDeclaration, Optional.empty(), Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
 
     if (llMethodDeclaration.getMethodType() == MethodType.VOID) {
       bodyCFG = bodyCFG.concatenate(
@@ -127,7 +126,7 @@ public class LLBuilder {
   }
 
   // DONE: Robert
-  public static LLControlFlowGraph buildBlock(HLBlock block, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult) {
+  public static LLControlFlowGraph buildBlock(HLBlock block, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult, Optional<LLBasicBlock> returnTarget) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     if (argumentAliases.isEmpty()) {
@@ -188,7 +187,7 @@ public class LLBuilder {
     }
 
     for (HLStatement statement : block.getStatements()) {
-      resultCFG = resultCFG.concatenate(LLBuilder.buildStatement(statement, methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult));
+      resultCFG = resultCFG.concatenate(LLBuilder.buildStatement(statement, methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult, returnTarget));
 
       if (statement instanceof HLReturnStatement || statement instanceof HLBreakStatement || statement instanceof HLContinueStatement) {
         break;
@@ -198,19 +197,19 @@ public class LLBuilder {
     return resultCFG;
   }
 
-  public static LLControlFlowGraph buildStatement(HLStatement statement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult) {
+  public static LLControlFlowGraph buildStatement(HLStatement statement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult, Optional<LLBasicBlock> returnTarget) {
     if (statement instanceof HLStoreStatement storeStatement) {
       return LLBuilder.buildStoreStatement(storeStatement, methodDeclaration, argumentAliases);
     } else if (statement instanceof HLCallStatement callStatement) {
       return LLBuilder.buildCallStatement(callStatement, methodDeclaration, argumentAliases);
     } else if (statement instanceof HLIfStatement ifStatement) {
-      return LLBuilder.buildIfStatement(ifStatement, methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult);
+      return LLBuilder.buildIfStatement(ifStatement, methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult, returnTarget);
     } else if (statement instanceof HLForStatement forStatement) {
-      return LLBuilder.buildForStatement(forStatement, methodDeclaration, argumentAliases, returnResult);
+      return LLBuilder.buildForStatement(forStatement, methodDeclaration, argumentAliases, returnResult, returnTarget);
     } else if (statement instanceof HLWhileStatement whileStatement) {
-      return LLBuilder.buildWhileStatement(whileStatement, methodDeclaration, argumentAliases, returnResult);
+      return LLBuilder.buildWhileStatement(whileStatement, methodDeclaration, argumentAliases, returnResult, returnTarget);
     } else if (statement instanceof HLReturnStatement returnStatement) {
-      return LLBuilder.buildReturnStatement(returnStatement, methodDeclaration, argumentAliases, returnResult);
+      return LLBuilder.buildReturnStatement(returnStatement, methodDeclaration, argumentAliases, returnResult, returnTarget);
     } else if (statement instanceof HLBreakStatement breakStatement) {
       return LLBuilder.buildBreakStatement(breakStatement, methodDeclaration, breakTarget, continueTarget);
     } else if (statement instanceof  HLContinueStatement continueStatement) {
@@ -347,11 +346,11 @@ public class LLBuilder {
   }
 
   // DONE: Robert
-  public static LLControlFlowGraph buildIfStatement(HLIfStatement ifStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult) {
-    final LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult);
+  public static LLControlFlowGraph buildIfStatement(HLIfStatement ifStatement, LLMethodDeclaration methodDeclaration, Optional<LLBasicBlock> breakTarget, Optional<LLBasicBlock> continueTarget, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult, Optional<LLBasicBlock> returnTarget) {
+    final LLControlFlowGraph bodyCFG = LLBuilder.buildBlock(ifStatement.getBody(), methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult, returnTarget);
     final LLControlFlowGraph otherCFG;
     if (ifStatement.getOther().isPresent()) {
-      otherCFG = LLBuilder.buildBlock(ifStatement.getOther().get(), methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult);
+      otherCFG = LLBuilder.buildBlock(ifStatement.getOther().get(), methodDeclaration, breakTarget, continueTarget, argumentAliases, returnResult, returnTarget);
     } else {
       otherCFG = LLControlFlowGraph.empty();
     }
@@ -359,22 +358,26 @@ public class LLBuilder {
     final LLBasicBlock entryBB = LLShortCircuit.shortExpression(ifStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), otherCFG.getEntry(), argumentAliases);
 
     if (breakTarget.isPresent()) {
-      if (bodyCFG.expectExit() != breakTarget.get() && bodyCFG.expectExit() != continueTarget.get()) {
+      if (bodyCFG.expectExit() != breakTarget.get() && bodyCFG.expectExit() != continueTarget.get() && (returnTarget.isEmpty() || bodyCFG.expectExit() != returnTarget.get())) {
         LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), exitBB);
       }
-      if (otherCFG.expectExit() != breakTarget.get() && otherCFG.expectExit() != continueTarget.get()) {
+      if (otherCFG.expectExit() != breakTarget.get() && otherCFG.expectExit() != continueTarget.get() && (returnTarget.isEmpty() || bodyCFG.expectExit() != returnTarget.get())) {
         LLBasicBlock.setTrueTarget(otherCFG.expectExit(), exitBB);
       }
     } else {
-      LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), exitBB);
-      LLBasicBlock.setTrueTarget(otherCFG.expectExit(), exitBB);
+      if (returnTarget.isEmpty() || bodyCFG.expectExit() != returnTarget.get()) {
+        LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), exitBB);
+      }
+      if (returnTarget.isEmpty() || otherCFG.expectExit() != returnTarget.get()) {
+        LLBasicBlock.setTrueTarget(otherCFG.expectExit(), exitBB);
+      }
     }
 
     return new LLControlFlowGraph(entryBB, exitBB);
   }
 
   // DONE: Noah
-  public static LLControlFlowGraph buildForStatement(HLForStatement forStatement, LLMethodDeclaration methodDeclaration, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult) {
+  public static LLControlFlowGraph buildForStatement(HLForStatement forStatement, LLMethodDeclaration methodDeclaration, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult, Optional<LLBasicBlock> returnTarget) {
     final LLBasicBlock breakBB = new LLBasicBlock();
     final LLControlFlowGraph updateCFG = buildStoreStatement(forStatement.getUpdate(), methodDeclaration, argumentAliases);
     final LLControlFlowGraph initialCFG = buildStoreScalarStatement(forStatement.getInitial(), methodDeclaration, argumentAliases);
@@ -384,7 +387,8 @@ public class LLBuilder {
       Optional.of(breakBB),
       Optional.of(updateCFG.getEntry()),
       argumentAliases,
-      returnResult
+      returnResult,
+      returnTarget
     );
     final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(
       forStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB, argumentAliases
@@ -392,7 +396,7 @@ public class LLBuilder {
 
     LLBasicBlock.setTrueTarget(initialCFG.expectExit(), conditionBB);
 
-    if (bodyCFG.expectExit() != updateCFG.getEntry() && bodyCFG.expectExit() != breakBB) {
+    if (bodyCFG.expectExit() != updateCFG.getEntry() && bodyCFG.expectExit() != breakBB && (returnTarget.isEmpty() || bodyCFG.expectExit() != returnTarget.get())) {
       LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), updateCFG.getEntry());
     }
     LLBasicBlock.setTrueTarget(updateCFG.expectExit(), conditionBB);
@@ -401,13 +405,13 @@ public class LLBuilder {
   }
 
   // DONE: Phil
-  public static LLControlFlowGraph buildWhileStatement(HLWhileStatement whileStatement, LLMethodDeclaration methodDeclaration, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult) {
+  public static LLControlFlowGraph buildWhileStatement(HLWhileStatement whileStatement, LLMethodDeclaration methodDeclaration, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult, Optional<LLBasicBlock> returnTarget) {
     final LLBasicBlock breakBB = new LLBasicBlock();
     final LLBasicBlock continueBB = new LLBasicBlock();
-    final LLControlFlowGraph bodyCFG = buildBlock(whileStatement.getBody(), methodDeclaration, Optional.of(breakBB), Optional.of(continueBB), argumentAliases, returnResult);
+    final LLControlFlowGraph bodyCFG = buildBlock(whileStatement.getBody(), methodDeclaration, Optional.of(breakBB), Optional.of(continueBB), argumentAliases, returnResult, returnTarget);
     final LLBasicBlock conditionBB = LLShortCircuit.shortExpression(whileStatement.getCondition(), methodDeclaration, bodyCFG.getEntry(), breakBB, argumentAliases);
 
-    if (bodyCFG.expectExit() != breakBB && bodyCFG.expectExit() != continueBB) {
+    if (bodyCFG.expectExit() != breakBB && bodyCFG.expectExit() != continueBB && (returnTarget.isEmpty() || bodyCFG.expectExit() != returnTarget.get())) {
       LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), continueBB);
     }
 
@@ -416,7 +420,7 @@ public class LLBuilder {
     return new LLControlFlowGraph(conditionBB, breakBB);
   }
 
-  public static LLControlFlowGraph buildReturnStatement(HLReturnStatement returnStatement, LLMethodDeclaration methodDeclaration, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult) {
+  public static LLControlFlowGraph buildReturnStatement(HLReturnStatement returnStatement, LLMethodDeclaration methodDeclaration, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases, Optional<LLDeclaration> returnResult, Optional<LLBasicBlock> returnTarget) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     Optional<HLExpression> hlExpression = returnStatement.getExpression();
@@ -428,6 +432,7 @@ public class LLBuilder {
         resultCFG = resultCFG.concatenate(
           new LLCopy(expressionResult, returnResult.get())
         );
+        resultCFG = resultCFG.concatenate(returnTarget.get());
       } else {
         resultCFG = resultCFG.concatenate(
           new LLReturn(Optional.of(expressionResult))
@@ -435,7 +440,7 @@ public class LLBuilder {
       }
     } else {
       if (returnResult.isPresent()) {
-        // NOTE(rbd): Nothing to return
+        resultCFG = resultCFG.concatenate(returnTarget.get());
       } else {
         resultCFG = resultCFG.concatenate(
           new LLReturn(Optional.empty())
@@ -655,30 +660,16 @@ public class LLBuilder {
         newArgumentAliases.put(argumentDeclaration, argumentResult);
       }
 
-      LLControlFlowGraph bodyCFG = buildBlock(inlineMethodDeclaration.getBody(), methodDeclaration, Optional.empty(), Optional.empty(), newArgumentAliases, Optional.of(result));
+      final LLBasicBlock returnTarget = new LLBasicBlock();
+      LLControlFlowGraph bodyCFG = buildBlock(inlineMethodDeclaration.getBody(), methodDeclaration, Optional.empty(), Optional.empty(), newArgumentAliases, Optional.of(result), Optional.of(returnTarget));
 
-      if (inlineMethodDeclaration.getMethodType() != MethodType.VOID) {
-        final List<LLInstruction> instructions = bodyCFG.expectExit().getInstructions();
-        if (instructions.size() > 0) {
-          final LLInstruction instruction = instructions.get(instructions.size() - 1);
-          if (instruction instanceof LLCopy copy) {
-            if (copy.getResult() == result) {
-              // NOTE(rbd): All good, the return value was set.
-            } else {
-              bodyCFG = bodyCFG.concatenate(
-                new LLException(LLException.Type.NoReturnValue)
-              );
-            }
-          } else {
-            bodyCFG = bodyCFG.concatenate(
-              new LLException(LLException.Type.NoReturnValue)
-            );
-          }
-        } else {
+      if (bodyCFG.expectExit() != returnTarget) {
+        if (inlineMethodDeclaration.getMethodType() != MethodType.VOID) {
           bodyCFG = bodyCFG.concatenate(
             new LLException(LLException.Type.NoReturnValue)
           );
         }
+        bodyCFG = bodyCFG.concatenate(returnTarget);
       }
 
       resultCFG = resultCFG.concatenate(bodyCFG);
