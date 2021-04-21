@@ -72,11 +72,13 @@ public class LLBasicBlock implements LLDeclaration {
 
   // NOTE(rbd): This should only be used by LLControlFlowGraph.simplify()!
   public void addPredecessor(LLBasicBlock predecessor) {
-    if (this.predecessors.contains(predecessor)) {
-      throw new RuntimeException("back edge BB" + predecessor.index + " already exists for BB" + index);
-    } else {
+    // NOTE(rbd): This is not always true. After after simplification, it is possible that both true and false targets
+    // are the same.
+    // if (this.predecessors.contains(predecessor)) {
+    //   throw new RuntimeException("back edge BB" + predecessor.index + " already exists for BB" + index);
+    // } else {
       predecessors.add(predecessor);
-    }
+    // }
   }
 
   public Set<LLBasicBlock> getPredecessors() {

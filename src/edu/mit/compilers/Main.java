@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.List;
 
@@ -21,7 +20,7 @@ import edu.mit.compilers.ll.*;
 class Main {
 
   // list of available optimizations
-  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "uce");
+  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "uce", "fi");
 
   private static String tokenString(Token token) {
     StringBuilder output = new StringBuilder();
@@ -179,11 +178,11 @@ class Main {
     }
 
     HLProgram hl = HLBuilder.buildProgram(program);
-    // System.err.println(hl.debugString(0));
+    if (CLI.opts[optimizations.indexOf("fi")]) {
+      FunctionInlining.apply(hl);
+    }
     LLProgram ll = LLBuilder.buildProgram(hl);
-    System.err.println(ll.prettyString(0));
 
-    System.err.println("--------------------------------------------------Optimization--------------------------------------------------");
     // an extra copy propagation helpful for CSE
     if (CLI.opts[optimizations.indexOf("cp")]) {
       ll.accept(new CopyPropagation(CLI.opts[optimizations.indexOf("cf")], CLI.opts[optimizations.indexOf("as")]));
@@ -238,7 +237,6 @@ class Main {
           break;
       }
     } catch (Exception exception) {
-      System.err.print(exception);
       exception.printStackTrace(System.err);
       System.exit(-1);
     }

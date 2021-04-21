@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import edu.mit.compilers.ll.*;
 
-// TODO: Noah (debugString)
 public class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration {
 
   // NOTE: may be changing with hoisting
@@ -30,11 +29,12 @@ public class HLLocalArrayFieldDeclaration implements HLArrayFieldDeclaration {
   }
 
   public void setLL(LLLocalArrayFieldDeclaration ll) {
-    if (this.ll.isPresent()) {
-      throw new RuntimeException("ll has already been set");
-    } else {
+    // NOTE(rbd): This single set property is no longer true because of inlined function calls.
+    // if (this.ll.isPresent()) {
+    //   throw new RuntimeException("ll has already been set");
+    // } else {
       this.ll = Optional.of(ll);
-    }
+    // }
   }
 
   @Override
