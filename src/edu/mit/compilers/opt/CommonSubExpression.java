@@ -9,10 +9,11 @@ import java.util.*;
 public class CommonSubExpression implements Optimization {
 
   // Perform GEN KILL update for available expressions
-  public static boolean update(LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, BitMap<String> entryBitMap, BitMap<String> exitBitMap) {
+  public static boolean update(LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, BitMap<String> entryBitMap, BitMap<String> exitBitMap, List<LLDeclaration> globals) {
 
     BitMap<String> currentBitMap = new BitMap<>(entryBitMap);
     for (LLInstruction instruction : llBasicBlock.getInstructions()) {
+
 
       if (instruction instanceof LLBinary || instruction instanceof LLUnary /* || instruction instanceof LLCompare */) {
         String expr = instruction.getUniqueExpressionString();
@@ -29,6 +30,19 @@ public class CommonSubExpression implements Optimization {
           }
         }
         currentBitMap.set(expr);
+
+      } else if (instruction instanceof LLInternalCall || instruction instanceof LLExternalCall) {
+
+        // Invalidate expressions tied to globals when encountering a function call, as the function call could affect global variables
+
+        for (LLDeclaration global : globals) 
+          if( mapVarToExprs.containsKey(global)) {
+          // if in the map (used in exprs), clear all connected expressions
+          for (String expr : mapVarToExprs.get(global)) {
+            currentBitMap.clear(expr);
+          } 
+        }
+
       }
 
       if (instruction.definition().isPresent()) {
@@ -149,7 +163,7 @@ public class CommonSubExpression implements Optimization {
       workSet.remove(block);
 
       // Only update successors if entryBitMap changes
-      if (update(block, mapVarToExprs, entryBitMaps.get(block), exitBitMaps.get(block))) {
+      if (update(block, mapVarToExprs, entryBitMaps.get(block), exitBitMaps.get(block), globals)) {
         for (LLBasicBlock s : block.getSuccessors()) {
           BitMap<String> entryMap = entryBitMaps.get(s);
           //System.err.println("Current block exit bitmap");
@@ -192,11 +206,11 @@ public class CommonSubExpression implements Optimization {
     */
 
     for (LLBasicBlock block : visited) {
-      transform(methodDeclaration, block, mapVarToExprs, mapExprToTmp, entryBitMaps.get(block), exitBitMaps.get(block));
+      transform(methodDeclaration, block, mapVarToExprs, mapExprToTmp, entryBitMaps.get(block), exitBitMaps.get(block), globals);
     }
   }
 
-  public static void transform(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, Map<String, LLDeclaration> mapExprToTmp, BitMap<String> entryBitMap, BitMap<String> exitBitMap)
+  public static void transform(LLMethodDeclaration methodDeclaration, LLBasicBlock llBasicBlock, Map<LLDeclaration, List<String>> mapVarToExprs, Map<String, LLDeclaration> mapExprToTmp, BitMap<String> entryBitMap, BitMap<String> exitBitMap, List<LLDeclaration> globals)
   {
 
     LocalCSETable localCSETable = new LocalCSETable(methodDeclaration); 
@@ -284,7 +298,24 @@ public class CommonSubExpression implements Optimization {
         continue;
 
       // Arrays? LLCopy?
-        
+          
+      } else if (instruction instanceof LLInternalCall || instruction instanceof LLExternalCall) {
+
+        newLLInstructions.add(instruction);
+
+        // since function calls can modify global variables, assign each global variable a new value
+        for (LLDeclaration global : globals) {
+          localCSETable.addVarToVal(global);
+          if(mapVarToExprs.containsKey(global)) {
+            for (String expr : mapVarToExprs.get(global)) {
+              // KILL
+              currentBitMap.clear(expr);
+            }
+          }
+        }
+
+        continue;
+      
       } else {
 
         newLLInstructions.add(instruction);

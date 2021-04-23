@@ -36,6 +36,17 @@ public class LocalCSETable {
     return val;
   }
 
+  public String mutateVarToVal(LLDeclaration llVar) {
+    if (!mapVarToVal.containsKey(llVar)) {
+      throw new RuntimeException("value for var not set");
+    } else {
+      String val = "v"+valCount;
+      mapVarToVal.put(llVar, val);
+      this.valCount++;
+      return val;
+    }
+  }
+
   // Adds var to value mapping if does not exist and return value
   public String varToVal(LLDeclaration llVar) {
     if (inVarToVal(llVar)) {
