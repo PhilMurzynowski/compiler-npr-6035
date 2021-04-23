@@ -16,7 +16,7 @@ So far, we have implemented the following optimizations:
 - Unreachable code elimination (`--opt=uce`)
 - Function inlining (`--opt=fi`)
 
-You can enable all optimizations with `--opt=all`. They are applied in the following order:
+You can enable all optimizations with `--opt=all`. They are applied in the following order (with steps 2-7 being repeated once):
 
 1. Function inlining
 2. Global copy propagation, global constant folding, algebraic simplification
@@ -35,7 +35,6 @@ The global common subexpression elimination algorithm has two components, first,
 The global component is an optimistic forward data flow analysis, initializing all blocks except for the entry block to have all expressions available. In our low level intermediate representation binary, unary, and compare become our instructions of interest, as they compose expressions, and therefore can generate new expressions which must be set in our bitmap. However we chose not to potentially eliminate compare instructions as in our current architecture we use conditional jumps which are dependent on the flags register and therefore the comparison operation must be evaluated just before the jump disregarding possible manipulation of the flags register.  To determine the availability of a given expression, a bitmap mapping a unique string describing an expression to a bit, 0 or 1, is used. Expressions are placed into the kill set whenever a variable used in an expression is redefined, or if the expression uses a global variable and there is a function call, which can potentially mutate the global variable. As a small side note, we may create a call graph to keep track of which global variables are used in function calls so that we do not have to be so conservative and kill all expressions involving global variables with each function call. 
 
 Once the global fixed point algorithm is complete, the local value numbering algorithm is run for each basic block is run, with the additional step of using the global bitmap if an expression is available from previous blocks.
-
 
 [CSE]: #global-common-subexpression-elimination
 
@@ -82,7 +81,7 @@ Note: The boolean simplifications are less helpful due to short circuiting as th
 
 ### Dead Code Elimination
 
-TODO
+The dead code elimination algorithm follows exactly from the liveness analysis in lecture. We use a fixed-point, working set approach. The working set initially includes all basic blocks. Whenever a basic blocks entry set changes, all its predecessors are added to the working set. When no more changes occur, all basic blocks are traversed once again to remove any dead code using the liveness analysis. Special care is taken to make sure all global stores and array stores remain.
 
 [DCE]: #dead-code-elimination
 
@@ -115,7 +114,7 @@ Instead of just implementing one of [CSE][CSE], [CP][CP], and [DCE][DCE], we dec
 
 ## Difficulties
 
-The control flow graph simplification process is recursive. For very large programs, the large number of basic blocks results in stack overflow in our compiler due to the deep recursion (it is not an infinite loop). We will convert the process to be iterative to avoid this problem.
+The control flow graph simplification process is recursive. For very large programs, the large number of basic blocks results in stack overflow in our compiler due to the deep recursion (it is not an infinite loop). This severely restricts the size of programs we can compile. We will convert the process to be iterative to avoid this problem. 
 
 We currently do not use [CSE][CSE] to the fullest extent possible. For example, consider the following:
 ```
@@ -138,6 +137,12 @@ We currently do not do any loop dataflow optimizations. We would like to impleme
 - Loop vectorization
 
 Right now, [CSE][CSE] and [CP][CP] are pretty conservative with globals. While we are not simply ignoring globals, instead resetting state upon internal function calls, this is still conservative as it assumes all globals are affected by every function call, which is unreasonable. When we do more analysis to remove uncalled methods, we plan to use this information to see which globals could be affected by a function call.
+
+Currently, we only repeat our optimization passes once. However, we plan to update the optimizer to also be fixed point (i.e. run the sequence of optimizations until convergence).
+
+[FI][FI] does not allow inlining of any function with a nested internal function call. This is a very conservative way to avoid inlining a recursive function. This could be converted to a fixed-point algorithm instead.
+
+[DCE][DCE] and [UCE][UCE] do not remove entire loops even if they do not yield any productive work. Once we implement some loop data flow optimizations, this will likely become more obvious.
 
 ## Contributions
 
