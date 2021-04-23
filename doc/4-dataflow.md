@@ -116,6 +116,8 @@ Instead of just implementing one of [CSE][CSE], [CP][CP], and [DCE][DCE], we dec
 
 The control flow graph simplification process is recursive. For very large programs, the large number of basic blocks results in stack overflow in our compiler due to the deep recursion (it is not an infinite loop). This severely restricts the size of programs we can compile. We will convert the process to be iterative to avoid this problem. 
 
+Other than that, we are not currently aware of any bugs that affect the correctness of the generated assembly. However, there are several optimizations we hope to improve.
+
 We currently do not use [CSE][CSE] to the fullest extent possible. For example, consider the following:
 ```
 int a[100], i;
