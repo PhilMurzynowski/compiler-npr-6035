@@ -8,6 +8,27 @@ import edu.mit.compilers.hl.*;
 
 public class FunctionInlining {
 
+  private static void countUsages(final HLBlock block, final Map<HLMethodDeclaration, Integer> uses) {
+    for (final HLStatement statement : block.getStatements()) {
+      if (statement instanceof HLCallStatement callStatement) {
+        final HLCallExpression callExpression = callStatement.getCall();
+        if (callExpression instanceof HLInternalCallExpression internalCallExpression) {
+          final HLMethodDeclaration declaration = internalCallExpression.getDeclaration();
+          uses.put(declaration, uses.get(declaration) + 1);
+        }
+      } else if (statement instanceof HLIfStatement ifStatement) {
+        countUsages(ifStatement.getBody(), uses);
+        if (ifStatement.getOther().isPresent()) {
+          countUsages(ifStatement.getOther().get(), uses);
+        }
+      } else if (statement instanceof HLForStatement forStatement) {
+        countUsages(forStatement.getBody(), uses);
+      } else if (statement instanceof HLWhileStatement whileStatement) {
+        countUsages(whileStatement.getBody(), uses);
+      }
+    }
+  }
+
   private static void countUsages(final HLProgram program, final Map<HLMethodDeclaration, Integer> uses) {
     for (final HLMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
       uses.put(methodDeclaration, 0);
@@ -15,15 +36,7 @@ public class FunctionInlining {
 
     for (final HLMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
       final HLBlock block = methodDeclaration.getBody();
-      for (final HLStatement statement : block.getStatements()) {
-        if (statement instanceof HLCallStatement callStatement) {
-          final HLCallExpression callExpression = callStatement.getCall();
-          if (callExpression instanceof HLInternalCallExpression internalCallExpression) {
-            final HLMethodDeclaration declaration = internalCallExpression.getDeclaration();
-            uses.put(declaration, uses.get(declaration) + 1);
-          }
-        }
-      }
+      countUsages(block, uses);
     }
   }
 
@@ -197,7 +210,7 @@ public class FunctionInlining {
 
       final HLMethodDeclaration methodDeclaration = internalCallExpression.getDeclaration();
 
-      if (uses.get(methodDeclaration) == 1 || costs.get(methodDeclaration) < COST_THRESHOLD) {
+      if (/* uses.get(methodDeclaration) == 1 || */ costs.get(methodDeclaration) < COST_THRESHOLD) {
         internalCallExpression.setInline();
       }
     } else if (callExpression instanceof HLExternalCallExpression externalCallExpression) {
@@ -310,11 +323,7 @@ public class FunctionInlining {
     estimateCosts(program, costs);
 
     for (final HLMethodDeclaration methodDeclaration : program.getMethodDeclarations()) {
-      // NOTE(rbd): Do not generate a function if it is never called. Also, if a function is only called once, it is
-      // always inlined.
-      if (uses.get(methodDeclaration) > 1 || methodDeclaration.getIdentifier().equals("main")) {
-        apply(methodDeclaration.getBody(), uses, costs);
-      }
+      apply(methodDeclaration.getBody(), uses, costs);
     }
   }
 

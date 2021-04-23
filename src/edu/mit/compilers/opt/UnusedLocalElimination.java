@@ -1,10 +1,8 @@
 package edu.mit.compilers.opt;
 
-import edu.mit.compilers.common.MethodType;
 import edu.mit.compilers.ll.*;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
