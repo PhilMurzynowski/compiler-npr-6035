@@ -2,7 +2,7 @@
 
 *Robert Durfee, Phil Murzynowski, Noah Pauls*
 
-*Current Phase: 2*
+*Current Phase: 5*
 
 ## Requirements for running:
 
@@ -25,3 +25,4 @@ No issues.
 - [Phase 1: Lexing and Parsing](1-lex-parse.md)
 - [Phase 2: Semantic Checking](2-semantics.md)
 - [Phase 3: Code Generation](3-codegen.md)
+- [Phase 4: Data Flow](4-dataflow.md)
