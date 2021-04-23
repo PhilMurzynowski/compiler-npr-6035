@@ -20,7 +20,7 @@ import edu.mit.compilers.ll.*;
 class Main {
 
   // list of available optimizations
-  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "uce", "fi");
+  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "ule", "uce", "fi");
 
   private static String tokenString(Token token) {
     StringBuilder output = new StringBuilder();
@@ -195,7 +195,9 @@ class Main {
     }
     if (CLI.opts[optimizations.indexOf("dce")]) {
       ll.accept(new DeadCodeElimination());
-      ll.accept(new UnusedLocalElimination());
+      if (CLI.opts[optimizations.indexOf("ule")]) {
+        ll.accept(new UnusedLocalElimination());
+      }
     }
     if (CLI.opts[optimizations.indexOf("uce")]) {
       ll.accept(new UnreachableCodeElimination());
