@@ -32,7 +32,10 @@ Note: [CP][CP] is called twice given that our code generation naively creates a 
 
 The global common subexpression elimination algorithm has two components, first, a global fixed-point working set approach computing the available expressions across basic blocks in a control flow graph, and second, a local value numbering based scheme for each basic block.
 
-The global component is an optimistic forward data flow analysis, initially stating all blocks except for the entry block have all expressions available. To determine the availability of a given expression, a bitmap mapping a unique string describing an expression to a bit, 0 or 1, is used. In our low level intermediate representation this simplifies to binary, unary, load and store instructions
+The global component is an optimistic forward data flow analysis, initializing all blocks except for the entry block to have all expressions available. In our low level intermediate representation binary, unary, and compare become our instructions of interest, as they compose expressions, and therefore can generate new expressions which must be set in our bitmap. However we chose not to potentially eliminate compare instructions as in our current architecture we use conditional jumps which are dependent on the flags register and therefore the comparison operation must be evaluated just before the jump disregarding possible manipulation of the flags register.  To determine the availability of a given expression, a bitmap mapping a unique string describing an expression to a bit, 0 or 1, is used. Expressions are placed into the kill set whenever a variable used in an expression is redefined, or if the expression uses a global variable and there is a function call, which can potentially mutate the global variable. As a small side note, we may create a call graph to keep track of which global variables are used in function calls so that we do not have to be so conservative and kill all expressions involving global variables with each function call. 
+
+Once the global fixed point algorithm is complete, the local value numbering algorithm is run for each basic block is run, with the additional step of using the global bitmap if an expression is available from previous blocks.
+
 
 [CSE]: #global-common-subexpression-elimination
 
