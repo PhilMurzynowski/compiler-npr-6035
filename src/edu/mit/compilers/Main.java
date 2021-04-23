@@ -184,23 +184,25 @@ class Main {
     LLProgram ll = LLBuilder.buildProgram(hl);
 
     // an extra copy propagation helpful for CSE
-    if (CLI.opts[optimizations.indexOf("cp")]) {
-      ll.accept(new CopyPropagation(CLI.opts[optimizations.indexOf("cf")], CLI.opts[optimizations.indexOf("as")]));
-    }
-    if (CLI.opts[optimizations.indexOf("cse")]) {
-      ll.accept(new CommonSubExpression());
-    }
-    if (CLI.opts[optimizations.indexOf("cp")]) {
-      ll.accept(new CopyPropagation(CLI.opts[optimizations.indexOf("cf")], CLI.opts[optimizations.indexOf("as")]));
-    }
-    if (CLI.opts[optimizations.indexOf("dce")]) {
-      ll.accept(new DeadCodeElimination());
-      if (CLI.opts[optimizations.indexOf("ule")]) {
-        ll.accept(new UnusedLocalElimination());
+    for (int i = 0; i < 2; i++) {
+      if (CLI.opts[optimizations.indexOf("cp")]) {
+        ll.accept(new CopyPropagation(CLI.opts[optimizations.indexOf("cf")], CLI.opts[optimizations.indexOf("as")]));
       }
-    }
-    if (CLI.opts[optimizations.indexOf("uce")]) {
-      ll.accept(new UnreachableCodeElimination());
+      if (CLI.opts[optimizations.indexOf("cse")]) {
+        ll.accept(new CommonSubExpression());
+      }
+      if (CLI.opts[optimizations.indexOf("cp")]) {
+        ll.accept(new CopyPropagation(CLI.opts[optimizations.indexOf("cf")], CLI.opts[optimizations.indexOf("as")]));
+      }
+      if (CLI.opts[optimizations.indexOf("dce")]) {
+        ll.accept(new DeadCodeElimination());
+        if (CLI.opts[optimizations.indexOf("ule")]) {
+          ll.accept(new UnusedLocalElimination());
+        }
+      }
+      if (CLI.opts[optimizations.indexOf("uce")]) {
+        ll.accept(new UnreachableCodeElimination());
+      }
     }
     System.err.println(ll.prettyString(0));
     String assembly = LLGenerator.generateProgram(ll);

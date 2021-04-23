@@ -361,7 +361,7 @@ public class LLBuilder {
       if (bodyCFG.expectExit() != breakTarget.get() && bodyCFG.expectExit() != continueTarget.get() && (returnTarget.isEmpty() || bodyCFG.expectExit() != returnTarget.get())) {
         LLBasicBlock.setTrueTarget(bodyCFG.expectExit(), exitBB);
       }
-      if (otherCFG.expectExit() != breakTarget.get() && otherCFG.expectExit() != continueTarget.get() && (returnTarget.isEmpty() || bodyCFG.expectExit() != returnTarget.get())) {
+      if (otherCFG.expectExit() != breakTarget.get() && otherCFG.expectExit() != continueTarget.get() && (returnTarget.isEmpty() || otherCFG.expectExit() != returnTarget.get())) {
         LLBasicBlock.setTrueTarget(otherCFG.expectExit(), exitBB);
       }
     } else {
