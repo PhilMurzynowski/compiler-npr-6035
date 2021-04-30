@@ -11,7 +11,7 @@ import static edu.mit.compilers.common.Utilities.*;
 public class LLControlFlowGraph implements LLNode {
 
   private final LLBasicBlock entry;
-  private final Optional<LLBasicBlock> exit;
+  private Optional<LLBasicBlock> exit;
   private final Set<LLBasicBlock> exceptions;
 
   private LLControlFlowGraph(LLBasicBlock entry, Optional<LLBasicBlock> exit, Set<LLBasicBlock> exceptions) {
@@ -69,7 +69,7 @@ public class LLControlFlowGraph implements LLNode {
     exceptions.add(exception);
   }
 
-  public LLControlFlowGraph simplify(boolean unreachableCodeElimination) {
+  /* public LLControlFlowGraph simplify(boolean unreachableCodeElimination) {
     final Set<LLBasicBlock> allExits;
     if (exit.isPresent()) {
       allExits = new HashSet<>(Set.of(exit.get()));
@@ -125,6 +125,31 @@ public class LLControlFlowGraph implements LLNode {
       return new LLControlFlowGraph(simplifiedEntry, Optional.of(simplifiedExits.iterator().next()), simplifiedExceptions);
     } else {
       throw new RuntimeException("too many exits");
+    }
+  } */
+
+  public void simplify(final boolean unreachableCodeElimination) {
+    final Stack<LLBasicBlock> toVisit = new Stack<>();
+    final Set<LLBasicBlock> visited = new HashSet<>();
+
+    toVisit.push(entry);
+
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+        exit = current.simplify(exit, exceptions, unreachableCodeElimination);
+
+        if (current.hasTrueTarget()) {
+          toVisit.push(current.getTrueTarget());
+        }
+
+        if (current.hasFalseTarget()) {
+          toVisit.push(current.getFalseTarget());
+        }
+
+        visited.add(current);
+      }
     }
   }
 

@@ -16,10 +16,10 @@ public class LLMethodDeclaration implements LLDeclaration {
   private final List<LLLocalScalarFieldDeclaration> scalarFieldDeclarations;
   private final List<LLLocalArrayFieldDeclaration> arrayFieldDeclarations;
   private final List<LLAliasDeclaration> aliasDeclarations;
-  private final LLBasicBlock outOfBoundsExceptionBB;
+  private Optional<LLBasicBlock> outOfBoundsExceptionBB;
   private Optional<LLControlFlowGraph> body;
 
-  public LLMethodDeclaration(String identifier, MethodType type, LLBasicBlock outOfBoundsExceptionBB) {
+  public LLMethodDeclaration(String identifier, MethodType type) {
     this.identifier = identifier;
     this.type = type;
     argumentDeclarations = new ArrayList<>();
@@ -27,7 +27,7 @@ public class LLMethodDeclaration implements LLDeclaration {
     arrayFieldDeclarations = new ArrayList<>();
     aliasDeclarations = new ArrayList<>();
     body = Optional.empty();
-    this.outOfBoundsExceptionBB = outOfBoundsExceptionBB;
+    this.outOfBoundsExceptionBB = Optional.empty();
   }
 
   public MethodType getMethodType() {
@@ -133,8 +133,17 @@ public class LLMethodDeclaration implements LLDeclaration {
     return this.aliasDeclarations;
   }
 
+  public boolean hasOutOfBoundsExceptionBB() {
+    return outOfBoundsExceptionBB.isPresent();
+  }
+
   public LLBasicBlock getOutOfBoundsExceptionBB() {
-    return outOfBoundsExceptionBB;
+    if (outOfBoundsExceptionBB.isEmpty()) {
+      outOfBoundsExceptionBB = Optional.of(new LLBasicBlock(
+        new LLException(LLException.Type.OutOfBounds)
+      ));
+    }
+    return outOfBoundsExceptionBB.get();
   }
 
   public int setStackIndices() {
@@ -237,7 +246,9 @@ public class LLMethodDeclaration implements LLDeclaration {
       s.append(indent(depth + 2) + aliasDeclaration.debugString(depth + 2) + ",\n");
     }
     s.append(indent(depth + 1) + "],\n");
-    s.append(indent(depth + 1) + "outOfBoundsExceptionBB: " + outOfBoundsExceptionBB.debugString(depth + 1) + ",\n");
+    if (outOfBoundsExceptionBB.isPresent()) {
+      s.append(indent(depth + 1) + "outOfBoundsExceptionBB: " + outOfBoundsExceptionBB.get().debugString(depth + 1) + ",\n");
+    }
     if (body.isPresent()) {
       s.append(indent(depth + 1) + "body: " + body.get().debugString(depth + 1) + ",\n");
     }

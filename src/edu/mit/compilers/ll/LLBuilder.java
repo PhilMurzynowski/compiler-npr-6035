@@ -74,10 +74,7 @@ public class LLBuilder {
   }
 
   public static LLMethodDeclaration buildMethodDeclaration(HLMethodDeclaration hlMethodDeclaration) {
-    final LLBasicBlock outOfBoundsExceptionBB = new LLBasicBlock(
-      new LLException(LLException.Type.OutOfBounds)
-    );
-    final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier(), hlMethodDeclaration.getMethodType(), outOfBoundsExceptionBB);
+    final LLMethodDeclaration llMethodDeclaration = new LLMethodDeclaration(hlMethodDeclaration.getIdentifier(), hlMethodDeclaration.getMethodType());
     hlMethodDeclaration.setLL(llMethodDeclaration);
 
     // WARN(rbd): The lines above MUST be executed before the lines below. (Think: Recursive method calls.)
@@ -93,10 +90,13 @@ public class LLBuilder {
         new LLException(LLException.Type.NoReturnValue)
       );
     }
-    bodyCFG.addException(outOfBoundsExceptionBB);
+    if (llMethodDeclaration.hasOutOfBoundsExceptionBB()) {
+      bodyCFG.addException(llMethodDeclaration.getOutOfBoundsExceptionBB());
+    }
 
     // NOTE(rbd): You can remove `.simplify()` here if you think simplification is the problem. :)
-    llMethodDeclaration.setBody(bodyCFG.simplify(/* unreachableCodeElimination */ false));
+    bodyCFG.simplify(/* unreachableCodeElimination */ false);
+    llMethodDeclaration.setBody(bodyCFG);
 
     return llMethodDeclaration;
   }

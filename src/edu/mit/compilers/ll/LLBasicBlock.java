@@ -4,11 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-
-import edu.mit.compilers.common.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -139,7 +136,7 @@ public class LLBasicBlock implements LLDeclaration {
     return generated;
   }
 
-  private static LLBasicBlock getNextNonEmpty(LLBasicBlock block) {
+  /* private static LLBasicBlock getNextNonEmpty(LLBasicBlock block) {
     if (block.getInstructions().size() == 0) {
       if (block.hasFalseTarget()) {
         throw new RuntimeException("an empty block should not have a false target");
@@ -151,9 +148,9 @@ public class LLBasicBlock implements LLDeclaration {
     } else {
       return block;
     }
-  }
+  } */
 
-  private enum ComparisonResult {
+  /* private enum ComparisonResult {
     ALWAYS_TRUE,
     ALWAYS_FALSE,
     AMBIGUOUS;
@@ -161,9 +158,9 @@ public class LLBasicBlock implements LLDeclaration {
     public static ComparisonResult fromBoolean(boolean x) {
       return x ? ALWAYS_TRUE : ALWAYS_FALSE;
     }
-  }
+  } */
 
-  private static ComparisonResult evaluateComparison(LLCompare comparison) {
+  /* private static ComparisonResult evaluateComparison(LLCompare comparison) {
     if (comparison.getLeft() instanceof LLConstantDeclaration left
         && comparison.getRight() instanceof LLConstantDeclaration right) {
       if (comparison.getType().equals(ComparisonType.EQUAL)) {
@@ -184,11 +181,9 @@ public class LLBasicBlock implements LLDeclaration {
     } else {
       return ComparisonResult.AMBIGUOUS;
     }
-  }
+  } */
 
-  // TODO(rbd): Yep, this has become quite a mess...
-
-  public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified, Set<LLBasicBlock> exits, Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
+  /* public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified, Set<LLBasicBlock> exits, Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
     assert !generated : "cannot simplify because basic block has already been generated";
 
     if (falseTarget.isPresent()) {
@@ -371,19 +366,62 @@ public class LLBasicBlock implements LLDeclaration {
     } else {
       return this;
     }
-  }
+  } */
 
   public int getIndex() {
     return index;
   }
 
   // NOTE(rbd): This is very unfortunate, I know... This is necessary to handle loops in CFG simplification above.
-  private void subsume(LLBasicBlock that) {
+  /* private void subsume(LLBasicBlock that) {
     this.index = that.index;
     this.instructions = that.instructions;
     this.trueTarget = that.trueTarget;
     this.falseTarget = that.falseTarget;
     this.generated = that.generated;
+  } */
+
+  private boolean canSimplify(boolean unreachableCodeElimination) {
+    return !hasFalseTarget()
+      && hasTrueTarget()
+      && (getTrueTarget().getPredecessors().size() == 1);
+  }
+
+  public Optional<LLBasicBlock> simplify(Optional<LLBasicBlock> exit, final Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
+    while (canSimplify(unreachableCodeElimination)) {
+      final LLBasicBlock next = getTrueTarget();
+
+      instructions.addAll(next.getInstructions());
+
+      trueTarget = next.trueTarget;
+      falseTarget = next.falseTarget;
+
+      if (hasFalseTarget()) {
+        final LLBasicBlock trueTarget = getTrueTarget();
+        trueTarget.predecessors.remove(next);
+        trueTarget.predecessors.add(this);
+
+        final LLBasicBlock falseTarget = getFalseTarget();
+        falseTarget.predecessors.remove(next);
+        falseTarget.predecessors.add(this);
+      } else if (hasTrueTarget()) {
+        final LLBasicBlock trueTarget = getTrueTarget();
+        trueTarget.predecessors.remove(next);
+        trueTarget.predecessors.add(this);
+      } else {
+        if (exit.isPresent() && exit.get() == next) {
+          exit = Optional.of(this);
+        } else if (exceptions.contains(next)) {
+          exceptions.remove(next);
+          exceptions.add(this);
+        } else {
+          throw new RuntimeException("basic block with no true or false target is not exit or in exceptions");
+        }
+      }
+
+    }
+
+    return exit;
   }
 
   @Override
