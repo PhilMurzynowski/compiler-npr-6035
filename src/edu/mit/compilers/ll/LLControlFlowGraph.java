@@ -2,7 +2,6 @@ package edu.mit.compilers.ll;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Stack;
 import java.util.Optional;
 
@@ -69,66 +68,7 @@ public class LLControlFlowGraph implements LLNode {
     exceptions.add(exception);
   }
 
-  /* public LLControlFlowGraph simplify(boolean unreachableCodeElimination) {
-    final Set<LLBasicBlock> allExits;
-    if (exit.isPresent()) {
-      allExits = new HashSet<>(Set.of(exit.get()));
-    } else {
-      allExits = new HashSet<>();
-    }
-    final Set<LLBasicBlock> allExceptions = new HashSet<>(exceptions);
-    LLBasicBlock simplifiedEntry = entry.simplify(new HashMap<>(), allExits, allExceptions, unreachableCodeElimination);
-
-    final Set<LLBasicBlock> visited = new HashSet<>();
-    final Stack<LLBasicBlock> toVisit = new Stack<>();
-    final Set<LLBasicBlock> simplifiedExits = new HashSet<>();
-    final Set<LLBasicBlock> simplifiedExceptions = new HashSet<>();
-
-    toVisit.push(simplifiedEntry);
-
-    while (!toVisit.isEmpty()) {
-      final LLBasicBlock current = toVisit.pop();
-
-      if (!visited.contains(current)) {
-        if (current.hasFalseTarget()) {
-          current.getTrueTarget().addPredecessor(current);
-          current.getFalseTarget().addPredecessor(current);
-
-          toVisit.push(current.getTrueTarget());
-          toVisit.push(current.getFalseTarget());
-        } else if (current.hasTrueTarget()) {
-          current.getTrueTarget().addPredecessor(current);
-
-          toVisit.push(current.getTrueTarget());
-        } else {
-          assert allExits.contains(current) || allExceptions.contains(current) : "block with no true/false target should be in either exits or exceptions";
-
-          if (allExits.contains(current)) {
-            simplifiedExits.add(current);
-          } else if (allExceptions.contains(current)) {
-            simplifiedExceptions.add(current);
-          }
-        }
-
-        visited.add(current);
-      }
-    }
-
-    if (simplifiedExits.size() == 0) {
-      assert simplifiedExceptions.size() > 0 : "if there is no exit, there should be at least one exception";
-      assert simplifiedExceptions.size() <= exceptions.size() : "after simplification, should have at most the number of exceptions from before simplification";
-
-      return new LLControlFlowGraph(simplifiedEntry, Optional.empty(), simplifiedExceptions);
-    } else if (simplifiedExits.size() == 1) {
-      assert simplifiedExceptions.size() <= exceptions.size() : "after simplification, should have at most the number of exceptions from before simplification";
-
-      return new LLControlFlowGraph(simplifiedEntry, Optional.of(simplifiedExits.iterator().next()), simplifiedExceptions);
-    } else {
-      throw new RuntimeException("too many exits");
-    }
-  } */
-
-  public void simplify(final boolean unreachableCodeElimination) {
+  public void simplify() {
     final Stack<LLBasicBlock> toVisit = new Stack<>();
     final Set<LLBasicBlock> visited = new HashSet<>();
 
@@ -139,7 +79,7 @@ public class LLControlFlowGraph implements LLNode {
       final LLBasicBlock current = toVisit.pop();
 
       if (!visited.contains(current)) {
-        exit = current.merge(exit, exceptions, unreachableCodeElimination);
+        exit = current.merge(exit, exceptions);
 
         if (current.hasTrueTarget()) {
           toVisit.push(current.getTrueTarget());
@@ -162,30 +102,26 @@ public class LLControlFlowGraph implements LLNode {
 
       if (!visited.contains(current)) {
         if (current.hasTrueTarget()) {
-          LLBasicBlock previous = current;
           LLBasicBlock next = current.getTrueTarget();
 
           while (next.getInstructions().size() == 0 && next.hasTrueTarget()) {
-            previous = next;
             next = next.getTrueTarget();
           }
 
-          next.removePredecessor(previous);
+          // NOTE(rbd): Don't care about predecessors, they are fixed below.
           LLBasicBlock.replaceTrueTarget(current, next);
 
           toVisit.push(current.getTrueTarget());
         }
 
         if (current.hasFalseTarget()) {
-          LLBasicBlock previous = current;
           LLBasicBlock next = current.getFalseTarget();
 
           while (next.getInstructions().size() == 0 && next.hasTrueTarget()) {
-            previous = next;
             next = next.getTrueTarget();
           }
 
-          next.removePredecessor(previous);
+          // NOTE(rbd): Don't care about predecessors, they are fixed below.
           LLBasicBlock.replaceFalseTarget(current, next);
 
           toVisit.push(current.getFalseTarget());
@@ -193,6 +129,98 @@ public class LLControlFlowGraph implements LLNode {
 
         visited.add(current);
       }
+    }
+
+    visited.clear();
+    toVisit.push(entry);
+
+    // Clear predecessors
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+        current.clearPredecessors();
+
+        if (current.hasTrueTarget()) {
+          toVisit.push(current.getTrueTarget());
+        }
+
+        if (current.hasFalseTarget()) {
+          toVisit.push(current.getFalseTarget());
+        }
+
+        visited.add(current);
+      }
+    }
+
+    visited.clear();
+    toVisit.push(entry);
+
+    // Set predecessors
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+        if (current.hasTrueTarget()) {
+          current.getTrueTarget().addPredecessor(current);
+          toVisit.push(current.getTrueTarget());
+        }
+
+        if (current.hasFalseTarget()) {
+          current.getFalseTarget().addPredecessor(current);
+          toVisit.push(current.getFalseTarget());
+        }
+
+        visited.add(current);
+      }
+    }
+
+    final Set<LLBasicBlock> simplifiedExits = new HashSet<>();
+    final Set<LLBasicBlock> simplifiedExceptions = new HashSet<>();
+
+    visited.clear();
+    toVisit.push(entry);
+
+    // Remove unreachable exits
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+
+        if (current.hasFalseTarget()) {
+          toVisit.push(current.getTrueTarget());
+          toVisit.push(current.getFalseTarget());
+        } else if (current.hasTrueTarget()) {
+          toVisit.push(current.getTrueTarget());
+        } else {
+          if (exceptions.contains(current)) {
+            simplifiedExceptions.add(current);
+          } else if (exit.isPresent() && exit.get() == current) {
+            simplifiedExits.add(current);
+          } else {
+            throw new RuntimeException("block with no true or false targets should be exit or exception");
+          }
+        }
+
+        visited.add(current);
+      }
+    }
+
+    if (simplifiedExits.size() == 0) {
+      assert simplifiedExceptions.size() > 0 : "if there is no exit, there should be at least one exception";
+      assert simplifiedExceptions.size() <= exceptions.size() : "after simplification, should have at most hte number of exceptions from before simplification";
+
+      exit = Optional.empty();
+      exceptions.clear();
+      exceptions.addAll(simplifiedExceptions);
+    } else if (simplifiedExits.size() == 1) {
+      assert simplifiedExceptions.size() <= exceptions.size() : "after simplification, should have at most hte number of exceptions from before simplification";
+
+      exit = Optional.of(simplifiedExits.iterator().next());
+      exceptions.clear();
+      exceptions.addAll(simplifiedExceptions);
+    } else {
+      throw new RuntimeException("too many exits");
     }
   }
 

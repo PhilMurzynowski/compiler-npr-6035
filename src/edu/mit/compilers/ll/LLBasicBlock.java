@@ -46,7 +46,7 @@ public class LLBasicBlock implements LLDeclaration {
     dst.addPredecessor(src);
   }
 
-  private void replaceTrueTarget(LLBasicBlock trueTarget) {
+  public void replaceTrueTarget(LLBasicBlock trueTarget) {
     if (this.trueTarget.isPresent()) {
       this.trueTarget = Optional.of(trueTarget);
     } else {
@@ -72,6 +72,14 @@ public class LLBasicBlock implements LLDeclaration {
     dst.addPredecessor(src);
   }
 
+  public void clearFalseTarget() {
+    if (this.falseTarget.isPresent()) {
+      this.falseTarget = Optional.empty();
+    } else {
+      throw new RuntimeException("false target for BB" + index + " cannot be cleared as it has not yet been set");
+    }
+  }
+
   private void replaceFalseTarget(LLBasicBlock falseTarget) {
     if (this.falseTarget.isPresent()) {
       this.falseTarget = Optional.of(falseTarget);
@@ -83,6 +91,24 @@ public class LLBasicBlock implements LLDeclaration {
   public static void replaceFalseTarget(LLBasicBlock src, LLBasicBlock dst) {
     src.replaceFalseTarget(dst);
     dst.addPredecessor(src);
+  }
+
+  public void setAlwaysTrue() {
+    assert trueTarget.isPresent() : "expected true target";
+    assert falseTarget.isPresent() : "expected false target";
+
+    getFalseTarget().removePredecessor(this);
+    replaceTrueTarget(this, getTrueTarget());
+    falseTarget = Optional.empty();
+  }
+
+  public void setAlwaysFalse() {
+    assert trueTarget.isPresent() : "expected true target";
+    assert falseTarget.isPresent() : "expected false target";
+
+    getTrueTarget().removePredecessor(this);
+    replaceTrueTarget(this, getFalseTarget());
+    falseTarget = Optional.empty();
   }
 
   public void setGenerated() {
@@ -110,6 +136,10 @@ public class LLBasicBlock implements LLDeclaration {
 
   public void removePredecessor(LLBasicBlock block) {
     predecessors.remove(block);
+  }
+
+  public void clearPredecessors() {
+    predecessors.clear();
   }
 
   public Set<LLBasicBlock> getSuccessors() {
@@ -166,265 +196,27 @@ public class LLBasicBlock implements LLDeclaration {
     return generated;
   }
 
-  /* private enum ComparisonResult {
-    ALWAYS_TRUE,
-    ALWAYS_FALSE,
-    AMBIGUOUS;
-
-    public static ComparisonResult fromBoolean(boolean x) {
-      return x ? ALWAYS_TRUE : ALWAYS_FALSE;
-    }
-  } */
-
-  /* private static ComparisonResult evaluateComparison(LLCompare comparison) {
-    if (comparison.getLeft() instanceof LLConstantDeclaration left
-        && comparison.getRight() instanceof LLConstantDeclaration right) {
-      if (comparison.getType().equals(ComparisonType.EQUAL)) {
-        return ComparisonResult.fromBoolean(left.getValue() == right.getValue());
-      } else if (comparison.getType().equals(ComparisonType.NOT_EQUAL)) {
-        return ComparisonResult.fromBoolean(left.getValue() != right.getValue());
-      } else if (comparison.getType().equals(ComparisonType.LESS_THAN)) {
-        return ComparisonResult.fromBoolean(left.getValue() < right.getValue());
-      } else if (comparison.getType().equals(ComparisonType.LESS_THAN_OR_EQUAL)) {
-        return ComparisonResult.fromBoolean(left.getValue() <= right.getValue());
-      } else if (comparison.getType().equals(ComparisonType.GREATER_THAN)) {
-        return ComparisonResult.fromBoolean(left.getValue() > right.getValue());
-      } else if (comparison.getType().equals(ComparisonType.GREATER_THAN_OR_EQUAL)) {
-        return ComparisonResult.fromBoolean(left.getValue() >= right.getValue());
-      } else {
-        throw new RuntimeException("unreachable");
-      }
-    } else {
-      return ComparisonResult.AMBIGUOUS;
-    }
-  } */
-
-  /* public LLBasicBlock simplify(Map<LLBasicBlock, LLBasicBlock> simplified, Set<LLBasicBlock> exits, Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
-    assert !generated : "cannot simplify because basic block has already been generated";
-
-    if (falseTarget.isPresent()) {
-      assert trueTarget.isPresent() : "false target exists without matching true target";
-
-      if (!simplified.containsKey(getTrueTarget())) {
-        simplified.put(getTrueTarget(), new LLBasicBlock());
-        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions, unreachableCodeElimination);
-        simplified.get(getTrueTarget()).subsume(simplifiedBB);
-        if (exits.contains(simplifiedBB)) {
-          exits.add(simplified.get(getTrueTarget()));
-        }
-        if (exceptions.contains(simplifiedBB)) {
-          exceptions.add(simplified.get(getTrueTarget()));
-        }
-      }
-
-      if (!simplified.containsKey(getFalseTarget())) {
-        simplified.put(getFalseTarget(), new LLBasicBlock());
-        final LLBasicBlock simplifiedBB = getFalseTarget().simplify(simplified, exits, exceptions, unreachableCodeElimination);
-        simplified.get(getFalseTarget()).subsume(simplifiedBB);
-        if (exits.contains(simplifiedBB)) {
-          exits.add(simplified.get(getFalseTarget()));
-        }
-        if (exceptions.contains(simplifiedBB)) {
-          exceptions.add(simplified.get(getFalseTarget()));
-        }
-      }
-
-      final LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
-      final LLBasicBlock simplifiedFalseTarget = simplified.get(getFalseTarget());
-
-      if (unreachableCodeElimination) {
-        if (instructions.size() < 1) {
-          throw new RuntimeException("should have at least one instruction (a comparison)");
-        }
-
-        if (instructions.get(instructions.size() - 1) instanceof LLCompare comparison) {
-          switch (evaluateComparison(comparison)) {
-            case ALWAYS_TRUE: {
-              if (getTrueTarget().predecessors.size() == 1) {
-                final List<LLInstruction> resultInstructions = new ArrayList<>(instructions.subList(0, instructions.size() - 1));
-                resultInstructions.addAll(simplifiedTrueTarget.instructions);
-
-                final LLBasicBlock simplifiedBB = new LLBasicBlock(resultInstructions);
-
-                if (exits.contains(simplifiedTrueTarget)) {
-                  exits.add(simplifiedBB);
-                }
-
-                if (exceptions.contains(simplifiedTrueTarget)) {
-                  exceptions.add(simplifiedBB);
-                }
-
-                if (simplifiedTrueTarget.hasTrueTarget()) {
-                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-                  simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget.getTrueTarget()));
-                }
-
-                if (simplifiedTrueTarget.hasFalseTarget()) {
-                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-                  simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedTrueTarget.getFalseTarget()));
-                }
-
-                return simplifiedBB;
-              } else {
-                final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions.subList(0, instructions.size() - 1));
-
-                // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-                simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
-
-                return simplifiedBB;
-              }
-            } case ALWAYS_FALSE: {
-              if (getFalseTarget().predecessors.size() == 1) {
-                final List<LLInstruction> resultInstructions = new ArrayList<>(instructions.subList(0, instructions.size() - 1));
-                resultInstructions.addAll(simplifiedFalseTarget.instructions);
-
-                final LLBasicBlock simplifiedBB = new LLBasicBlock(resultInstructions);
-
-                if (exits.contains(simplifiedFalseTarget)) {
-                  exits.add(simplifiedBB);
-                }
-
-                if (exceptions.contains(simplifiedFalseTarget)) {
-                  exceptions.add(simplifiedBB);
-                }
-
-                if (simplifiedFalseTarget.hasTrueTarget()) {
-                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-                  simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedFalseTarget.getTrueTarget()));
-                }
-
-                if (simplifiedFalseTarget.hasFalseTarget()) {
-                  // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-                  simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget.getFalseTarget()));
-                }
-
-                return simplifiedBB;
-              } else {
-                final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions.subList(0, instructions.size() - 1));
-
-                // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-                simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedFalseTarget));
-
-                return simplifiedBB;
-              }
-            } case AMBIGUOUS: {
-              final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
-
-              // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-              simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
-              simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget));
-
-              return simplifiedBB;
-            } default: {
-              throw new RuntimeException("unreachable");
-            }
-          }
-        } else {
-          throw new RuntimeException("expected last instruction to be a comparison");
-        }
-      } else {
-        final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
-
-        // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-        simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
-        simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedFalseTarget));
-
-        return simplifiedBB;
-      }
-    } else if (trueTarget.isPresent()) {
-      if (!simplified.containsKey(getTrueTarget())) {
-        simplified.put(getTrueTarget(), new LLBasicBlock());
-        final LLBasicBlock simplifiedBB = getTrueTarget().simplify(simplified, exits, exceptions, unreachableCodeElimination);
-        simplified.get(getTrueTarget()).subsume(simplifiedBB);
-        if (exits.contains(simplifiedBB)) {
-          exits.add(simplified.get(getTrueTarget()));
-        }
-        if (exceptions.contains(simplifiedBB)) {
-          exceptions.add(simplified.get(getTrueTarget()));
-        }
-      }
-
-      final LLBasicBlock simplifiedTrueTarget = simplified.get(getTrueTarget());
-
-      if (getTrueTarget().predecessors.size() == 1) {
-        final List<LLInstruction> resultInstructions = new ArrayList<>(instructions);
-        resultInstructions.addAll(simplifiedTrueTarget.instructions);
-
-        final LLBasicBlock simplifiedBB = new LLBasicBlock(resultInstructions);
-
-        if (exits.contains(simplifiedTrueTarget)) {
-          exits.add(simplifiedBB);
-        }
-
-        if (exceptions.contains(simplifiedTrueTarget)) {
-          exceptions.add(simplifiedBB);
-        }
-
-        if (simplifiedTrueTarget.hasTrueTarget()) {
-          // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-          simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget.getTrueTarget()));
-        }
-
-        if (simplifiedTrueTarget.hasFalseTarget()) {
-          // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-          simplifiedBB.setFalseTarget(getNextNonEmpty(simplifiedTrueTarget.getFalseTarget()));
-        }
-
-        return simplifiedBB;
-      } else {
-        final LLBasicBlock simplifiedBB = new LLBasicBlock(instructions);
-
-        // NOTE(rbd): Do not set back edges yet, most of these blocks will disappear after simplification.
-        simplifiedBB.setTrueTarget(getNextNonEmpty(simplifiedTrueTarget));
-
-        return simplifiedBB;
-      }
-    } else {
-      return this;
-    }
-  } */
-
   public int getIndex() {
     return index;
   }
 
-  // NOTE(rbd): This is very unfortunate, I know... This is necessary to handle loops in CFG simplification above.
-  /* private void subsume(LLBasicBlock that) {
-    this.index = that.index;
-    this.instructions = that.instructions;
-    this.trueTarget = that.trueTarget;
-    this.falseTarget = that.falseTarget;
-    this.generated = that.generated;
-  } */
-
-  private boolean canMerge(boolean unreachableCodeElimination) {
+  private boolean canMerge() {
     return !hasFalseTarget()
       && hasTrueTarget()
       && (getTrueTarget().getPredecessors().size() == 1);
   }
 
-  public Optional<LLBasicBlock> merge(Optional<LLBasicBlock> exit, final Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
-    while (canMerge(unreachableCodeElimination)) {
+  public Optional<LLBasicBlock> merge(Optional<LLBasicBlock> exit, final Set<LLBasicBlock> exceptions) {
+    while (canMerge()) {
       final LLBasicBlock next = getTrueTarget();
 
       instructions.addAll(next.getInstructions());
 
+      // NOTE(rbd): Don't care about predecessors, they are fixed in LLControlFlowGraph.simplify().
       trueTarget = next.trueTarget;
       falseTarget = next.falseTarget;
 
-      if (hasFalseTarget()) {
-        final LLBasicBlock trueTarget = getTrueTarget();
-        trueTarget.predecessors.remove(next);
-        trueTarget.predecessors.add(this);
-
-        final LLBasicBlock falseTarget = getFalseTarget();
-        falseTarget.predecessors.remove(next);
-        falseTarget.predecessors.add(this);
-      } else if (hasTrueTarget()) {
-        final LLBasicBlock trueTarget = getTrueTarget();
-        trueTarget.predecessors.remove(next);
-        trueTarget.predecessors.add(this);
-      } else {
+      if (!hasTrueTarget()) {
         if (exit.isPresent() && exit.get() == next) {
           exit = Optional.of(this);
         } else if (exceptions.contains(next)) {
@@ -434,7 +226,6 @@ public class LLBasicBlock implements LLDeclaration {
           throw new RuntimeException("basic block with no true or false target is not exit or in exceptions");
         }
       }
-
     }
 
     return exit;

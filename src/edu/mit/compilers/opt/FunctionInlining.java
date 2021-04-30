@@ -210,7 +210,7 @@ public class FunctionInlining {
 
       final HLMethodDeclaration methodDeclaration = internalCallExpression.getDeclaration();
 
-      if (/* uses.get(methodDeclaration) == 1 || */ costs.get(methodDeclaration) < COST_THRESHOLD) {
+      if (uses.get(methodDeclaration) == 1 || costs.get(methodDeclaration) < COST_THRESHOLD) {
         internalCallExpression.setInline();
       }
     } else if (callExpression instanceof HLExternalCallExpression externalCallExpression) {

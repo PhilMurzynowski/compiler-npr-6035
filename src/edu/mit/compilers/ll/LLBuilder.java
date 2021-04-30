@@ -95,7 +95,7 @@ public class LLBuilder {
     }
 
     // NOTE(rbd): You can remove `.simplify()` here if you think simplification is the problem. :)
-    bodyCFG.simplify(/* unreachableCodeElimination */ false);
+    bodyCFG.simplify();
     llMethodDeclaration.setBody(bodyCFG);
 
     return llMethodDeclaration;
