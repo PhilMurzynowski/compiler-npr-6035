@@ -46,6 +46,19 @@ public class LLBasicBlock implements LLDeclaration {
     dst.addPredecessor(src);
   }
 
+  private void replaceTrueTarget(LLBasicBlock trueTarget) {
+    if (this.trueTarget.isPresent()) {
+      this.trueTarget = Optional.of(trueTarget);
+    } else {
+      throw new RuntimeException("true target for BB" + index + " cannot be replaced with BB" + trueTarget.getIndex() + " as it has not yet been set");
+    }
+  }
+
+  public static void replaceTrueTarget(LLBasicBlock src, LLBasicBlock dst) {
+    src.replaceTrueTarget(dst);
+    dst.addPredecessor(src);
+  }
+
   private void setFalseTarget(LLBasicBlock falseTarget) {
     if (this.falseTarget.isPresent()) {
       throw new RuntimeException("false target for BB" + index + " cannot be set to BB" + falseTarget.getIndex() + " as it has already been set to BB" + getFalseTarget().getIndex());
@@ -56,6 +69,19 @@ public class LLBasicBlock implements LLDeclaration {
 
   public static void setFalseTarget(LLBasicBlock src, LLBasicBlock dst) {
     src.setFalseTarget(dst);
+    dst.addPredecessor(src);
+  }
+
+  private void replaceFalseTarget(LLBasicBlock falseTarget) {
+    if (this.falseTarget.isPresent()) {
+      this.falseTarget = Optional.of(falseTarget);
+    } else {
+      throw new RuntimeException("false target for BB" + index + " cannot be replaced with BB" + falseTarget.getIndex() + " as it has not yet been set");
+    }
+  }
+
+  public static void replaceFalseTarget(LLBasicBlock src, LLBasicBlock dst) {
+    src.replaceFalseTarget(dst);
     dst.addPredecessor(src);
   }
 
@@ -80,6 +106,10 @@ public class LLBasicBlock implements LLDeclaration {
 
   public Set<LLBasicBlock> getPredecessors() {
     return predecessors;
+  }
+
+  public void removePredecessor(LLBasicBlock block) {
+    predecessors.remove(block);
   }
 
   public Set<LLBasicBlock> getSuccessors() {
@@ -135,20 +165,6 @@ public class LLBasicBlock implements LLDeclaration {
   public boolean isGenerated() {
     return generated;
   }
-
-  /* private static LLBasicBlock getNextNonEmpty(LLBasicBlock block) {
-    if (block.getInstructions().size() == 0) {
-      if (block.hasFalseTarget()) {
-        throw new RuntimeException("an empty block should not have a false target");
-      } else if (block.hasTrueTarget()) {
-        return getNextNonEmpty(block.getTrueTarget());
-      } else {
-        return block;
-      }
-    } else {
-      return block;
-    }
-  } */
 
   /* private enum ComparisonResult {
     ALWAYS_TRUE,
@@ -381,14 +397,14 @@ public class LLBasicBlock implements LLDeclaration {
     this.generated = that.generated;
   } */
 
-  private boolean canSimplify(boolean unreachableCodeElimination) {
+  private boolean canMerge(boolean unreachableCodeElimination) {
     return !hasFalseTarget()
       && hasTrueTarget()
       && (getTrueTarget().getPredecessors().size() == 1);
   }
 
-  public Optional<LLBasicBlock> simplify(Optional<LLBasicBlock> exit, final Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
-    while (canSimplify(unreachableCodeElimination)) {
+  public Optional<LLBasicBlock> merge(Optional<LLBasicBlock> exit, final Set<LLBasicBlock> exceptions, boolean unreachableCodeElimination) {
+    while (canMerge(unreachableCodeElimination)) {
       final LLBasicBlock next = getTrueTarget();
 
       instructions.addAll(next.getInstructions());

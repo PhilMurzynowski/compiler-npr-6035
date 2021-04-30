@@ -134,17 +134,60 @@ public class LLControlFlowGraph implements LLNode {
 
     toVisit.push(entry);
 
+    // Merge linear CFG
     while (!toVisit.isEmpty()) {
       final LLBasicBlock current = toVisit.pop();
 
       if (!visited.contains(current)) {
-        exit = current.simplify(exit, exceptions, unreachableCodeElimination);
+        exit = current.merge(exit, exceptions, unreachableCodeElimination);
 
         if (current.hasTrueTarget()) {
           toVisit.push(current.getTrueTarget());
         }
 
         if (current.hasFalseTarget()) {
+          toVisit.push(current.getFalseTarget());
+        }
+
+        visited.add(current);
+      }
+    }
+
+    visited.clear();
+    toVisit.push(entry);
+
+    // Remove indirect branching
+    while (!toVisit.isEmpty()) {
+      final LLBasicBlock current = toVisit.pop();
+
+      if (!visited.contains(current)) {
+        if (current.hasTrueTarget()) {
+          LLBasicBlock previous = current;
+          LLBasicBlock next = current.getTrueTarget();
+
+          while (next.getInstructions().size() == 0 && next.hasTrueTarget()) {
+            previous = next;
+            next = next.getTrueTarget();
+          }
+
+          next.removePredecessor(previous);
+          LLBasicBlock.replaceTrueTarget(current, next);
+
+          toVisit.push(current.getTrueTarget());
+        }
+
+        if (current.hasFalseTarget()) {
+          LLBasicBlock previous = current;
+          LLBasicBlock next = current.getFalseTarget();
+
+          while (next.getInstructions().size() == 0 && next.hasTrueTarget()) {
+            previous = next;
+            next = next.getTrueTarget();
+          }
+
+          next.removePredecessor(previous);
+          LLBasicBlock.replaceFalseTarget(current, next);
+
           toVisit.push(current.getFalseTarget());
         }
 
