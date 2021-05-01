@@ -1,8 +1,7 @@
 package edu.mit.compilers.ll;
 
-import java.util.Optional;
-import java.util.List;
-// import java.util.Objects;
+import java.util.*; 
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -10,10 +9,14 @@ public class LLCopy implements LLInstruction {
 
   private final LLDeclaration input;
   private final LLDeclaration result;
+  private Optional<Web> definitionWeb;
+  private Map<LLDeclaration, Web> usesWebs;
 
   public LLCopy(LLDeclaration input, LLDeclaration result) {
     this.input = input;
     this.result = result;
+    this.definitionWeb = Optional.empty();
+    this.usesWebs = new HashMap<>();
   }
 
   public LLDeclaration getInput() {
@@ -22,6 +25,20 @@ public class LLCopy implements LLInstruction {
 
   public LLDeclaration getResult() {
     return result;
+  }
+
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    if (definitionWeb.isPresent()) {
+      throw new RuntimeException("definitionWeb has already been set");
+    } else {
+      definitionWeb = Optional.of(web);
+    }
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    usesWebs.put(definition, web);
   }
 
   @Override
