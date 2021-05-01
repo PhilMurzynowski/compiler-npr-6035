@@ -6,10 +6,12 @@ public class Chain {
 
   private Chain parent;
   private Optional<Web> web;
+  private Set<Chain> interference;
 
   public Chain() {
     parent = this;
     web = Optional.empty();
+    interference = new HashSet<>();
   }
 
   public Chain find() {
@@ -51,6 +53,10 @@ public class Chain {
     } else {
       this.web = Optional.of(web);
     }
+  }
+
+  public void addInterference(final Chain chain) {
+    interference.add(chain);
   }
 
 }
