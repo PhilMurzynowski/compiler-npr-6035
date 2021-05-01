@@ -55,6 +55,19 @@ public class RegisterAllocation {
       final Map<LLDeclaration, Set<Chain>> above = intermediaries.get(i);
       final Map<LLDeclaration, Set<Chain>> below = intermediaries.get(i + 1);
 
+      // set chains as interfering
+      List<LLDeclaration> declarations = new ArrayList<>(below.keySet());
+      for (int j = 0; j < declarations.size(); j++) {
+        for (int k = j+1; k < declarations.size(); k++) {
+          for (Chain jChain : below.get(declarations.get(j))) {
+            for (Chain kChain : below.get(declarations.get(k))) {
+              jChain.addInterference(kChain);
+              kChain.addInterference(jChain);
+            }
+          }
+        }
+      }
+
       final LLInstruction instruction = instructions.get(i);
 
       if (instruction.definition().isPresent()) {
@@ -68,6 +81,19 @@ public class RegisterAllocation {
       for (final LLDeclaration use : instruction.uses()) {
         if (above.containsKey(use)) {
           instruction.addUsesWeb(use, above.get(use).iterator().next().getWeb());
+        }
+      }
+    }
+    // set chains as interfering
+    final Map<LLDeclaration, Set<Chain>> above = intermediaries.get(0);
+    List<LLDeclaration> declarations = new ArrayList<>(above.keySet());
+    for (int i = 0; i < declarations.size(); i++) {
+      for (int j = 0; j < declarations.size(); j++) {
+        for (Chain iChain : above.get(declarations.get(i))) {
+          for (Chain jChain : above.get(declarations.get(j))) {
+            iChain.addInterference(jChain);
+            jChain.addInterference(iChain);
+          }
         }
       }
     }
@@ -100,6 +126,35 @@ public class RegisterAllocation {
             final Chain chainSet = chain.find();
             if (!chainSet.hasWeb()) {
               chainSet.setWeb(new Web());
+            }
+          }
+        }
+      }
+    }
+  }
+  private static Set<Web> collectWebs(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
+    Set<Web> webs = new HashSet<>();
+    for (final LLBasicBlock block : chains.keySet()) {
+      for (final Map<LLDeclaration, Set<Chain>> intermediary : chains.get(block)) {
+        for (final LLDeclaration declaration : intermediary.keySet()) {
+          for (final Chain chain : intermediary.get(declaration)) {
+            webs.add(chain.getWeb());
+          }
+        }
+      }
+    }
+    return webs;
+  }
+
+  private static void interferenceFind(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
+    for (final LLBasicBlock block : chains.keySet()) {
+      for (final Map<LLDeclaration, Set<Chain>> intermediary : chains.get(block)) {
+        for (final LLDeclaration declaration : intermediary.keySet()) {
+          for (final Chain chain : intermediary.get(declaration)) {
+            Web firstWeb = chain.getWeb();
+            for (Chain interferingChain : chain.getInterference()) {
+              Web secondWeb = interferingChain.getWeb();
+              firstWeb.addInterference(secondWeb);
             }
           }
         }
@@ -181,6 +236,11 @@ public class RegisterAllocation {
     for (final LLBasicBlock block : visited) {
       transform(block, chains.get(block));
     }
+
+    interferenceFind(chains);
+
+    // collect all of the webs for coloring
+    Set<Web> webs = collectWebs(chains);
   }
 
 }

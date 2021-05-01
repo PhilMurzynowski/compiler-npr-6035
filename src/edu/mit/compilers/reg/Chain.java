@@ -59,4 +59,8 @@ public class Chain {
     interference.add(chain);
   }
 
+  public Set<Chain> getInterference() {
+    return interference;
+  }
+
 }
