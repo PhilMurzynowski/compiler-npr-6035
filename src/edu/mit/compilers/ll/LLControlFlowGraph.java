@@ -109,7 +109,7 @@ public class LLControlFlowGraph implements LLNode {
           }
 
           // NOTE(rbd): Don't care about predecessors, they are fixed below.
-          LLBasicBlock.replaceTrueTarget(current, next);
+          current.replaceTrueTarget(next);
 
           toVisit.push(current.getTrueTarget());
         }
@@ -122,7 +122,7 @@ public class LLControlFlowGraph implements LLNode {
           }
 
           // NOTE(rbd): Don't care about predecessors, they are fixed below.
-          LLBasicBlock.replaceFalseTarget(current, next);
+          current.replaceFalseTarget(next);
 
           toVisit.push(current.getFalseTarget());
         }

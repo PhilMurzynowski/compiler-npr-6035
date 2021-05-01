@@ -80,7 +80,7 @@ public class LLBasicBlock implements LLDeclaration {
     }
   }
 
-  private void replaceFalseTarget(LLBasicBlock falseTarget) {
+  public void replaceFalseTarget(LLBasicBlock falseTarget) {
     if (this.falseTarget.isPresent()) {
       this.falseTarget = Optional.of(falseTarget);
     } else {
