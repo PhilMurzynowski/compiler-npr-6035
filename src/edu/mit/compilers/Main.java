@@ -16,6 +16,7 @@ import edu.mit.compilers.ast.*;
 import edu.mit.compilers.sem.*;
 import edu.mit.compilers.hl.*;
 import edu.mit.compilers.ll.*;
+import edu.mit.compilers.reg.*;
 
 class Main {
 
@@ -205,6 +206,10 @@ class Main {
       }
     }
     System.err.println(ll.prettyString(0));
+    for (final LLMethodDeclaration method : ll.getMethodDeclarations()) {
+      RegisterAllocation.apply(method.getBody()); 
+    }
+    System.err.println(ll.debugString(0));
     String assembly = LLGenerator.generateProgram(ll);
     outputStream.print(assembly);
   }

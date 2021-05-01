@@ -9,6 +9,7 @@ public class Chain {
 
   public Chain() {
     parent = this;
+    web = Optional.empty();
   }
 
   public Chain find() {

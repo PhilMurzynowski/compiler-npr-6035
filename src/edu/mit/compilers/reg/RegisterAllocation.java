@@ -6,7 +6,7 @@ import edu.mit.compilers.ll.*;
 
 public class RegisterAllocation {
 
-  private static boolean update(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries, final boolean transform) {
+  private static boolean update(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries) {
     final List<LLInstruction> instructions = block.getInstructions();
 
     final Map<LLDeclaration, Set<Chain>> oldEntry = new HashMap<>();
@@ -28,25 +28,17 @@ public class RegisterAllocation {
       if (instruction.definition().isPresent()) {
         final LLDeclaration definition = instruction.definition().get();
         above.remove(definition);
-
-        if (transform && below.containsKey(definition)) {
-          instruction.setDefinitionWeb(below.get(definition).iterator().next().getWeb());
-        }
       }
 
       for (final LLDeclaration use : instruction.uses()) {
-        final boolean ignore = use instanceof LLGlobalArrayFieldDeclaration 
-          || use instanceof LLLocalArrayFieldDeclaration 
-          || use instanceof LLGlobalScalarFieldDeclaration;
-        if (!ignore) { 
+        final boolean include = use instanceof LLAliasDeclaration
+          || use instanceof LLLocalScalarFieldDeclaration
+          || use instanceof LLArgumentDeclaration; 
+        if (include) { 
           if(!above.containsKey(use)) {
             above.put(use, new HashSet<>());
           }
           above.get(use).add(new Chain());
-        }
-
-        if (transform && above.containsKey(use)) {
-          instruction.addUsesWeb(use, above.get(use).iterator().next().getWeb());
         }
       }
     }
@@ -54,6 +46,31 @@ public class RegisterAllocation {
     final Map<LLDeclaration, Set<Chain>> newEntry = intermediaries.get(0);
 
     return !newEntry.keySet().equals(oldEntry.keySet());
+  }
+
+  private static void transform(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries) {
+    final List<LLInstruction> instructions = block.getInstructions();
+
+    for (int i = instructions.size() - 1; i >= 0; i--) {
+      final Map<LLDeclaration, Set<Chain>> above = intermediaries.get(i);
+      final Map<LLDeclaration, Set<Chain>> below = intermediaries.get(i + 1);
+
+      final LLInstruction instruction = instructions.get(i);
+
+      if (instruction.definition().isPresent()) {
+        final LLDeclaration definition = instruction.definition().get();
+
+        if (below.containsKey(definition)) {
+          instruction.setDefinitionWeb(below.get(definition).iterator().next().getWeb());
+        }
+      }
+
+      for (final LLDeclaration use : instruction.uses()) {
+        if (above.containsKey(use)) {
+          instruction.addUsesWeb(use, above.get(use).iterator().next().getWeb());
+        }
+      }
+    }
   }
 
   private static void union(final Map<LLDeclaration, Set<Chain>> left, final Map<LLDeclaration, Set<Chain>> right) {
@@ -90,7 +107,7 @@ public class RegisterAllocation {
     }
   }
 
-  public static void apply(final LLControlFlowGraph controlFlowGraph, final List<LLDeclaration> globals) {
+  public static void apply(final LLControlFlowGraph controlFlowGraph) {
     final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains = new HashMap<>();
 
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
@@ -148,7 +165,7 @@ public class RegisterAllocation {
       workSet.remove(block);
 
       // Only update predecessors if entry changes
-      if (update(block, chains.get(block), /* transform */ false)) {
+      if (update(block, chains.get(block))) {
         for (final LLBasicBlock predecessor : block.getPredecessors()) {
           union(chains.get(predecessor).get(chains.get(predecessor).size() - 1), chains.get(block).get(0));
 
@@ -162,8 +179,7 @@ public class RegisterAllocation {
 
     // Now actually add webs to instructions
     for (final LLBasicBlock block : visited) {
-      final boolean updated = update(block, chains.get(block), /* transform */ true);
-      assert !updated : "nothing should change at this point";
+      transform(block, chains.get(block));
     }
   }
 

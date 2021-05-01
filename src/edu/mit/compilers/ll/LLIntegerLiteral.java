@@ -74,11 +74,6 @@ public class LLIntegerLiteral implements LLInstruction {
     if (definitionWeb.isPresent()) {
       s.append(indent(depth + 1) + "definitionWeb: " + definitionWeb.get().debugString(depth + 1) + ",\n");
     }
-    s.append(indent(depth + 1) + "usesWebs: {\n");
-    for (final Map.Entry<LLDeclaration, Web> entry : usesWebs.entrySet()) {
-      s.append(indent(depth + 2) + entry.getKey().debugString(depth + 2) + " => " + entry.getValue().debugString(depth + 2) + ",\n");
-    }
-    s.append(indent(depth + 1) + "},\n");
     s.append(indent(depth) + "}");
     return s.toString();
   }
