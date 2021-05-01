@@ -1,10 +1,9 @@
 package edu.mit.compilers.ll;
 
-import java.util.Optional;
-import java.util.List;
-// import java.util.Objects;
+import java.util.*;
 
 import edu.mit.compilers.common.*;
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -13,11 +12,13 @@ public class LLCompare implements LLInstruction {
   private final LLDeclaration left;
   private final ComparisonType type;
   private final LLDeclaration right;
+  private Map<LLDeclaration, Web> usesWebs;
 
   public LLCompare(LLDeclaration left, ComparisonType type, LLDeclaration right) {
     this.left = left;
     this.type = type;
     this.right = right;
+    this.usesWebs = new HashMap<>();
   }
 
   public LLDeclaration getLeft() {
@@ -30,6 +31,16 @@ public class LLCompare implements LLInstruction {
 
   public LLDeclaration getRight() {
     return right;
+  }
+
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    throw new RuntimeException("LLCompare does not define anything");
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    usesWebs.put(definition, web);
   }
 
   @Override

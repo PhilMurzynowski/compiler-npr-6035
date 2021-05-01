@@ -1,10 +1,9 @@
 package edu.mit.compilers.ll;
 
-import edu.mit.compilers.common.*;
+import java.util.*;
 
-import java.util.Optional;
-import java.util.List;
-// import java.util.Objects;
+import edu.mit.compilers.common.*;
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -14,12 +13,16 @@ public class LLBinary implements LLInstruction {
   private final BinaryExpressionType type;
   private final LLDeclaration right;
   private final LLDeclaration result;
+  private Optional<Web> definitionWeb;
+  private Map<LLDeclaration, Web> usesWebs;
 
   public LLBinary(LLDeclaration left, BinaryExpressionType type, LLDeclaration right, LLDeclaration result) {
     this.left = left;
     this.type = type;
     this.right = right;
     this.result = result;
+    this.definitionWeb = Optional.empty();
+    this.usesWebs = new HashMap<>();
   }
 
   public LLDeclaration getLeft() {
@@ -36,6 +39,20 @@ public class LLBinary implements LLInstruction {
 
   public LLDeclaration getResult() {
     return result;
+  }
+
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    if (definitionWeb.isPresent()) {
+      throw new RuntimeException("definitionWeb has already been set");
+    } else {
+      definitionWeb = Optional.of(web);
+    }
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    usesWebs.put(definition, web);
   }
 
   @Override
