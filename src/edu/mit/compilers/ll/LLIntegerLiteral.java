@@ -1,8 +1,8 @@
 package edu.mit.compilers.ll;
 
-import java.util.Optional;
-import java.util.List;
-// import java.util.Objects;
+import java.util.*;
+
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -10,10 +10,12 @@ public class LLIntegerLiteral implements LLInstruction {
 
   private final long value;
   private final LLDeclaration result;
+  private Optional<Web> definitionWeb;
 
   public LLIntegerLiteral(long value, LLDeclaration result) {
     this.value = value;
     this.result = result;
+    this.definitionWeb = Optional.empty();
   }
 
   public long getValue() {
@@ -22,6 +24,20 @@ public class LLIntegerLiteral implements LLInstruction {
 
   public LLDeclaration getResult() {
     return this.result;
+  }
+
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    if (definitionWeb.isPresent()) {
+      throw new RuntimeException("definitionWeb has already been set");
+    } else {
+      definitionWeb = Optional.of(web);
+    }
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    throw new RuntimeException("No uses");
   }
 
   @Override

@@ -1,8 +1,7 @@
 package edu.mit.compilers.ll;
 
-import java.util.Optional;
-import java.util.List;
-// import java.util.Objects;
+import java.util.*; 
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -10,10 +9,14 @@ public class LLLength implements LLInstruction {
 
   private final LLArrayFieldDeclaration declaration;
   private final LLDeclaration result;
+  private Optional<Web> definitionWeb;
+  private Map<LLDeclaration, Web> usesWebs;
 
   public LLLength(LLArrayFieldDeclaration declaration, LLDeclaration result) {
     this.declaration = declaration;
     this.result = result;
+    this.definitionWeb = Optional.empty();
+    this.usesWebs = new HashMap<>();
   }
 
   public LLArrayFieldDeclaration getDeclaration() {
@@ -24,6 +27,19 @@ public class LLLength implements LLInstruction {
     return result;
   }
 
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    if (definitionWeb.isPresent()) {
+      throw new RuntimeException("definitionWeb has already been set");
+    } else {
+      definitionWeb = Optional.of(web);
+    }
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    usesWebs.put(definition, web);
+  }
   @Override
   public List<LLDeclaration> uses() {
     return List.of(declaration);
