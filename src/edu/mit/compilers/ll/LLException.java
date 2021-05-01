@@ -1,8 +1,8 @@
 package edu.mit.compilers.ll;
 
-import java.util.Optional;
-import java.util.List;
-// import java.util.Objects;
+import java.util.*;
+
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -22,6 +22,16 @@ public class LLException implements LLInstruction {
 
   public Type getType() {
     return type;
+  }
+
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    throw new RuntimeException("LLException does not define anything");
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    throw new RuntimeException("LLException does not use anything");
   }
 
   @Override

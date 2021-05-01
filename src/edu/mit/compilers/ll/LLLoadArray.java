@@ -1,8 +1,8 @@
 package edu.mit.compilers.ll;
 
-import java.util.Optional;
-import java.util.List;
-// import java.util.Objects;
+import java.util.*;
+
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
@@ -11,11 +11,15 @@ public class LLLoadArray implements LLInstruction {
   private final LLArrayFieldDeclaration location;
   private final LLDeclaration index;
   private final LLDeclaration result;
+  private Optional<Web> definitionWeb;
+  private Map<LLDeclaration, Web> usesWebs;
 
   public LLLoadArray(LLArrayFieldDeclaration location, LLDeclaration index, LLDeclaration result) {
     this.location = location;
     this.index = index;
     this.result = result;
+    this.definitionWeb = Optional.empty();
+    this.usesWebs = new HashMap<>();
   }
 
   public LLArrayFieldDeclaration getLocation() {
@@ -28,6 +32,20 @@ public class LLLoadArray implements LLInstruction {
 
   public LLDeclaration getResult() {
     return result;
+  }
+
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    if (definitionWeb.isPresent()) {
+      throw new RuntimeException("definitionWeb has already been set");
+    } else {
+      definitionWeb = Optional.of(web);
+    }
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    usesWebs.put(definition, web);
   }
 
   @Override

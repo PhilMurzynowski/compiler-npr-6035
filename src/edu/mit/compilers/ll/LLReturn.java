@@ -1,21 +1,33 @@
 package edu.mit.compilers.ll;
 
-import java.util.List;
-import java.util.Optional;
-// import java.util.Objects;
+import java.util.*;
+
+import edu.mit.compilers.reg.*;
 
 import static edu.mit.compilers.common.Utilities.indent;
 
 public class LLReturn implements LLInstruction {
 
   private final Optional<LLDeclaration> expression;
+  private Map<LLDeclaration, Web> usesWebs;
 
   public LLReturn(Optional<LLDeclaration> expression) {
     this.expression = expression;
+    this.usesWebs = new HashMap<>();
   }
 
   public Optional<LLDeclaration> getExpression() {
     return expression;
+  }
+
+  @Override
+  public void setDefinitionWeb(final Web web) {
+    throw new RuntimeException("LLReturn does not define anything");
+  }
+
+  @Override
+  public void addUsesWeb(final LLDeclaration definition, final Web web) {
+    usesWebs.put(definition, web);
   }
 
   @Override
