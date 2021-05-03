@@ -30,7 +30,17 @@ public class LLException implements LLInstruction {
   }
 
   @Override
+  public boolean defInRegister() {
+    throw new RuntimeException("LLException does not define anything");
+  }
+
+  @Override
   public String getUseWebLocation(LLDeclaration use) {
+    throw new RuntimeException("LLException does not use anything");
+  }
+
+  @Override
+  public boolean useInRegister(LLDeclaration use) {
     throw new RuntimeException("LLException does not use anything");
   }
 

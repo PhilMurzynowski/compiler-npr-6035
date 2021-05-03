@@ -26,6 +26,11 @@ public class LLReturn implements LLInstruction {
   }
 
   @Override
+  public boolean defInRegister() {
+    throw new RuntimeException("LLReturn does not define anything");
+  }
+
+  @Override
   public String getUseWebLocation(LLDeclaration use) {
     assert uses().contains(use) : "use should be expression";
     if (usesWebs.containsKey(use)) {
@@ -38,6 +43,18 @@ public class LLReturn implements LLInstruction {
       }
     } else {
       return use.location();
+    }
+  }
+
+  @Override
+  public boolean useInRegister(LLDeclaration use) {
+    assert uses().contains(use) : "use should be expression";
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      return !webLocation.equals(Web.SPILL);
+    } else {
+      return false;
     }
   }
 
