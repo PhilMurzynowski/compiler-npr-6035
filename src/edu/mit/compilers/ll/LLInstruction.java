@@ -13,6 +13,8 @@ public interface LLInstruction extends LLNode {
   public String getUniqueExpressionString();
   public void setDefinitionWeb(Web web);
   public void addUsesWeb(LLDeclaration declaration, Web web);
+  public String getDefWebLocation();
+  public String getUseWebLocation(LLDeclaration use);
 
 }
 

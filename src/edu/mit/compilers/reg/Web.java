@@ -6,6 +6,8 @@ import static edu.mit.compilers.common.Utilities.indent;
 
 public class Web {
 
+  public static final String SPILL = "SPILL";
+
   private static long counter = 0;
 
   private final long index;

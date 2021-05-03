@@ -4,7 +4,7 @@ import java.util.*;
 
 import edu.mit.compilers.ll.*;
 
-public class RegisterAllocation {
+public class RegAllocator {
 
   private static boolean update(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries) {
     final List<LLInstruction> instructions = block.getInstructions();
@@ -215,7 +215,7 @@ public class RegisterAllocation {
         for (final Set<Web> webs : currentInterference.values()) {
           webs.remove(maxDegreeWeb);
         }
-        maxDegreeWeb.setLocation("SPILLED");
+        maxDegreeWeb.setLocation(Web.SPILL);
       }
     }
 

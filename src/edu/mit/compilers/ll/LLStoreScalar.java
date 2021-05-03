@@ -62,6 +62,35 @@ public class LLStoreScalar implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return declaration.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return declaration.location();
+    }
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return use.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return use.location();
+    }
+  }
+
+  @Override
   public String prettyString(int depth) {
     return "store " + declaration.prettyString(depth) + ", " + expression.prettyString(depth);
   }
