@@ -77,6 +77,7 @@ public class LLStoreScalar implements LLInstruction {
 
   @Override
   public String getUseWebLocation(LLDeclaration use) {
+    assert use == expression : "use must be expression";
     if (usesWebs.containsKey(use)) {
       final Web useWeb = usesWebs.get(use);
       final String webLocation = useWeb.getLocation();

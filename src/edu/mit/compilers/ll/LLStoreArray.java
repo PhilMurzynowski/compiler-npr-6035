@@ -50,6 +50,7 @@ public class LLStoreArray implements LLInstruction {
 
   @Override
   public String getUseWebLocation(LLDeclaration use) {
+    assert use == index || use == expression : "use should be index or expression";
     if (usesWebs.containsKey(use)) {
       final Web useWeb = usesWebs.get(use);
       final String webLocation = useWeb.getLocation();

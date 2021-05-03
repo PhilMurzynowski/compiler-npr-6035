@@ -27,6 +27,7 @@ public class LLReturn implements LLInstruction {
 
   @Override
   public String getUseWebLocation(LLDeclaration use) {
+    assert expression.isPresent() && use == expression.get() : "use should be expression";
     if (usesWebs.containsKey(use)) {
       final Web useWeb = usesWebs.get(use);
       final String webLocation = useWeb.getLocation();
