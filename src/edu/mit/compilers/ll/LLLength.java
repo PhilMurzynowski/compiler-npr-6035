@@ -61,6 +61,28 @@ public class LLLength implements LLInstruction {
   }
 
   @Override
+  public boolean defInRegister() {
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      return !webLocation.equals(Web.SPILL);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public boolean useInRegister(LLDeclaration use) {
+    assert uses().contains(use) : "use must be expression";
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      return !webLocation.equals(Web.SPILL);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
   public String getDefWebLocation() {
     LLDeclaration definition = definition().get();
     if (definitionWeb.isPresent()) {
