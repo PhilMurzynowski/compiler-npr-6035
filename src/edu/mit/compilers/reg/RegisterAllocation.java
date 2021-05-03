@@ -133,8 +133,27 @@ public class RegisterAllocation {
     }
   }
 
+  private static Set<Web> collectWebs(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
+    Set<Web> webs = new HashSet<>();
+    for (final LLBasicBlock block : chains.keySet()) {
+      for (final Map<LLDeclaration, Set<Chain>> intermediary : chains.get(block)) {
+        for (final LLDeclaration declaration : intermediary.keySet()) {
+          for (final Chain chain : intermediary.get(declaration)) {
+            webs.add(chain.getWeb());
+          }
+        }
+      }
+    }
+    return webs;
+  }
+
   private static Map<Web, Set<Web>> interferenceFind(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
     final Map<Web, Set<Web>> interference = new HashMap<>();
+
+    // initialize with no interference for all
+    for (Web web : collectWebs(chains)) {
+      interference.put(web, new HashSet<>());
+    }
 
     for (final LLBasicBlock block : chains.keySet()) {
       for (final Map<LLDeclaration, Set<Chain>> intermediary : chains.get(block)) {
@@ -143,10 +162,6 @@ public class RegisterAllocation {
             final Web firstWeb = chain.getWeb();
             for (Chain interferingChain : chain.getInterference()) {
               final Web secondWeb = interferingChain.getWeb();
-
-              if (!interference.containsKey(firstWeb)) {
-                interference.put(firstWeb, new HashSet<>());
-              }
               interference.get(firstWeb).add(secondWeb);
             }
           }
@@ -171,6 +186,7 @@ public class RegisterAllocation {
       for (final Web current : Set.copyOf(currentInterference.keySet())) {
         if (currentInterference.get(current).size() < colors.size()) {
           stack.push(current);
+          System.err.println("web " + current.getIndex() + " added to stack");
 
           currentInterference.remove(current);
           for (final Set<Web> webs : currentInterference.values()) {
@@ -205,6 +221,7 @@ public class RegisterAllocation {
 
     while (!stack.isEmpty()) {
       final Web current = stack.pop();
+      System.err.println("web " + current.getIndex() + " popped from stack");
 
       final Set<String> neighborLocations = new HashSet<>();
       for (final Web neighbor : originalInterference.get(current)) {
@@ -300,6 +317,15 @@ public class RegisterAllocation {
     }
 
     final Map<Web, Set<Web>> interference = interferenceFind(chains);
+
+    System.err.println("Interference graph:");
+    for (Web web: interference.keySet()) {
+      System.err.print(web.getIndex() + " : ");
+      for (Web interferes : interference.get(web)) {
+        System.err.print(interferes.getIndex() + ", ");
+      }
+      System.err.print("\n");
+    }
 
     final List<String> colors = List.of(
         "%rax", "%rbx", "%rcx", "%rdx", "%rdi", "%rsi", "%r8", 

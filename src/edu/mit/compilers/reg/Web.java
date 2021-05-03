@@ -16,6 +16,10 @@ public class Web {
     this.location = Optional.empty();
   }
 
+  public long getIndex() {
+    return index;
+  }
+
   public void setLocation(String location) {
     if (this.location.isPresent()) {
       throw new RuntimeException("location for web has already been set");
