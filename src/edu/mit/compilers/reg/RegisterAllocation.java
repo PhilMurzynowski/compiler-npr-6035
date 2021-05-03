@@ -132,33 +132,95 @@ public class RegisterAllocation {
       }
     }
   }
-  private static Set<Web> collectWebs(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
-    Set<Web> webs = new HashSet<>();
-    for (final LLBasicBlock block : chains.keySet()) {
-      for (final Map<LLDeclaration, Set<Chain>> intermediary : chains.get(block)) {
-        for (final LLDeclaration declaration : intermediary.keySet()) {
-          for (final Chain chain : intermediary.get(declaration)) {
-            webs.add(chain.getWeb());
-          }
-        }
-      }
-    }
-    return webs;
-  }
 
-  private static void interferenceFind(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
+  private static Map<Web, Set<Web>> interferenceFind(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
+    final Map<Web, Set<Web>> interference = new HashMap<>();
+
     for (final LLBasicBlock block : chains.keySet()) {
       for (final Map<LLDeclaration, Set<Chain>> intermediary : chains.get(block)) {
         for (final LLDeclaration declaration : intermediary.keySet()) {
           for (final Chain chain : intermediary.get(declaration)) {
-            Web firstWeb = chain.getWeb();
+            final Web firstWeb = chain.getWeb();
             for (Chain interferingChain : chain.getInterference()) {
-              Web secondWeb = interferingChain.getWeb();
-              firstWeb.addInterference(secondWeb);
+              final Web secondWeb = interferingChain.getWeb();
+
+              if (!interference.containsKey(firstWeb)) {
+                interference.put(firstWeb, new HashSet<>());
+              }
+              interference.get(firstWeb).add(secondWeb);
             }
           }
         }
       }
+    }
+
+    return interference;
+  }
+
+  // Chaitin's algorithm
+  private static void color(final Map<Web, Set<Web>> originalInterference, List<String> colors) {
+    final Map<Web, Set<Web>> currentInterference = new HashMap<>();
+    for (final Map.Entry<Web, Set<Web>> entry : originalInterference.entrySet()) {
+      currentInterference.put(entry.getKey(), new HashSet<>(entry.getValue()));
+    }
+
+    final Stack<Web> stack = new Stack<>();
+
+    while (!currentInterference.isEmpty()) {
+      boolean anyRemoved = false;
+      for (final Web current : Set.copyOf(currentInterference.keySet())) {
+        if (currentInterference.get(current).size() < colors.size()) {
+          stack.push(current);
+
+          currentInterference.remove(current);
+          for (final Set<Web> webs : currentInterference.values()) {
+            webs.remove(current);
+          }
+
+          anyRemoved = true;
+        }
+      }
+
+      if (!anyRemoved) {
+        int maxDegree = Integer.MIN_VALUE;
+        Web maxDegreeWeb = null;
+
+        for (final Map.Entry<Web, Set<Web>> entry : currentInterference.entrySet()) {
+          final int degree = entry.getValue().size();
+          if (degree > maxDegree) {
+            maxDegree = degree;
+            maxDegreeWeb = entry.getKey();
+          }
+        }
+
+        assert maxDegreeWeb != null : "currentInterference should not be empty";
+
+        currentInterference.remove(maxDegreeWeb);
+        for (final Set<Web> webs : currentInterference.values()) {
+          webs.remove(maxDegreeWeb);
+        }
+        maxDegreeWeb.setLocation("SPILLED");
+      }
+    }
+
+    while (!stack.isEmpty()) {
+      final Web current = stack.pop();
+
+      final Set<String> neighborLocations = new HashSet<>();
+      for (final Web neighbor : originalInterference.get(current)) {
+        if (neighbor.hasLocation()) {
+          neighborLocations.add(neighbor.getLocation());
+        }
+      }
+
+      for (final String color : colors) {
+        if (!neighborLocations.contains(color)) {
+          current.setLocation(color);
+          break;
+        }
+      }
+
+      assert current.hasLocation() : "web should have been colored by now";
     }
   }
 
@@ -237,10 +299,13 @@ public class RegisterAllocation {
       transform(block, chains.get(block));
     }
 
-    interferenceFind(chains);
+    final Map<Web, Set<Web>> interference = interferenceFind(chains);
 
-    // collect all of the webs for coloring
-    Set<Web> webs = collectWebs(chains);
+    final List<String> colors = List.of(
+        "%rax", "%rbx", "%rcx", "%rdx", "%rdi", "%rsi", "%r8", 
+        "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"
+    );
+    color(interference, colors);
   }
 
 }

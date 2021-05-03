@@ -9,26 +9,40 @@ public class Web {
   private static long counter = 0;
 
   private final long index;
-  private Set<Web> interference;
+  private Optional<String> location;
 
   public Web() {
     this.index = counter++;
-    this.interference = new HashSet<>();
+    this.location = Optional.empty();
   }
 
-  public void addInterference(Web that) {
-    interference.add(that);
+  public void setLocation(String location) {
+    if (this.location.isPresent()) {
+      throw new RuntimeException("location for web has already been set");
+    } else {
+      this.location = Optional.of(location);
+    }
+  }
+
+  public String getLocation() {
+    if (this.location.isPresent()) {
+      return location.get();
+    } else {
+      throw new RuntimeException("location for web has not been set");
+    }
+  }
+
+  public boolean hasLocation() {
+    return this.location.isPresent();
   }
 
   public String debugString(int depth) {
     StringBuilder s = new StringBuilder();
     s.append("Web {\n");
     s.append(indent(depth + 1) + "index: " + index + ",\n");
-    s.append(indent(depth + 1) + "interference: {\n");
-    for (Web interferingWeb : interference) {
-      s.append(indent(depth + 2) + interferingWeb.index + ",\n");
+    if (location.isPresent()) {
+      s.append(indent(depth + 1) + "location: " + location + ",\n");
     }
-    s.append(indent(depth + 1) + "},\n");
     s.append(indent(depth) + "}");
     return s.toString();
   }
