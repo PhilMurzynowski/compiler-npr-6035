@@ -14,7 +14,9 @@ public interface LLInstruction extends LLNode {
   public void setDefinitionWeb(Web web);
   public void addUsesWeb(LLDeclaration declaration, Web web);
   public String getDefWebLocation();
+  public boolean defInRegister();
   public String getUseWebLocation(LLDeclaration use);
+  public boolean useInRegister(LLDeclaration use);
 
 }
 

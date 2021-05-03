@@ -76,6 +76,16 @@ public class LLStoreScalar implements LLInstruction {
   }
 
   @Override
+  public boolean defInRegister() {
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      return !webLocation.equals(Web.SPILL);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
   public String getUseWebLocation(LLDeclaration use) {
     assert uses().contains(use) : "use must be expression";
     if (usesWebs.containsKey(use)) {
@@ -88,6 +98,18 @@ public class LLStoreScalar implements LLInstruction {
       }
     } else {
       return use.location();
+    }
+  }
+
+  @Override
+  public boolean useInRegister(LLDeclaration use) {
+    assert uses().contains(use) : "use must be expression";
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      return !webLocation.equals(Web.SPILL);
+    } else {
+      return false;
     }
   }
 

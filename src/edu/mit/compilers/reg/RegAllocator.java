@@ -328,8 +328,20 @@ public class RegAllocator {
     }
 
     final List<String> colors = List.of(
-        "%rax", "%rbx", "%rcx", "%rdx", "%rdi", "%rsi", "%r8", 
-        "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"
+      //Registers.RAX,
+      Registers.RBX,
+      Registers.RCX,
+      Registers.RDX,
+      Registers.RDI,
+      Registers.RSI,
+      Registers.R8,
+      Registers.R9,
+      //Registers.R10,
+      Registers.R11,
+      Registers.R12,
+      Registers.R13,
+      Registers.R14,
+      Registers.R15
     );
     color(interference, colors);
   }
