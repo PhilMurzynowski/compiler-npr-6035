@@ -40,7 +40,7 @@ public class LLCompare implements LLInstruction {
 
   @Override
   public String getUseWebLocation(LLDeclaration use) {
-    assert use == left || use == right : "use must be left or right";
+    assert uses().contains(use) : "use must be left or right";
     if (usesWebs.containsKey(use)) {
       final Web useWeb = usesWebs.get(use);
       final String webLocation = useWeb.getLocation();

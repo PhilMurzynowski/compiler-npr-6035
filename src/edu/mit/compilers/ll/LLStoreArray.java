@@ -39,18 +39,18 @@ public class LLStoreArray implements LLInstruction {
     if (definitionWeb.isPresent()) {
       final String webLocation = definitionWeb.get().getLocation();
       if (webLocation.equals(Web.SPILL)) {
-        return declaration.location();
+        return definition().get().location();
       } else {
         return webLocation;
       }
     } else {
-      return declaration.location();
+      return definition().get().location();
     }
   }
 
   @Override
   public String getUseWebLocation(LLDeclaration use) {
-    assert use == index || use == expression : "use should be index or expression";
+    assert uses().contains(use) : "use should be index or expression";
     if (usesWebs.containsKey(use)) {
       final Web useWeb = usesWebs.get(use);
       final String webLocation = useWeb.getLocation();

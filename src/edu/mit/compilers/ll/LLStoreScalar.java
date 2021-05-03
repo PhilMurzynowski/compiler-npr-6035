@@ -66,18 +66,18 @@ public class LLStoreScalar implements LLInstruction {
     if (definitionWeb.isPresent()) {
       final String webLocation = definitionWeb.get().getLocation();
       if (webLocation.equals(Web.SPILL)) {
-        return declaration.location();
+        return definition().get().location();
       } else {
         return webLocation;
       }
     } else {
-      return declaration.location();
+      return definition().get().location();
     }
   }
 
   @Override
   public String getUseWebLocation(LLDeclaration use) {
-    assert use == expression : "use must be expression";
+    assert uses().contains(use) : "use must be expression";
     if (usesWebs.containsKey(use)) {
       final Web useWeb = usesWebs.get(use);
       final String webLocation = useWeb.getLocation();
