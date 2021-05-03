@@ -35,6 +35,35 @@ public class LLStoreArray implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return declaration.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return declaration.location();
+    }
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return use.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return use.location();
+    }
+  }
+
+  @Override
   public void setDefinitionWeb(final Web web) {
     if (definitionWeb.isPresent()) {
       throw new RuntimeException("definitionWeb has already been set");

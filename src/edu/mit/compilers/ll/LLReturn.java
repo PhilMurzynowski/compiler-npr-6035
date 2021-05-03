@@ -21,6 +21,26 @@ public class LLReturn implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    throw new RuntimeException("LLReturn does not define anything");
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return use.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return use.location();
+    }
+  }
+
+  @Override
   public void setDefinitionWeb(final Web web) {
     throw new RuntimeException("LLReturn does not define anything");
   }
