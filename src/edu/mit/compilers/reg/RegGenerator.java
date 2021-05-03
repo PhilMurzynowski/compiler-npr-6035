@@ -33,6 +33,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // no work needed
   public static String generateProgram(LLProgram program) {
     StringBuilder s = new StringBuilder();
 
@@ -95,6 +96,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // no work needed
   public static String generateDeclaration(LLDeclaration declaration) {
     if (declaration instanceof LLScalarFieldDeclaration scalarFieldDeclaration) {
       return generateScalarFieldDeclaration(scalarFieldDeclaration);
@@ -111,7 +113,7 @@ public class RegGenerator {
     }
   }
 
-  // DONE: Noah
+  // no work needed
   public static String generateImportDeclaration(LLImportDeclaration importDeclaration) {
     // gcc takes care of this for us, so just leaving comments
     final StringBuilder s = new StringBuilder();
@@ -119,6 +121,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // no work needed
   public static String generateScalarFieldDeclaration(LLScalarFieldDeclaration scalarFieldDeclaration) {
     if (scalarFieldDeclaration instanceof LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
       return generateGlobalScalarFieldDeclaration(globalScalarFieldDeclaration);
@@ -129,7 +132,7 @@ public class RegGenerator {
     }
   }
 
-  // DONE: Phil
+  // no work needed
   public static String generateArrayFieldDeclaration(LLArrayFieldDeclaration arrayFieldDeclaration) {
     if (arrayFieldDeclaration instanceof LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
       return generateGlobalArrayFieldDeclaration(globalArrayFieldDeclaration);
@@ -140,6 +143,7 @@ public class RegGenerator {
     }
   }
 
+  // no work needed
   public static String generateGlobalScalarFieldDeclaration(LLGlobalScalarFieldDeclaration globalScalarFieldDeclaration) {
     // <location()>:
     //   .quad 0
@@ -152,7 +156,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Robert
+  // no work needed
   public static String generateGlobalArrayFieldDeclaration(LLGlobalArrayFieldDeclaration globalArrayFieldDeclaration) {
     StringBuilder s = new StringBuilder();
 
@@ -162,7 +166,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Noah
+  // no work needed
   public static String generateStringLiteralDeclaration(LLStringLiteralDeclaration stringLiteralDeclaration) {
     StringBuilder s = new StringBuilder();
 
@@ -173,6 +177,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // no work needed
   public static String generateBasicBlock(LLBasicBlock basicBlock) {
     StringBuilder s = new StringBuilder();
 
@@ -249,7 +254,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Phil
+  // Noah
   public static String generateMethodDeclaration(LLMethodDeclaration methodDeclaration) {
 
     StringBuilder s = new StringBuilder();
@@ -295,30 +300,31 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Robert (these could probably be removed...)
+  // no work needed
   public static String generateArgumentDeclaration(LLArgumentDeclaration argumentDeclaration) {
     StringBuilder s = new StringBuilder();
     return s.toString();
   }
 
-  // DONE: Noah
+  // no work needed
   public static String generateLocalScalarFieldDeclaration(LLLocalScalarFieldDeclaration localScalarFieldDeclaration) {
     StringBuilder s = new StringBuilder();
     return s.toString();
   }
 
-  // DONE: Phil
+  // no work needed
   public static String generateLocalArrayFieldDeclaration(LLLocalArrayFieldDeclaration localArrayFieldDeclaration) {
     StringBuilder s = new StringBuilder();
     return s.toString();
   }
 
-  // NOTE(phil): this may not be necessary due to hoisting, and will always overwrite alias before reading
+  // no work needed
   public static String generateAliasDeclaration(LLAliasDeclaration aliasDeclaration) {
     StringBuilder s = new StringBuilder();
     return s.toString();
   }
 
+  // no work needed
   public static String generateInstruction(LLInstruction instruction) {
     if (instruction instanceof LLStoreScalar storeScalar) {
       return generateStoreScalar(storeScalar);
@@ -355,6 +361,7 @@ public class RegGenerator {
     }
   }
 
+  // Phil
   public static String generateStoreScalar(LLStoreScalar storeScalar) {
     StringBuilder s = new StringBuilder();
 
@@ -373,7 +380,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Robert
+  // Robert
   public static String generateStoreArray(LLStoreArray storeArray) {
     StringBuilder s = new StringBuilder();
 
@@ -384,6 +391,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // Noah
   public static String generateReturn(LLReturn ret) {
     StringBuilder s = new StringBuilder();
 
@@ -401,6 +409,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // Phil
   public static String generateException(LLException exception) {
     StringBuilder s = new StringBuilder();
 
@@ -426,7 +435,8 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Robert
+  // Robert
+  // (this is a lot; do partially, push, and Noah and Phil can do the rest)
   public static String generateBinary(LLBinary binary) {
     StringBuilder s = new StringBuilder();
 
@@ -523,6 +533,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // Noah
   public static String generateUnary(LLUnary unary) {
     // movq <expression.location()>, %rax
     // <type> %rax
@@ -555,7 +566,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Robert
+  // Phil
   public static String generateCompare(LLCompare compare) {
     StringBuilder s = new StringBuilder();
 
@@ -565,6 +576,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // Robert
   public static String generateLoadScalar(LLLoadScalar loadScalar) {
     StringBuilder s = new StringBuilder();
 
@@ -583,7 +595,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Noah
+  // Noah
   public static String generateLoadArray(LLLoadArray loadArray) {
     StringBuilder s = new StringBuilder();
 
@@ -594,8 +606,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Phil (same as external for now)
-  // NOTE(phil): add caller saved addresses
+  // Phil
   public static String generateInternalCall(LLInternalCall internalCall) {
     StringBuilder s = new StringBuilder();
 
@@ -637,8 +648,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Robert
-  // NOTE(phil): 16 byte align?
+  // Robert
   public static String generateExternalCall(LLExternalCall externalCall) {
     StringBuilder s = new StringBuilder();
 
@@ -684,7 +694,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Noah
+  // Noah
   public static String generateLength(LLLength length) {
     StringBuilder s = new StringBuilder();
 
@@ -693,6 +703,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // Phil
   public static String generateIntegerLiteral(LLIntegerLiteral integerLiteral) {
     StringBuilder s = new StringBuilder();
 
@@ -701,7 +712,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // DONE: Phil
+  // Robert
   public static String generateStringLiteral(LLStringLiteral stringLiteral) {
     StringBuilder s = new StringBuilder();
 
@@ -711,6 +722,7 @@ public class RegGenerator {
     return s.toString();
   }
 
+  // Noah
   public static String generateCopy(LLCopy copy) {
     StringBuilder s = new StringBuilder();
 
