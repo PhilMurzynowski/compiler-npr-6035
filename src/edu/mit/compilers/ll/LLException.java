@@ -25,6 +25,16 @@ public class LLException implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    throw new RuntimeException("LLException does not define anything");
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    throw new RuntimeException("LLException does not use anything");
+  }
+
+  @Override
   public void setDefinitionWeb(final Web web) {
     throw new RuntimeException("LLException does not define anything");
   }

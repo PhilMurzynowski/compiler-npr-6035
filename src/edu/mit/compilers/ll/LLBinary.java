@@ -42,6 +42,36 @@ public class LLBinary implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return definition().get().location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return definition().get().location();
+    }
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    assert uses().contains(use) : "use must be left or right";
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return use.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return use.location();
+    }
+  }
+
+  @Override
   public void setDefinitionWeb(final Web web) {
     if (definitionWeb.isPresent()) {
       throw new RuntimeException("definitionWeb has already been set");

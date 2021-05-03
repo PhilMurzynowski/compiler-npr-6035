@@ -34,6 +34,27 @@ public class LLCompare implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    throw new RuntimeException("LLCompare does not define anything");
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    assert uses().contains(use) : "use must be left or right";
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return use.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return use.location();
+    }
+  }
+
+  @Override
   public void setDefinitionWeb(final Web web) {
     throw new RuntimeException("LLCompare does not define anything");
   }
