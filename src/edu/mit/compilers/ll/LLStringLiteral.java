@@ -63,6 +63,37 @@ public class LLStringLiteral implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    LLDeclaration definition = definition().get();
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return definition.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return definition.location();
+    }
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    assert use == declaration;
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return use.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return use.location();
+    }
+  }
+
+  @Override
   public String prettyString(int depth) {
     return result.prettyString(depth) + " = " + declaration.prettyString(depth);
   }

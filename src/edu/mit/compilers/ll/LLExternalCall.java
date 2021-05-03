@@ -102,6 +102,37 @@ public class LLExternalCall implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    LLDeclaration definition = definition().get();
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return definition.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return definition.location();
+    }
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    assert uses().contains(use) : "use not in uses";
+    if (usesWebs.containsKey(use)) {
+      final Web useWeb = usesWebs.get(use);
+      final String webLocation = useWeb.getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return use.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return use.location();
+    }
+  }
+
+  @Override
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 

@@ -61,6 +61,26 @@ public class LLIntegerLiteral implements LLInstruction {
   }
 
   @Override
+  public String getDefWebLocation() {
+    LLDeclaration definition = definition().get();
+    if (definitionWeb.isPresent()) {
+      final String webLocation = definitionWeb.get().getLocation();
+      if (webLocation.equals(Web.SPILL)) {
+        return definition.location();
+      } else {
+        return webLocation;
+      }
+    } else {
+      return definition.location();
+    }
+  }
+
+  @Override
+  public String getUseWebLocation(LLDeclaration use) {
+    throw new RuntimeException("No uses");
+  }
+
+  @Override
   public String prettyString(int depth) {
     return result.prettyString(depth) + " = $" + value;
   }
