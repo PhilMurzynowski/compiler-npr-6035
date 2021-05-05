@@ -255,7 +255,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // Noah
+  // Noah: DONE
   public static String generateMethodDeclaration(LLMethodDeclaration methodDeclaration) {
 
     StringBuilder s = new StringBuilder();
@@ -411,13 +411,13 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // Noah
+  // Noah: DONE
   public static String generateReturn(LLReturn ret) {
     StringBuilder s = new StringBuilder();
 
     Optional<LLDeclaration> returnExpression = ret.getExpression();
     if (returnExpression.isPresent()) {
-      s.append(generateInstruction("movq", returnExpression.get().location(), "%rax"));
+      s.append(generateInstruction("movq", ret.getDefWebLocation(), "%rax"));
     } else {
       s.append(generateInstruction("movq", "$0", "%rax"));
     }
@@ -702,7 +702,7 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // Noah
+  // Noah: DONE
   public static String generateUnary(LLUnary unary) {
     // movq <expression.location()>, %rax
     // <type> %rax
@@ -710,24 +710,52 @@ public class RegGenerator {
 
     StringBuilder s = new StringBuilder();
 
+    final boolean expressionInRegister = unary.useInRegister(unary.getExpression());
+    final boolean resultInRegister = unary.defInRegister();
+
+    final String expressionLocation = unary.getUseWebLocation(unary.getExpression());
+    final String resultLocation = unary.getDefWebLocation();
+
     if (unary.getType().equals(UnaryExpressionType.NEGATE)) {
-      s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
-      s.append(generateInstruction("negq", "%rax"));
-      s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+      if (resultInRegister) {
+        s.append(generateInstruction("movq", expressionLocation, resultLocation));
+        s.append(generateInstruction("negq", resultLocation));
+      } else {
+        s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
+        s.append(generateInstruction("negq", "%rax"));
+        s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+      }
     } else if (unary.getType().equals(UnaryExpressionType.NOT)) {
-      s.append(generateInstruction("movq", unary.getExpression().location(), "%r10"));
-      s.append(generateInstruction("xorq", "%rax", "%rax"));
-      s.append(generateInstruction("testq", "%r10", "%r10"));
-      s.append(generateInstruction("sete", "%al"));
-      s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+      if (expressionInRegister) {
+        s.append(generateInstruction("xorq", "%rax", "%rax"));
+        s.append(generateInstruction("testq", expressionLocation, expressionLocation));
+        s.append(generateInstruction("sete", "%al"));
+        s.append(generateInstruction("movq", "%rax", resultLocation));
+      } else {
+        s.append(generateInstruction("movq", expressionLocation, "%r10"));
+        s.append(generateInstruction("xorq", "%rax", "%rax"));
+        s.append(generateInstruction("testq", "%r10", "%r10"));
+        s.append(generateInstruction("sete", "%al"));
+        s.append(generateInstruction("movq", "%rax", resultLocation));
+      }
     } else if (unary.getType().equals(UnaryExpressionType.INCREMENT)) {
-      s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
-      s.append(generateInstruction("incq", "%rax"));
-      s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+      if (resultInRegister) {
+        s.append(generateInstruction("movq", expressionLocation, resultLocation));
+        s.append(generateInstruction("incq", resultLocation));
+      } else {
+        s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
+        s.append(generateInstruction("incq", "%rax"));
+        s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+      }
     } else if (unary.getType().equals(UnaryExpressionType.DECREMENT)) {
-      s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
-      s.append(generateInstruction("decq", "%rax"));
-      s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+      if (resultInRegister) {
+        s.append(generateInstruction("movq", expressionLocation, resultLocation));
+        s.append(generateInstruction("decq", resultLocation));
+      } else {
+        s.append(generateInstruction("movq", expressionLocation, "%rax"));
+        s.append(generateInstruction("decq", "%rax"));
+        s.append(generateInstruction("movq", "%rax", resultLocation));
+      }
     }
 
     return s.toString();
@@ -765,13 +793,29 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // Noah
+  // Noah: DONE
   public static String generateLoadArray(LLLoadArray loadArray) {
     StringBuilder s = new StringBuilder();
 
-    s.append(generateInstruction("movq", loadArray.getIndex().location(), "%r10"));
-    s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), "%rax"));
-    s.append(generateInstruction("movq", "%rax", loadArray.getResult().location()));
+    final boolean indexInRegister = loadArray.useInRegister(loadArray.getIndex());
+    final boolean resultInRegister = loadArray.defInRegister();
+
+    final String indexLocation = loadArray.getUseWebLocation(loadArray.getIndex());
+    final String resultLocation = loadArray.getDefWebLocation();
+
+    if (indexInRegister && resultInRegister) {
+      s.append(generateInstruction("movq", loadArray.getLocation().index(indexLocation), resultLocation));
+    } else if (indexInRegister) {
+      s.append(generateInstruction("movq", loadArray.getLocation().index(indexLocation), "%rax"));
+      s.append(generateInstruction("movq", "%rax", resultLocation));
+    } else if (resultInRegister) {
+      s.append(generateInstruction("movq", indexLocation, "%r10"));
+      s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), resultLocation));
+    } else {
+      s.append(generateInstruction("movq", indexLocation, "%r10"));
+      s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), "%rax"));
+      s.append(generateInstruction("movq", "%rax", resultLocation));
+    }
 
     return s.toString();
   }
@@ -866,11 +910,11 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // Noah
+  // Noah: DONE
   public static String generateLength(LLLength length) {
     StringBuilder s = new StringBuilder();
 
-    s.append(generateInstruction("movq", "$"+length.getDeclaration().getLength(), length.getResult().location()));
+    s.append(generateInstruction("movq", "$"+length.getDeclaration().getLength(), length.getDefWebLocation()));
 
     return s.toString();
   }
@@ -905,12 +949,23 @@ public class RegGenerator {
     return s.toString();
   }
 
-  // Noah
+  // Noah: DONE
   public static String generateCopy(LLCopy copy) {
     StringBuilder s = new StringBuilder();
 
-    s.append(generateInstruction("movq", copy.getInput().location(), "%rax"));
-    s.append(generateInstruction("movq", "%rax", copy.getResult().location()));
+    final boolean inputInRegister = copy.useInRegister(copy.getInput());
+    final boolean resultInRegister = copy.defInRegister();
+
+    final String inputLocation = copy.getUseWebLocation(copy.getInput());
+    final String resultLocation = copy.getDefWebLocation();
+
+    if (resultInRegister || inputInRegister) {
+      s.append(generateInstruction("movq", inputLocation, resultLocation));
+    } else {
+      s.append(generateInstruction("movq", inputLocation, "%rax"));
+      s.append(generateInstruction("movq", "%rax", resultLocation));
+    }
+
 
     return s.toString();
   }
