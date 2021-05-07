@@ -181,6 +181,16 @@ public class RegAllocator {
     return interference;
   }
 
+  private static boolean allPrecolored(final Set<Web> webs) {
+    boolean allPrecolored = true;
+    for (final Web web : webs) {
+      if (!web.hasLocation()) {
+        allPrecolored = false;
+      }
+    }
+    return allPrecolored;
+  }
+
   // Chaitin's algorithm
   private static void color(final Map<Web, Set<Web>> originalInterference, List<String> colors) {
     final Map<Web, Set<Web>> currentInterference = new HashMap<>();
@@ -190,10 +200,10 @@ public class RegAllocator {
 
     final Stack<Web> stack = new Stack<>();
 
-    while (!currentInterference.isEmpty()) {
+    while (!allPrecolored(currentInterference.keySet())) {
       boolean anyRemoved = false;
       for (final Web current : Set.copyOf(currentInterference.keySet())) {
-        if (currentInterference.get(current).size() < colors.size()) {
+        if (currentInterference.get(current).size() < colors.size() && !current.hasLocation()) {
           stack.push(current);
           //System.err.println("web " + current.getIndex() + " added to stack");
 
