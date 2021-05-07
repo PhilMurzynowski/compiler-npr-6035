@@ -411,7 +411,6 @@ public class RegAllocator {
 
     final Map<Web, Set<Web>> interference = interferenceFind(chains);
 
-    /*
     System.err.println("Interference graph:");
     for (Web web: interference.keySet()) {
       System.err.print(web.getIndex() + " : ");
@@ -420,7 +419,6 @@ public class RegAllocator {
       }
       System.err.print("\n");
     }
-    */
 
     final List<String> colors = List.of(
       //Registers.RAX,

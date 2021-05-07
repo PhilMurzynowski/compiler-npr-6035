@@ -175,6 +175,15 @@ public class LLBinary implements LLInstruction {
 
     s.append(" " + left.prettyString(depth) + ", " + right.prettyString(depth));
 
+    s.append(" ".repeat(32 - depth * 2 - s.length()) + "; webs { ");
+    if (definitionWeb.isPresent()) {
+      s.append(result.prettyString(depth) + " => (" + definitionWeb.get().getIndex() + ", " + definitionWeb.get().getLocation() + "), ");
+    }
+    for (final Map.Entry<LLDeclaration, Web> entry : usesWebs.entrySet()) {
+      s.append(entry.getKey().prettyString(depth) + " => (" + entry.getValue().getIndex() + ", " + entry.getValue().getLocation() + "), ");
+    }
+    s.append("}");
+
     return s.toString();
   }
 

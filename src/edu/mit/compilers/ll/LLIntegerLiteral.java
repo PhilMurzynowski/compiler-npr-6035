@@ -97,7 +97,17 @@ public class LLIntegerLiteral implements LLInstruction {
 
   @Override
   public String prettyString(int depth) {
-    return result.prettyString(depth) + " = $" + value;
+    StringBuilder s = new StringBuilder();
+
+    s.append(result.prettyString(depth) + " = $" + value);
+
+    s.append(" ".repeat(32 - depth * 2 - s.length()) + "; webs { ");
+    if (definitionWeb.isPresent()) {
+      s.append(result.prettyString(depth) + " => (" + definitionWeb.get().getIndex() + ", " + definitionWeb.get().getLocation() + "), ");
+    }
+    s.append("}");
+
+    return s.toString();
   }
 
   @Override

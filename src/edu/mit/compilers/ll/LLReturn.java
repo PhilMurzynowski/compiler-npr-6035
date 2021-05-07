@@ -103,6 +103,11 @@ public class LLReturn implements LLInstruction {
     if (expression.isPresent()) {
       s.append(" " + expression.get().prettyString(depth));
     }
+    s.append(" ".repeat(32 - depth * 2 - s.length()) + "; webs { ");
+    for (final Map.Entry<LLDeclaration, Web> entry : usesWebs.entrySet()) {
+      s.append(entry.getKey().prettyString(depth) + " => (" + entry.getValue().getIndex() + ", " + entry.getValue().getLocation() + "), ");
+    }
+    s.append("}");
     return s.toString();
   }
 
