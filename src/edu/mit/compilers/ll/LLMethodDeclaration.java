@@ -149,7 +149,8 @@ public class LLMethodDeclaration implements LLDeclaration {
   }
 
   public int setStackIndices() {
-    int index = -8;
+    // 48 for all callee saved registers
+    int index = -48;
 
     for (int i = 0; i < argumentDeclarations.size() && i < 6; i++) {
       argumentDeclarations.get(i).setStackIndex(index);
@@ -172,7 +173,7 @@ public class LLMethodDeclaration implements LLDeclaration {
       index -= 8;
     }
     
-    return -index - 8;
+    return -index - 48;
   }
 
   public void setAllocatedSpace(int allocatedSpace) {

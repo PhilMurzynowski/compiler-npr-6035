@@ -533,9 +533,14 @@ public class RegGenerator {
       case EQUAL:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
           if(resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
-            s.append(generateInstruction("movq", leftLocation, "%r10"));
-            s.append(generateInstruction("xorq", resultLocation, resultLocation));
-            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
+            s.append(generateInstruction("xorq", "%rax", "%rax"));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+            }
+            s.append(generateInstruction("sete", "%al"));
+            s.append(generateInstruction("movq", "%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -543,8 +548,8 @@ public class RegGenerator {
             } else {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
             }
+            s.append(generateInstruction("sete", q2b(resultLocation)));
           }
-          s.append(generateInstruction("sete", q2b(resultLocation)));
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
           s.append(generateInstruction("movq", leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));
