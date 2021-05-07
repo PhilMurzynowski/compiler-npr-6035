@@ -261,11 +261,12 @@ public class RegGenerator {
     StringBuilder s = new StringBuilder();
     s.append(generateLabel(methodDeclaration.location()));
 
+    // callee saved registers
+    for (String register : Registers.CALLEE_SAVED) {
+      s.append(generateInstruction("pushq", register));
+    }
+
     // Prologue
-    s.append(generateInstruction(
-        "pushq",
-        "%rbp"
-    ));
     s.append(generateInstruction(
         "movq",
         "%rsp",
@@ -273,8 +274,9 @@ public class RegGenerator {
     ));
 
     int stackSize = methodDeclaration.setStackIndices();
+    stackSize += 8; // callq pushes rax
     if (stackSize > 0) {
-      if (stackSize % 16 != 0) {
+      if (stackSize % 16 == 0) {
         stackSize += 8;
       }
       s.append(generateInstruction(
@@ -372,8 +374,8 @@ public class RegGenerator {
     final boolean expressionInRegister = storeScalar.useInRegister(expression);
     final boolean declarationInRegister = storeScalar.defInRegister();
 
-    final String expressionLocation = storeScalar.getDefWebLocation();
-    final String declarationLocation = storeScalar.getUseWebLocation(expression);
+    final String declarationLocation = storeScalar.getDefWebLocation();
+    final String expressionLocation = storeScalar.getUseWebLocation(expression);
 
     if (expressionInRegister || declarationInRegister) { 
       s.append(generateInstruction("movq", expressionLocation, declarationLocation));
@@ -421,13 +423,16 @@ public class RegGenerator {
 
     Optional<LLDeclaration> returnExpression = ret.getExpression();
     if (returnExpression.isPresent()) {
-      s.append(generateInstruction("movq", ret.getDefWebLocation(), "%rax"));
+      s.append(generateInstruction("movq", ret.getUseWebLocation(returnExpression.get()), "%rax"));
     } else {
       s.append(generateInstruction("movq", "$0", "%rax"));
     }
 
     s.append(generateInstruction("movq", "%rbp", "%rsp"));
-    s.append(generateInstruction("popq", "%rbp"));
+
+    for (int i = Registers.CALLEE_SAVED.size() - 1; i >= 0; --i) {
+      s.append(generateInstruction("popq", Registers.CALLEE_SAVED.get(i)));
+    }
     s.append(generateInstruction("retq"));
 
     return s.toString();
@@ -605,8 +610,14 @@ public class RegGenerator {
         break;
       case ADD:
         if (resultInRegister) {
-          s.append(generateInstruction("movq", leftLocation, resultLocation));
-          s.append(generateInstruction("addq", rightLocation, resultLocation));
+          if (leftInRegister && leftLocation.equals(resultLocation)) {
+            s.append(generateInstruction("addq", rightLocation, resultLocation));
+          } else if (rightInRegister && rightLocation.equals(resultLocation)) {
+            s.append(generateInstruction("addq", leftLocation, resultLocation));
+          } else {
+            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateInstruction("addq", rightLocation, resultLocation));
+          }
         } else {
           s.append(generateInstruction("movq", leftLocation, "%rax"));
           s.append(generateInstruction("addq", rightLocation, "%rax"));
@@ -779,7 +790,7 @@ public class RegGenerator {
     final String rightLocation = compare.getUseWebLocation(right);
 
     if (leftInRegister || rightInRegister) {
-      s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+      s.append(generateInstruction("cmpq", rightLocation, leftLocation));
     } else {
       s.append(generateInstruction("movq", leftLocation, "%rax"));
       s.append(generateInstruction("cmpq", rightLocation, "%rax"));
@@ -845,15 +856,23 @@ public class RegGenerator {
     List<LLDeclaration> arguments = internalCall.getArguments();
 
     // TODO: (same comment as in external) Use the webs to limit the amount of pushes/pops
-    for (String register : registers) {
-      s.append(generateInstruction("pushq", register));
+    int totalPushed = 0;
+    for (String register : Registers.CALLER_SAVED) {
+      if (!internalCall.getDefWebLocation().equals(register)) {
+        s.append(generateInstruction("pushq", register));
+        totalPushed++;
+      }
     }
 
     for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
       s.append(generateInstruction("movq", internalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
     }
 
-    if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {
+    if (arguments.size() > registers.size()) {
+      totalPushed += (arguments.size() - registers.size());
+    }
+
+    if (totalPushed % 2 != 0) {
       s.append(generateInstruction("subq", "$8", "%rsp"));
     }
 
@@ -863,19 +882,23 @@ public class RegGenerator {
 
     s.append(generateInstruction("callq", internalCall.getDeclaration().location()));
 
+    int size = 0;
+    if (totalPushed % 2 != 0) {
+      size += 8;
+    }
     if (arguments.size() > registers.size()) {
-      int size = (arguments.size() - registers.size()) * 8;
-      if (size % 16 != 0) {
-        size += 8;
-      }
+      size += (arguments.size() - registers.size()) * 8;
+    }
+    if (size > 0) {
       s.append(generateInstruction("addq", "$"+size, "%rsp"));
     }
 
-    // TODO: (same comment as in external) This register could be overwritten by the pops below.
     s.append(generateInstruction("movq", "%rax", internalCall.getDefWebLocation()));
 
-    for (int i = registers.size() - 1; i >= 0; --i) {
-      s.append(generateInstruction("popq", registers.get(i)));
+    for (int i = Registers.CALLER_SAVED.size() - 1; i >= 0; --i) {
+      if (!internalCall.getDefWebLocation().equals(Registers.CALLER_SAVED.get(i))) {
+        s.append(generateInstruction("popq", Registers.CALLER_SAVED.get(i)));
+      }
     }
 
     return s.toString();
@@ -889,8 +912,12 @@ public class RegGenerator {
     List<LLDeclaration> arguments = externalCall.getArguments();
 
     // TODO(rbd): Use the webs to limit the amount of pushes/pops
-    for (String register : registers) {
-      s.append(generateInstruction("pushq", register));
+    int totalPushed = 0;
+    for (String register : Registers.CALLER_SAVED) {
+      if (!externalCall.getDefWebLocation().equals(register)) {
+        s.append(generateInstruction("pushq", register));
+        totalPushed++;
+      }
     }
 
     for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
@@ -901,7 +928,11 @@ public class RegGenerator {
       }
     }
 
-    if (arguments.size() > registers.size() && (arguments.size() - registers.size()) % 2 != 0) {
+    if (arguments.size() > registers.size()) {
+      totalPushed += (arguments.size() - registers.size());
+    }
+
+    if (totalPushed % 2 != 0) {
       s.append(generateInstruction("subq", "$8", "%rsp"));
     }
 
@@ -911,19 +942,23 @@ public class RegGenerator {
 
     s.append(generateInstruction("callq", externalCall.getDeclaration().location()));
 
+    int size = 0;
+    if (totalPushed % 2 != 0) {
+      size += 8;
+    }
     if (arguments.size() > registers.size()) {
-      int size = (arguments.size() - registers.size()) * 8;
-      if (size % 16 != 0) {
-        size += 8;
-      }
+      size += (arguments.size() - registers.size()) * 8;
+    }
+    if (size > 0) {
       s.append(generateInstruction("addq", "$"+size, "%rsp"));
     }
 
-    // TODO(rbd): This register could be overwritten by the pops below.
-    s.append(generateInstruction("movq", "%rax", externalCall.getUseWebLocation(externalCall.getResult())));
+    s.append(generateInstruction("movq", "%rax", externalCall.getDefWebLocation()));
 
-    for (int i = registers.size() - 1; i >= 0; --i) {
-      s.append(generateInstruction("popq", registers.get(i)));
+    for (int i = Registers.CALLER_SAVED.size() - 1; i >= 0; --i) {
+      if (!externalCall.getDefWebLocation().equals(Registers.CALLER_SAVED.get(i))) {
+        s.append(generateInstruction("popq", Registers.CALLER_SAVED.get(i)));
+      }
     }
 
     return s.toString();

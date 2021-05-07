@@ -210,7 +210,8 @@ class Main {
       RegAllocator.apply(method.getBody());
     }
     System.err.println(ll.debugString(0));
-    String assembly = LLGenerator.generateProgram(ll);
+    //String assembly = LLGenerator.generateProgram(ll);
+    String assembly = RegGenerator.generateProgram(ll);
     outputStream.print(assembly);
   }
 
