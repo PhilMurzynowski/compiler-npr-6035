@@ -261,17 +261,23 @@ public class RegGenerator {
     StringBuilder s = new StringBuilder();
     s.append(generateLabel(methodDeclaration.location()));
 
-    // callee saved registers
-    for (String register : Registers.CALLEE_SAVED) {
-      s.append(generateInstruction("pushq", register));
-    }
-
     // Prologue
+    s.append(generateInstruction(
+        "pushq",
+        "%rbp"
+    ));
     s.append(generateInstruction(
         "movq",
         "%rsp",
         "%rbp"
     ));
+
+    // callee saved registers
+    for (String register : Registers.CALLEE_SAVED) {
+      if (!register.equals(Registers.RBP)) {
+        s.append(generateInstruction("pushq", register));
+      }
+    }
 
     int stackSize = methodDeclaration.setStackIndices();
     stackSize += 8; // callq pushes rax
@@ -428,11 +434,15 @@ public class RegGenerator {
       s.append(generateInstruction("movq", "$0", "%rax"));
     }
 
-    s.append(generateInstruction("movq", "%rbp", "%rsp"));
-
     for (int i = Registers.CALLEE_SAVED.size() - 1; i >= 0; --i) {
-      s.append(generateInstruction("popq", Registers.CALLEE_SAVED.get(i)));
+      if (!Registers.CALLEE_SAVED.get(i).equals(Registers.RBP)) {
+        s.append(generateInstruction("popq", Registers.CALLEE_SAVED.get(i)));
+      }
     }
+
+    s.append(generateInstruction("movq", "%rbp", "%rsp"));
+    s.append(generateInstruction("popq", "%rbp"));
+
     s.append(generateInstruction("retq"));
 
     return s.toString();

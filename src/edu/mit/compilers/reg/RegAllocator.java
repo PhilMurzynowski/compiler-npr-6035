@@ -33,7 +33,7 @@ public class RegAllocator {
       for (final LLDeclaration use : instruction.uses()) {
         final boolean include = use instanceof LLAliasDeclaration
           || use instanceof LLLocalScalarFieldDeclaration
-          || use instanceof LLArgumentDeclaration; 
+          /*|| use instanceof LLArgumentDeclaration*/; 
         if (include) { 
           if(!above.containsKey(use)) {
             above.put(use, new HashSet<>());
@@ -275,6 +275,10 @@ public class RegAllocator {
           newInstruction.addArgument(precolor2declaration.get(register));
         }
 
+        for (int i = Registers.ARGUMENTS.size(); i < internalCall.getArguments().size(); i++) {
+          newInstruction.addArgument(internalCall.getArguments().get(i));
+        }
+
         newInstructions.add(newInstruction.build());
       } else if (instruction instanceof LLExternalCall externalCall) {
         final LLExternalCall.Builder newInstruction = new LLExternalCall.Builder(externalCall.getDeclaration(), externalCall.getResult());
@@ -286,6 +290,10 @@ public class RegAllocator {
           newInstructions.add(new LLCopy(argument, precolor2declaration.get(register)));
 
           newInstruction.addArgument(precolor2declaration.get(register));
+        }
+
+        for (int i = Registers.ARGUMENTS.size(); i < externalCall.getArguments().size(); i++) {
+          newInstruction.addArgument(externalCall.getArguments().get(i));
         }
 
         newInstructions.add(newInstruction.build());
