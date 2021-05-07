@@ -411,14 +411,14 @@ public class RegAllocator {
 
     final Map<Web, Set<Web>> interference = interferenceFind(chains);
 
-    System.err.println("Interference graph:");
+    /*System.err.println("Interference graph:");
     for (Web web: interference.keySet()) {
       System.err.print(web.getIndex() + " : ");
       for (Web interferes : interference.get(web)) {
         System.err.print(interferes.getIndex() + ", ");
       }
       System.err.print("\n");
-    }
+    }*/
 
     final List<String> colors = List.of(
       //Registers.RAX,
