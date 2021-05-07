@@ -524,11 +524,17 @@ public class RegGenerator {
         break;
       case EQUAL:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
-          s.append(generateInstruction("xorq", resultLocation, resultLocation));
-          if (left instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+          if(resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
+            s.append(generateInstruction("movq", leftLocation, "%r10"));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           } else {
-            s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+            }
           }
           s.append(generateInstruction("sete", q2b(resultLocation)));
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
@@ -546,11 +552,17 @@ public class RegGenerator {
         break;
       case NOT_EQUAL:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
-          s.append(generateInstruction("xorq", resultLocation, resultLocation));
-          if (left instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+          if(resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
+            s.append(generateInstruction("movq", leftLocation, "%r10"));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           } else {
-            s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+            }
           }
           s.append(generateInstruction("setne", q2b(resultLocation)));
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
@@ -568,13 +580,20 @@ public class RegGenerator {
         break;
       case LESS_THAN:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
-          s.append(generateInstruction("xorq", resultLocation, resultLocation));
-          if (left instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("cmpq", leftLocation, rightLocation));
-            s.append(generateInstruction("setge", q2b(resultLocation)));
-          } else {
-            s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+          if(resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
+            s.append(generateInstruction("movq", leftLocation, "%r10"));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
             s.append(generateInstruction("setl", q2b(resultLocation)));
+          } else {
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+              s.append(generateInstruction("setge", q2b(resultLocation)));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+              s.append(generateInstruction("setl", q2b(resultLocation)));
+            }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
           s.append(generateInstruction("movq", leftLocation, "%r10"));
@@ -591,13 +610,20 @@ public class RegGenerator {
         break;
       case LESS_THAN_OR_EQUAL:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
-          s.append(generateInstruction("xorq", resultLocation, resultLocation));
-          if (left instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("cmpq", leftLocation, rightLocation));
-            s.append(generateInstruction("setg", q2b(resultLocation)));
-          } else {
-            s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+          if (resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
+            s.append(generateInstruction("movq", leftLocation, "%r10"));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
             s.append(generateInstruction("setle", q2b(resultLocation)));
+          } else {
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+              s.append(generateInstruction("setg", q2b(resultLocation)));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+              s.append(generateInstruction("setle", q2b(resultLocation)));
+            }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
           s.append(generateInstruction("movq", leftLocation, "%r10"));
@@ -614,13 +640,20 @@ public class RegGenerator {
         break;
       case GREATER_THAN:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
-          s.append(generateInstruction("xorq", resultLocation, resultLocation));
-          if (left instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("cmpq", leftLocation, rightLocation));
-            s.append(generateInstruction("setle", q2b(resultLocation)));
-          } else {
-            s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+          if (resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
+            s.append(generateInstruction("movq", leftLocation, "%r10"));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
             s.append(generateInstruction("setg", q2b(resultLocation)));
+          } else {
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+              s.append(generateInstruction("setle", q2b(resultLocation)));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+              s.append(generateInstruction("setg", q2b(resultLocation)));
+            }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
           s.append(generateInstruction("movq", leftLocation, "%r10"));
@@ -637,13 +670,20 @@ public class RegGenerator {
         break;
       case GREATER_THAN_OR_EQUAL:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
-          s.append(generateInstruction("xorq", resultLocation, resultLocation));
-          if (left instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("cmpq", leftLocation, rightLocation));
-            s.append(generateInstruction("setl", q2b(resultLocation)));
-          } else {
-            s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+          if (resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
+            s.append(generateInstruction("movq", leftLocation, "%r10"));
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
             s.append(generateInstruction("setge", q2b(resultLocation)));
+          } else {
+            s.append(generateInstruction("xorq", resultLocation, resultLocation));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+              s.append(generateInstruction("setl", q2b(resultLocation)));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+              s.append(generateInstruction("setge", q2b(resultLocation)));
+            }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
           s.append(generateInstruction("movq", leftLocation, "%r10"));
