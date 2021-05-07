@@ -186,7 +186,7 @@ public class RegAllocator {
       for (final Web current : Set.copyOf(currentInterference.keySet())) {
         if (currentInterference.get(current).size() < colors.size()) {
           stack.push(current);
-          System.err.println("web " + current.getIndex() + " added to stack");
+          //System.err.println("web " + current.getIndex() + " added to stack");
 
           currentInterference.remove(current);
           for (final Set<Web> webs : currentInterference.values()) {
@@ -221,7 +221,7 @@ public class RegAllocator {
 
     while (!stack.isEmpty()) {
       final Web current = stack.pop();
-      System.err.println("web " + current.getIndex() + " popped from stack");
+      //System.err.println("web " + current.getIndex() + " popped from stack");
 
       final Set<String> neighborLocations = new HashSet<>();
       for (final Web neighbor : originalInterference.get(current)) {
@@ -318,6 +318,7 @@ public class RegAllocator {
 
     final Map<Web, Set<Web>> interference = interferenceFind(chains);
 
+    /*
     System.err.println("Interference graph:");
     for (Web web: interference.keySet()) {
       System.err.print(web.getIndex() + " : ");
@@ -326,6 +327,7 @@ public class RegAllocator {
       }
       System.err.print("\n");
     }
+    */
 
     final List<String> colors = List.of(
       //Registers.RAX,

@@ -482,8 +482,14 @@ public class RegGenerator {
     switch (binary.getType()) {
       case OR:
         if (resultInRegister) {
-          s.append(generateInstruction("movq", leftLocation, resultLocation));
-          s.append(generateInstruction("orq", rightLocation, resultLocation));
+          if (leftInRegister && leftLocation.equals(resultLocation)) {
+            s.append(generateInstruction("orq", rightLocation, resultLocation));
+          } else if (rightInRegister && rightLocation.equals(resultLocation)) {
+            s.append(generateInstruction("orq", leftLocation, resultLocation));
+          } else {
+            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateInstruction("orq", rightLocation, resultLocation));
+          }
         } else {
           s.append(generateInstruction("movq", leftLocation, "%rax"));
           s.append(generateInstruction("orq", rightLocation, "%rax"));
@@ -492,8 +498,14 @@ public class RegGenerator {
         break;
       case AND:
         if (resultInRegister) {
-          s.append(generateInstruction("movq", leftLocation, resultLocation));
-          s.append(generateInstruction("andq", rightLocation, resultLocation));
+          if (leftInRegister && leftLocation.equals(resultLocation)) {
+            s.append(generateInstruction("andq", rightLocation, resultLocation));
+          } else if (rightInRegister && rightLocation.equals(resultLocation)) {
+            s.append(generateInstruction("andq", leftLocation, resultLocation));
+          } else {
+            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateInstruction("andq", rightLocation, resultLocation));
+          }
         } else {
           s.append(generateInstruction("movq", leftLocation, "%rax"));
           s.append(generateInstruction("andq", rightLocation, "%rax"));
@@ -654,8 +666,16 @@ public class RegGenerator {
         break;
       case SUBTRACT:
         if (resultInRegister) {
-          s.append(generateInstruction("movq", leftLocation, resultLocation));
-          s.append(generateInstruction("subq", rightLocation, resultLocation));
+          if (leftInRegister && leftLocation.equals(resultLocation)) {
+            s.append(generateInstruction("subq", rightLocation, resultLocation));
+          } else if (rightInRegister && rightLocation.equals(resultLocation)) {
+            s.append(generateInstruction("movq", leftLocation, "%rax"));
+            s.append(generateInstruction("subq", rightLocation, "%rax"));
+            s.append(generateInstruction("movq", "%rax", resultLocation));
+          } else {
+            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateInstruction("subq", rightLocation, resultLocation));
+          }
         } else {
           s.append(generateInstruction("movq", leftLocation, "%rax"));
           s.append(generateInstruction("subq", rightLocation, "%rax"));
@@ -664,8 +684,14 @@ public class RegGenerator {
         break;
       case MULTIPLY:
         if (resultInRegister) {
-          s.append(generateInstruction("movq", leftLocation, resultLocation));
-          s.append(generateInstruction("imulq", rightLocation, resultLocation));
+          if (leftInRegister && leftLocation.equals(resultLocation)) {
+            s.append(generateInstruction("imulq", rightLocation, resultLocation));
+          } else if (rightInRegister && rightLocation.equals(resultLocation)) {
+            s.append(generateInstruction("imulq", leftLocation, resultLocation));
+          } else {
+            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateInstruction("imulq", rightLocation, resultLocation));
+          }
         } else {
           s.append(generateInstruction("movq", leftLocation, "%rax"));
           s.append(generateInstruction("imulq", rightLocation, "%rax"));
