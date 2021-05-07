@@ -315,6 +315,35 @@ public class RegAllocator {
     block.setInstructions(newInstructions);
   }
 
+  private static void printChains(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
+    for (final LLBasicBlock block : chains.keySet()) {
+      System.err.println(block.prettyString(0));
+      final List<Map<LLDeclaration, Set<Chain>>> intermediaries = chains.get(block);
+      System.err.print("  ; chains { ");
+      for (final Map.Entry<LLDeclaration, Set<Chain>> entry : intermediaries.get(0).entrySet()) {
+        System.err.print(entry.getKey().prettyString(0) + " => { ");
+        for (final Chain chain : entry.getValue()) {
+          System.err.print(chain.getIndex() + ", ");
+        }
+        System.err.print("}, ");
+      }
+      System.err.println("}");
+      for (int i = 1; i < chains.get(block).size(); i++) {
+        System.err.println("  " + block.getInstructions().get(i - 1).prettyString(0));
+        System.err.print("  ; chains { ");
+        for (final Map.Entry<LLDeclaration, Set<Chain>> entry : intermediaries.get(i).entrySet()) {
+          System.err.print(entry.getKey().prettyString(0) + " => { ");
+          for (final Chain chain : entry.getValue()) {
+            System.err.print(chain.getIndex() + ", ");
+          }
+          System.err.print("}, ");
+        }
+        System.err.println("}");
+      }
+      System.err.println();
+    }
+  }
+
   public static void apply(final LLMethodDeclaration methodDeclaration) {
     final LLControlFlowGraph controlFlowGraph = methodDeclaration.getBody();
 
@@ -386,6 +415,10 @@ public class RegAllocator {
     // Set all blocks as to-be-visited
     workSet.addAll(visited);
 
+    printChains(chains);
+
+    System.err.println("--------------------------------------------------------------------------------\n");
+
     // Update entry/exit chains for all basic blocks
     while (!workSet.isEmpty()) {
       final LLBasicBlock block = workSet.iterator().next();
@@ -393,6 +426,8 @@ public class RegAllocator {
 
       // Only update predecessors if entry changes
       if (update(block, chains.get(block), declaration2precolor)) {
+        printChains(chains);
+        System.err.println("--------------------------------------------------------------------------------\n");
         for (final LLBasicBlock predecessor : block.getPredecessors()) {
           union(chains.get(predecessor).get(chains.get(predecessor).size() - 1), chains.get(block).get(0));
 
@@ -401,6 +436,9 @@ public class RegAllocator {
         }
       }
     }
+
+    printChains(chains);
+    System.err.println("--------------------------------------------------------------------------------\n");
 
     unionFind(chains);
 

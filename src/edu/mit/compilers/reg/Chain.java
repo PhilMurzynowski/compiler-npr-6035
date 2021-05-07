@@ -4,12 +4,16 @@ import java.util.*;
 
 public class Chain {
 
+  private static int counter = 0;
+
+  private int index;
   private Chain parent;
   private Optional<Web> web;
   private Set<Chain> interference;
   private final Optional<String> precolor;
 
   public Chain() {
+    index = counter++;
     parent = this;
     web = Optional.empty();
     interference = new HashSet<>();
@@ -17,10 +21,15 @@ public class Chain {
   }
 
   public Chain(final String precolor) {
+    index = counter++;
     parent = this;
     web = Optional.empty();
     interference = new HashSet<>();
     this.precolor = Optional.of(precolor);
+  }
+
+  public int getIndex() {
+    return index;
   }
 
   public Chain find() {
