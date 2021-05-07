@@ -333,7 +333,7 @@ public class RegAllocator {
       //Registers.RAX,
       Registers.RBX,
       Registers.RCX,
-      Registers.RDX,
+      //Registers.RDX,
       Registers.RDI,
       Registers.RSI,
       Registers.R8,
