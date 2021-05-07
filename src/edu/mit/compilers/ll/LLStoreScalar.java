@@ -118,7 +118,8 @@ public class LLStoreScalar implements LLInstruction {
     StringBuilder s = new StringBuilder();
     s.append("store " + declaration.prettyString(depth) + ", " + expression.prettyString(depth));
 
-    s.append(" ".repeat(32 - depth * 2 - s.length()) + "; webs { ");
+    int alignment = 32 - depth * 2 - s.length();
+    s.append(" ".repeat(alignment > 0 ? alignment : 1) + "; webs { ");
     if (definitionWeb.isPresent()) {
       s.append(declaration.prettyString(depth) + " => (" + definitionWeb.get().getIndex() + ", " + definitionWeb.get().getLocation() + "), ");
     }

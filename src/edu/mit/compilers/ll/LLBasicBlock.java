@@ -251,7 +251,8 @@ public class LLBasicBlock implements LLDeclaration {
     StringBuilder s = new StringBuilder();
     s.append("BB" + index + ":");
     if (predecessors.size() > 0) {
-      s.append(" ".repeat(32 - depth * 2 - s.length()) + "; preds = ");
+      int alignment = 32 - depth * 2 - s.length();
+      s.append(" ".repeat(alignment > 0 ? alignment : 1) + "; preds = ");
       boolean isFirst = true;
       for (LLBasicBlock predecessor : predecessors) {
         if (isFirst) {

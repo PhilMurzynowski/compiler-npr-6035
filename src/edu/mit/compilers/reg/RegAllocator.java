@@ -5,8 +5,6 @@ import java.util.*;
 import edu.mit.compilers.common.Triple;
 import edu.mit.compilers.ll.*;
 
-import javax.swing.plaf.basic.BasicBorders;
-
 public class RegAllocator {
 
   private static boolean update(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries, final Map<LLDeclaration, String> declaration2precolor) {
@@ -44,9 +42,9 @@ public class RegAllocator {
           }
           final Triple chainId = new Triple(block.getIndex(), i, u);
           if (declaration2precolor.containsKey(use)) {
-            above.get(use).add(new Chain(chainId, declaration2precolor.get(use)));
+            above.get(use).add(Chain.make(chainId, declaration2precolor.get(use)));
           } else {
-            above.get(use).add(new Chain(chainId));
+            above.get(use).add(Chain.make(chainId));
           }
         }
       }
@@ -420,9 +418,9 @@ public class RegAllocator {
     // Set all blocks as to-be-visited
     workSet.addAll(visited);
 
-    printChains(chains);
+    // printChains(chains);
 
-    System.err.println("--------------------------------------------------------------------------------\n");
+    // System.err.println("--------------------------------------------------------------------------------\n");
 
     // Update entry/exit chains for all basic blocks
     while (!workSet.isEmpty()) {
@@ -431,8 +429,8 @@ public class RegAllocator {
 
       // Only update predecessors if entry changes
       if (update(block, chains.get(block), declaration2precolor)) {
-        printChains(chains);
-        System.err.println("--------------------------------------------------------------------------------\n");
+        // printChains(chains);
+        // System.err.println("--------------------------------------------------------------------------------\n");
         for (final LLBasicBlock predecessor : block.getPredecessors()) {
           union(chains.get(predecessor).get(chains.get(predecessor).size() - 1), chains.get(block).get(0));
 
@@ -442,8 +440,8 @@ public class RegAllocator {
       }
     }
 
-    printChains(chains);
-    System.err.println("--------------------------------------------------------------------------------\n");
+    // printChains(chains);
+    // System.err.println("--------------------------------------------------------------------------------\n");
 
     unionFind(chains);
 

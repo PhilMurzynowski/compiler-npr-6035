@@ -12,7 +12,23 @@ public class Chain {
   private Set<Chain> interference;
   private final Optional<String> precolor;
 
-  public Chain(final Triple id) {
+  private static final Map<Triple, Chain> allChains = new HashMap<>();
+
+  public static Chain make(final Triple id) {
+    if (!allChains.containsKey(id)) {
+      allChains.put(id, new Chain(id));
+    }
+    return allChains.get(id);
+  }
+
+  public static Chain make(final Triple id, final String precolor) {
+    if (!allChains.containsKey(id)) {
+      allChains.put(id, new Chain(id, precolor));
+    }
+    return allChains.get(id);
+  }
+
+  private Chain(final Triple id) {
     this.id = id;
     parent = this;
     web = Optional.empty();
@@ -20,7 +36,7 @@ public class Chain {
     precolor = Optional.empty();
   }
 
-  public Chain(final Triple id, final String precolor) {
+  private Chain(final Triple id, final String precolor) {
     this.id = id;
     parent = this;
     web = Optional.empty();
