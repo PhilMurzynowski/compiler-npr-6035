@@ -1126,16 +1126,26 @@ public class RegGenerator {
   public static String generateCopy(LLCopy copy) {
     StringBuilder s = new StringBuilder();
 
-    final boolean inputInRegister = copy.useInRegister(copy.getInput());
+    final LLDeclaration input = copy.getInput();
+
+    final boolean inputInRegister = copy.useInRegister(input);
     final boolean resultInRegister = copy.defInRegister();
 
-    final String inputLocation = copy.getUseWebLocation(copy.getInput());
+    final String inputLocation = copy.getUseWebLocation(input);
     final String resultLocation = copy.getDefWebLocation();
 
     if (resultInRegister || inputInRegister) {
-      s.append(generateInstruction("movq", inputLocation, resultLocation));
+      if (input instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
+        s.append(generateInstruction("leaq", inputLocation+"(%rip)", resultLocation));
+      } else {
+        s.append(generateInstruction("movq", inputLocation, resultLocation));
+      }
     } else {
-      s.append(generateInstruction("movq", inputLocation, "%rax"));
+      if (input instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
+        s.append(generateInstruction("leaq", inputLocation+"(%rip)", "%rax"));
+      } else {
+        s.append(generateInstruction("movq", inputLocation, "%rax"));
+      }
       s.append(generateInstruction("movq", "%rax", resultLocation));
     }
 
