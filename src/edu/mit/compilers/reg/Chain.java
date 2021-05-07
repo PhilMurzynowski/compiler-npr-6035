@@ -1,35 +1,35 @@
 package edu.mit.compilers.reg;
 
+import edu.mit.compilers.common.Triple;
+
 import java.util.*;
 
 public class Chain {
 
-  private static int counter = 0;
-
-  private int index;
+  private Triple id;
   private Chain parent;
   private Optional<Web> web;
   private Set<Chain> interference;
   private final Optional<String> precolor;
 
-  public Chain() {
-    index = counter++;
+  public Chain(final Triple id) {
+    this.id = id;
     parent = this;
     web = Optional.empty();
     interference = new HashSet<>();
     precolor = Optional.empty();
   }
 
-  public Chain(final String precolor) {
-    index = counter++;
+  public Chain(final Triple id, final String precolor) {
+    this.id = id;
     parent = this;
     web = Optional.empty();
     interference = new HashSet<>();
     this.precolor = Optional.of(precolor);
   }
 
-  public int getIndex() {
-    return index;
+  public String getIndex() {
+    return id.toString();
   }
 
   public Chain find() {
@@ -92,6 +92,20 @@ public class Chain {
     } else {
       return precolor.get();
     }
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return that instanceof Chain && sameValue((Chain) that);
+  }
+
+  private boolean sameValue(Chain that) {
+    return this.id.equals(that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return id.hashCode();
   }
 
 }

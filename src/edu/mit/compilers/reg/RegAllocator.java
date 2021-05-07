@@ -2,7 +2,10 @@ package edu.mit.compilers.reg;
 
 import java.util.*;
 
+import edu.mit.compilers.common.Triple;
 import edu.mit.compilers.ll.*;
+
+import javax.swing.plaf.basic.BasicBorders;
 
 public class RegAllocator {
 
@@ -30,7 +33,8 @@ public class RegAllocator {
         above.remove(definition);
       }
 
-      for (final LLDeclaration use : instruction.uses()) {
+      for (int u = 0; u < instruction.uses().size(); u++) {
+        final LLDeclaration use = instruction.uses().get(u);
         final boolean include = use instanceof LLAliasDeclaration
           || use instanceof LLLocalScalarFieldDeclaration
           /*|| use instanceof LLArgumentDeclaration*/; 
@@ -38,10 +42,11 @@ public class RegAllocator {
           if(!above.containsKey(use)) {
             above.put(use, new HashSet<>());
           }
+          final Triple chainId = new Triple(block.getIndex(), i, u);
           if (declaration2precolor.containsKey(use)) {
-            above.get(use).add(new Chain(declaration2precolor.get(use)));
+            above.get(use).add(new Chain(chainId, declaration2precolor.get(use)));
           } else {
-            above.get(use).add(new Chain());
+            above.get(use).add(new Chain(chainId));
           }
         }
       }
@@ -49,7 +54,7 @@ public class RegAllocator {
 
     final Map<LLDeclaration, Set<Chain>> newEntry = intermediaries.get(0);
 
-    return !newEntry.keySet().equals(oldEntry.keySet());
+    return !newEntry.equals(oldEntry);
   }
 
   private static void transform(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries) {
