@@ -23,6 +23,8 @@ public class Registers {
   public static final String R14 = "%r14";
   public static final String R15 = "%r15";
 
+  public static final String RDX_RAX = "%rdx:%rax";
+
   public static final String AL = "%al";
   public static final String BL = "%bl";
   public static final String CL = "%cl";
@@ -83,6 +85,15 @@ public class Registers {
     R13,
     R14,
     R15
+  );
+
+  public static final List<String> ARGUMENTS = List.of(
+    RDI,
+    RSI,
+    RDX,
+    RCX,
+    R8,
+    R9
   );
 
 }

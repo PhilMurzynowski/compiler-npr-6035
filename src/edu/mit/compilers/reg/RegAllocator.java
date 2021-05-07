@@ -6,7 +6,7 @@ import edu.mit.compilers.ll.*;
 
 public class RegAllocator {
 
-  private static boolean update(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries) {
+  private static boolean update(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries, final Map<LLDeclaration, String> declaration2precolor) {
     final List<LLInstruction> instructions = block.getInstructions();
 
     final Map<LLDeclaration, Set<Chain>> oldEntry = new HashMap<>();
@@ -38,7 +38,11 @@ public class RegAllocator {
           if(!above.containsKey(use)) {
             above.put(use, new HashSet<>());
           }
-          above.get(use).add(new Chain());
+          if (declaration2precolor.containsKey(use)) {
+            above.get(use).add(new Chain(declaration2precolor.get(use)));
+          } else {
+            above.get(use).add(new Chain());
+          }
         }
       }
     }
@@ -114,6 +118,7 @@ public class RegAllocator {
         for (final LLDeclaration declaration : intermediary.keySet()) {
           final Chain first = intermediary.get(declaration).iterator().next();
           for (final Chain chain : intermediary.get(declaration)) {
+            // NOTE(rbd): `Chain::union` asserts that no two chains with different precolors will be unioned.
             first.union(chain);
           }
         }
@@ -125,7 +130,11 @@ public class RegAllocator {
           for (final Chain chain : intermediary.get(declaration)) {
             final Chain chainSet = chain.find();
             if (!chainSet.hasWeb()) {
-              chainSet.setWeb(new Web());
+              if (chainSet.isPrecolored()) {
+                chainSet.setWeb(new Web(chainSet.getPrecolor()));
+              } else {
+                chainSet.setWeb(new Web());
+              }
             }
           }
         }
@@ -203,12 +212,13 @@ public class RegAllocator {
 
         for (final Map.Entry<Web, Set<Web>> entry : currentInterference.entrySet()) {
           final int degree = entry.getValue().size();
-          if (degree > maxDegree) {
+          if (degree > maxDegree && !entry.getKey().hasLocation()) {
             maxDegree = degree;
             maxDegreeWeb = entry.getKey();
           }
         }
 
+        // TODO(rbd): This might now be possible if the only web with degree > k is precolored?
         assert maxDegreeWeb != null : "currentInterference should not be empty";
 
         currentInterference.remove(maxDegreeWeb);
@@ -223,17 +233,25 @@ public class RegAllocator {
       final Web current = stack.pop();
       //System.err.println("web " + current.getIndex() + " popped from stack");
 
-      final Set<String> neighborLocations = new HashSet<>();
-      for (final Web neighbor : originalInterference.get(current)) {
-        if (neighbor.hasLocation()) {
-          neighborLocations.add(neighbor.getLocation());
+      if (current.hasLocation()) {
+        for (final Web neighbor : originalInterference.get(current)) {
+          if (neighbor.hasLocation()) {
+            assert neighbor.getLocation() != current.getLocation() : "precolored should not conflict with neighbors";
+          }
         }
-      }
+      } else {
+        final Set<String> neighborLocations = new HashSet<>();
+        for (final Web neighbor : originalInterference.get(current)) {
+          if (neighbor.hasLocation()) {
+            neighborLocations.add(neighbor.getLocation());
+          }
+        }
 
-      for (final String color : colors) {
-        if (!neighborLocations.contains(color)) {
-          current.setLocation(color);
-          break;
+        for (final String color : colors) {
+          if (!neighborLocations.contains(color)) {
+            current.setLocation(color);
+            break;
+          }
         }
       }
 
@@ -241,7 +259,56 @@ public class RegAllocator {
     }
   }
 
-  public static void apply(final LLControlFlowGraph controlFlowGraph) {
+  private static void precolor(final LLBasicBlock block, final Map<String, LLDeclaration> precolor2declaration) {
+    final List<LLInstruction> newInstructions = new ArrayList<>();
+
+    for (final LLInstruction instruction : block.getInstructions()) {
+      if (instruction instanceof LLInternalCall internalCall) {
+        final LLInternalCall.Builder newInstruction = new LLInternalCall.Builder(internalCall.getDeclaration(), internalCall.getResult());
+
+        for (int i = 0; i < Registers.ARGUMENTS.size() && i < internalCall.getArguments().size(); i++) {
+          final String register = Registers.ARGUMENTS.get(i);
+          final LLDeclaration argument = internalCall.getArguments().get(i);
+
+          newInstructions.add(new LLCopy(argument, precolor2declaration.get(register)));
+
+          newInstruction.addArgument(precolor2declaration.get(register));
+        }
+
+        newInstructions.add(newInstruction.build());
+      } else if (instruction instanceof LLExternalCall externalCall) {
+        final LLExternalCall.Builder newInstruction = new LLExternalCall.Builder(externalCall.getDeclaration(), externalCall.getResult());
+
+        for (int i = 0; i < Registers.ARGUMENTS.size() && i < externalCall.getArguments().size(); i++) {
+          final String register = Registers.ARGUMENTS.get(i);
+          final LLDeclaration argument = externalCall.getArguments().get(i);
+
+          newInstructions.add(new LLCopy(argument, precolor2declaration.get(register)));
+
+          newInstruction.addArgument(precolor2declaration.get(register));
+        }
+
+        newInstructions.add(newInstruction.build());
+      } else {
+        newInstructions.add(instruction);
+      }
+    }
+
+    block.setInstructions(newInstructions);
+  }
+
+  public static void apply(final LLMethodDeclaration methodDeclaration) {
+    final LLControlFlowGraph controlFlowGraph = methodDeclaration.getBody();
+
+    // TODO(rbd): Extend this for cases beyond function arguments.
+    final Map<String, LLDeclaration> precolor2declaration = new HashMap<>();
+    final Map<LLDeclaration, String> declaration2precolor = new HashMap<>();
+    for (final String register : Registers.ARGUMENTS) {
+      final LLDeclaration declaration = methodDeclaration.newAlias();
+      precolor2declaration.put(register, declaration);
+      declaration2precolor.put(declaration, register);
+    } 
+
     final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains = new HashMap<>();
 
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
@@ -250,6 +317,9 @@ public class RegAllocator {
     // Initialize the exit block's chains
     if (controlFlowGraph.hasExit()) {
       final LLBasicBlock exit = controlFlowGraph.expectExit();
+
+      precolor(exit, precolor2declaration);
+
       final int n = exit.getInstructions().size() + 1;
       chains.put(exit, new ArrayList<>(n));
       for (int i = 0; i < n; i++) {
@@ -263,6 +333,9 @@ public class RegAllocator {
     // Initialize the exception blocks' chains
     for (final LLBasicBlock exception : controlFlowGraph.getExceptions()) {
       final int n = exception.getInstructions().size() + 1;
+
+      precolor(exception, precolor2declaration);
+
       chains.put(exception, new ArrayList<>(n));
       for (int i = 0; i < n; i++) {
         chains.get(exception).add(new HashMap<>());
@@ -278,6 +351,8 @@ public class RegAllocator {
       workSet.remove(block);
 
       if (!visited.contains(block)) {
+        precolor(block, precolor2declaration);
+
         final int n = block.getInstructions().size() + 1;
         chains.put(block, new ArrayList<>(n));
         for (int i = 0; i < n; i++) {
@@ -299,7 +374,7 @@ public class RegAllocator {
       workSet.remove(block);
 
       // Only update predecessors if entry changes
-      if (update(block, chains.get(block))) {
+      if (update(block, chains.get(block), declaration2precolor)) {
         for (final LLBasicBlock predecessor : block.getPredecessors()) {
           union(chains.get(predecessor).get(chains.get(predecessor).size() - 1), chains.get(block).get(0));
 

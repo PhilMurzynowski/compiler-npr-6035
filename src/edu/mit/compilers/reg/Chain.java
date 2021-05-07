@@ -7,11 +7,20 @@ public class Chain {
   private Chain parent;
   private Optional<Web> web;
   private Set<Chain> interference;
+  private final Optional<String> precolor;
 
   public Chain() {
     parent = this;
     web = Optional.empty();
     interference = new HashSet<>();
+    precolor = Optional.empty();
+  }
+
+  public Chain(final String precolor) {
+    parent = this;
+    web = Optional.empty();
+    interference = new HashSet<>();
+    this.precolor = Optional.of(precolor);
   }
 
   public Chain find() {
@@ -25,6 +34,7 @@ public class Chain {
   public void union(final Chain that) {
     final Chain thisSet = this.find();
     final Chain thatSet = that.find();
+    assert thisSet.precolor.equals(thatSet.precolor) : "should only ever union chains that have the same precolor";
     thatSet.setParent(thisSet);
   }
 
@@ -61,6 +71,18 @@ public class Chain {
 
   public Set<Chain> getInterference() {
     return interference;
+  }
+
+  public boolean isPrecolored() {
+    return precolor.isPresent();
+  }
+
+  public String getPrecolor() {
+    if (precolor.isEmpty()) {
+      throw new RuntimeException("chain is not precolored");
+    } else {
+      return precolor.get();
+    }
   }
 
 }

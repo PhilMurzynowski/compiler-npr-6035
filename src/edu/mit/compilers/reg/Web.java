@@ -18,6 +18,11 @@ public class Web {
     this.location = Optional.empty();
   }
 
+  public Web(final String precolor) {
+    this.index = counter++;
+    this.location = Optional.of(precolor);
+  }
+
   public long getIndex() {
     return index;
   }

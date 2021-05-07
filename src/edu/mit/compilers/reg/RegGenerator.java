@@ -918,9 +918,10 @@ public class RegGenerator {
       }
     }
 
-    for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
-      s.append(generateInstruction("movq", internalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
-    }
+    // NOTE(rbd): Not necessary because of precoloring.
+    // for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
+    //   s.append(generateInstruction("movq", internalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
+    // }
 
     if (arguments.size() > registers.size()) {
       totalPushed += (arguments.size() - registers.size());
@@ -974,13 +975,14 @@ public class RegGenerator {
       }
     }
 
-    for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
-      if (arguments.get(i) instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
-        s.append(generateInstruction("leaq", arguments.get(i).location()+"(%rip)", registers.get(i)));
-      } else {
-        s.append(generateInstruction("movq", externalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
-      }
-    }
+    // NOTE(rbd): Not necessary because of precoloring.
+    // for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
+    //   if (arguments.get(i) instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
+    //     s.append(generateInstruction("leaq", arguments.get(i).location()+"(%rip)", registers.get(i)));
+    //   } else {
+    //     s.append(generateInstruction("movq", externalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
+    //   }
+    // }
 
     if (arguments.size() > registers.size()) {
       totalPushed += (arguments.size() - registers.size());

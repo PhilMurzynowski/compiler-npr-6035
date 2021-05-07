@@ -207,7 +207,7 @@ class Main {
     }
     System.err.println(ll.prettyString(0));
     for (final LLMethodDeclaration method : ll.getMethodDeclarations()) {
-      RegAllocator.apply(method.getBody());
+      RegAllocator.apply(method);
     }
     //System.err.println(ll.debugString(0));
     //String assembly = LLGenerator.generateProgram(ll);
