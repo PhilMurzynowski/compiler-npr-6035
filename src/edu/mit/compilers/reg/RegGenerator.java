@@ -290,6 +290,7 @@ public class RegGenerator {
           "$"+stackSize,
           "%rsp"
       ));
+      methodDeclaration.setAllocatedSpace(stackSize);
     }
 
     final List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
@@ -434,6 +435,13 @@ public class RegGenerator {
       s.append(generateInstruction("movq", "$0", "%rax"));
     }
 
+    // add back space for stack allocated temporaries
+    s.append(generateInstruction(
+        "addq",
+        "$"+ret.getMethodDeclaration().getAllocatedSpace(),
+        "%rsp"
+    ));
+
     for (int i = Registers.CALLEE_SAVED.size() - 1; i >= 0; --i) {
       if (!Registers.CALLEE_SAVED.get(i).equals(Registers.RBP)) {
         s.append(generateInstruction("popq", Registers.CALLEE_SAVED.get(i)));
@@ -553,9 +561,14 @@ public class RegGenerator {
       case NOT_EQUAL:
         if (resultInRegister && (leftInRegister || rightInRegister)) {
           if(resultLocation.equals(leftLocation) || resultLocation.equals(rightLocation)) {
-            s.append(generateInstruction("movq", leftLocation, "%r10"));
-            s.append(generateInstruction("xorq", resultLocation, resultLocation));
-            s.append(generateInstruction("cmpq", rightLocation, "%r10"));
+            s.append(generateInstruction("xorq", "%rax", "%rax"));
+            if (left instanceof LLConstantDeclaration) {
+              s.append(generateInstruction("cmpq", leftLocation, rightLocation));
+            } else {
+              s.append(generateInstruction("cmpq", rightLocation, leftLocation));
+            }
+            s.append(generateInstruction("setne", "%al"));
+            s.append(generateInstruction("movq", "%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -563,8 +576,8 @@ public class RegGenerator {
             } else {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
             }
+            s.append(generateInstruction("setne", q2b(resultLocation)));
           }
-          s.append(generateInstruction("setne", q2b(resultLocation)));
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
           s.append(generateInstruction("movq", leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));

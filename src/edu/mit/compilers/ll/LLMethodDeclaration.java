@@ -18,6 +18,7 @@ public class LLMethodDeclaration implements LLDeclaration {
   private final List<LLAliasDeclaration> aliasDeclarations;
   private Optional<LLBasicBlock> outOfBoundsExceptionBB;
   private Optional<LLControlFlowGraph> body;
+  private int allocatedSpace;
 
   public LLMethodDeclaration(String identifier, MethodType type) {
     this.identifier = identifier;
@@ -28,6 +29,7 @@ public class LLMethodDeclaration implements LLDeclaration {
     aliasDeclarations = new ArrayList<>();
     body = Optional.empty();
     this.outOfBoundsExceptionBB = Optional.empty();
+    this.allocatedSpace = 0;
   }
 
   public MethodType getMethodType() {
@@ -169,8 +171,16 @@ public class LLMethodDeclaration implements LLDeclaration {
       alias.setStackIndex(index);
       index -= 8;
     }
-
+    
     return -index - 8;
+  }
+
+  public void setAllocatedSpace(int allocatedSpace) {
+    this.allocatedSpace = allocatedSpace;
+  }
+
+  public int getAllocatedSpace() {
+    return this.allocatedSpace;
   }
 
   public void accept(Optimization optimization, List<LLDeclaration> globals) {

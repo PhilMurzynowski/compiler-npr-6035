@@ -83,7 +83,7 @@ public class LLBuilder {
 
     if (llMethodDeclaration.getMethodType() == MethodType.VOID) {
       bodyCFG = bodyCFG.concatenate(
-        new LLReturn(Optional.empty())
+        new LLReturn(Optional.empty(), llMethodDeclaration)
       );
     } else {
       bodyCFG = bodyCFG.concatenate(
@@ -435,7 +435,7 @@ public class LLBuilder {
         resultCFG = resultCFG.concatenate(returnTarget.get());
       } else {
         resultCFG = resultCFG.concatenate(
-          new LLReturn(Optional.of(expressionResult))
+          new LLReturn(Optional.of(expressionResult), methodDeclaration)
         );
       }
     } else {
@@ -443,7 +443,7 @@ public class LLBuilder {
         resultCFG = resultCFG.concatenate(returnTarget.get());
       } else {
         resultCFG = resultCFG.concatenate(
-          new LLReturn(Optional.empty())
+          new LLReturn(Optional.empty(), methodDeclaration)
         );
       }
     }

@@ -244,7 +244,7 @@ public class RegAllocator {
 
     while (!stack.isEmpty()) {
       final Web current = stack.pop();
-      System.err.println("web " + current.getIndex() + " popped from stack");
+      //System.err.println("web " + current.getIndex() + " popped from stack");
 
       if (current.hasLocation()) {
         for (final Web neighbor : originalInterference.get(current)) {

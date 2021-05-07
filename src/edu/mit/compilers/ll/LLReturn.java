@@ -10,14 +10,20 @@ public class LLReturn implements LLInstruction {
 
   private final Optional<LLDeclaration> expression;
   private Map<LLDeclaration, Web> usesWebs;
+  private final LLMethodDeclaration methodDeclaration;
 
-  public LLReturn(Optional<LLDeclaration> expression) {
+  public LLReturn(Optional<LLDeclaration> expression, LLMethodDeclaration methodDeclaration) {
     this.expression = expression;
+    this.methodDeclaration = methodDeclaration;
     this.usesWebs = new HashMap<>();
   }
 
   public Optional<LLDeclaration> getExpression() {
     return expression;
+  }
+
+  public LLMethodDeclaration getMethodDeclaration() {
+    return methodDeclaration;
   }
 
   @Override
@@ -85,9 +91,9 @@ public class LLReturn implements LLInstruction {
   @Override
   public LLInstruction usesReplaced(List<LLDeclaration> uses) {
     if (uses.size() > 0) {
-      return new LLReturn(Optional.of(uses.get(0)));
+      return new LLReturn(Optional.of(uses.get(0)), methodDeclaration);
     } else {
-      return new LLReturn(Optional.empty());
+      return new LLReturn(Optional.empty(), methodDeclaration);
     }
   }
 
