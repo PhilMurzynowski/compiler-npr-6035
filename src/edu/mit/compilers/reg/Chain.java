@@ -32,7 +32,7 @@ public class Chain {
     this.id = id;
     parent = this;
     web = Optional.empty();
-    interference = new HashSet<>();
+    interference = new LinkedHashSet<>();
     precolor = Optional.empty();
   }
 
@@ -40,7 +40,7 @@ public class Chain {
     this.id = id;
     parent = this;
     web = Optional.empty();
-    interference = new HashSet<>();
+    interference = new LinkedHashSet<>();
     this.precolor = Optional.of(precolor);
   }
 

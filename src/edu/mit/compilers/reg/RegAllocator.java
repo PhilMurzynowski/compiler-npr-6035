@@ -10,9 +10,9 @@ public class RegAllocator {
   private static boolean update(final LLBasicBlock block, final List<Map<LLDeclaration, Set<Chain>>> intermediaries, final Map<LLDeclaration, String> declaration2precolor) {
     final List<LLInstruction> instructions = block.getInstructions();
 
-    final Map<LLDeclaration, Set<Chain>> oldEntry = new HashMap<>();
+    final Map<LLDeclaration, Set<Chain>> oldEntry = new LinkedHashMap<>();
     for (final Map.Entry<LLDeclaration, Set<Chain>> entry : intermediaries.get(0).entrySet()) {
-      oldEntry.put(entry.getKey(), new HashSet<>(entry.getValue()));
+      oldEntry.put(entry.getKey(), new LinkedHashSet<>(entry.getValue()));
     }
 
     for (int i = instructions.size() - 1; i >= 0; i--) {
@@ -21,7 +21,7 @@ public class RegAllocator {
 
       above.clear();
       for (final Map.Entry<LLDeclaration, Set<Chain>> entry : below.entrySet()) {
-        above.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        above.put(entry.getKey(), new LinkedHashSet<>(entry.getValue()));
       }
 
       final LLInstruction instruction = instructions.get(i);
@@ -38,7 +38,7 @@ public class RegAllocator {
           /*|| use instanceof LLArgumentDeclaration*/; 
         if (include) { 
           if(!above.containsKey(use)) {
-            above.put(use, new HashSet<>());
+            above.put(use, new LinkedHashSet<>());
           }
           final Triple chainId = new Triple(block.getIndex(), i, u);
           if (declaration2precolor.containsKey(use)) {
@@ -109,7 +109,7 @@ public class RegAllocator {
   private static void union(final Map<LLDeclaration, Set<Chain>> left, final Map<LLDeclaration, Set<Chain>> right) {
     for (final LLDeclaration declaration : right.keySet()) {
       if (!left.containsKey(declaration)) {
-        left.put(declaration, new HashSet<>());
+        left.put(declaration, new LinkedHashSet<>());
       }
       left.get(declaration).addAll(right.get(declaration));
     }
@@ -146,7 +146,7 @@ public class RegAllocator {
   }
 
   private static Set<Web> collectWebs(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
-    Set<Web> webs = new HashSet<>();
+    Set<Web> webs = new LinkedHashSet<>();
     for (final LLBasicBlock block : chains.keySet()) {
       for (final Map<LLDeclaration, Set<Chain>> intermediary : chains.get(block)) {
         for (final LLDeclaration declaration : intermediary.keySet()) {
@@ -160,11 +160,11 @@ public class RegAllocator {
   }
 
   private static Map<Web, Set<Web>> interferenceFind(final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains) {
-    final Map<Web, Set<Web>> interference = new HashMap<>();
+    final Map<Web, Set<Web>> interference = new LinkedHashMap<>();
 
     // initialize with no interference for all
     for (Web web : collectWebs(chains)) {
-      interference.put(web, new HashSet<>());
+      interference.put(web, new LinkedHashSet<>());
     }
 
     for (final LLBasicBlock block : chains.keySet()) {
@@ -196,16 +196,16 @@ public class RegAllocator {
 
   // Chaitin's algorithm
   private static void color(final Map<Web, Set<Web>> originalInterference, List<String> colors) {
-    final Map<Web, Set<Web>> currentInterference = new HashMap<>();
+    final Map<Web, Set<Web>> currentInterference = new LinkedHashMap<>();
     for (final Map.Entry<Web, Set<Web>> entry : originalInterference.entrySet()) {
-      currentInterference.put(entry.getKey(), new HashSet<>(entry.getValue()));
+      currentInterference.put(entry.getKey(), new LinkedHashSet<>(entry.getValue()));
     }
 
     final Stack<Web> stack = new Stack<>();
 
     while (!allPrecolored(currentInterference.keySet())) {
       boolean anyRemoved = false;
-      for (final Web current : Set.copyOf(currentInterference.keySet())) {
+      for (final Web current : new LinkedHashSet<>(currentInterference.keySet())) {
         if (currentInterference.get(current).size() < colors.size() && !current.hasLocation()) {
           stack.push(current);
           //System.err.println("web " + current.getIndex() + " added to stack");
@@ -244,7 +244,7 @@ public class RegAllocator {
 
     while (!stack.isEmpty()) {
       final Web current = stack.pop();
-      //System.err.println("web " + current.getIndex() + " popped from stack");
+      System.err.println("web " + current.getIndex() + " popped from stack");
 
       if (current.hasLocation()) {
         for (final Web neighbor : originalInterference.get(current)) {
@@ -253,7 +253,7 @@ public class RegAllocator {
           }
         }
       } else {
-        final Set<String> neighborLocations = new HashSet<>();
+        final Set<String> neighborLocations = new LinkedHashSet<>();
         for (final Web neighbor : originalInterference.get(current)) {
           if (neighbor.hasLocation()) {
             neighborLocations.add(neighbor.getLocation());
@@ -351,15 +351,15 @@ public class RegAllocator {
     final LLControlFlowGraph controlFlowGraph = methodDeclaration.getBody();
 
     // TODO(rbd): Extend this for cases beyond function arguments.
-    final Map<String, LLDeclaration> precolor2declaration = new HashMap<>();
-    final Map<LLDeclaration, String> declaration2precolor = new HashMap<>();
+    final Map<String, LLDeclaration> precolor2declaration = new LinkedHashMap<>();
+    final Map<LLDeclaration, String> declaration2precolor = new LinkedHashMap<>();
     for (final String register : Registers.ARGUMENTS) {
       final LLDeclaration declaration = methodDeclaration.newAlias();
       precolor2declaration.put(register, declaration);
       declaration2precolor.put(declaration, register);
     } 
 
-    final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains = new HashMap<>();
+    final Map<LLBasicBlock, List<Map<LLDeclaration, Set<Chain>>>> chains = new LinkedHashMap<>();
 
     final Set<LLBasicBlock> workSet = new LinkedHashSet<>();
     final Set<LLBasicBlock> visited = new LinkedHashSet<>();
@@ -373,7 +373,7 @@ public class RegAllocator {
       final int n = exit.getInstructions().size() + 1;
       chains.put(exit, new ArrayList<>(n));
       for (int i = 0; i < n; i++) {
-        chains.get(exit).add(new HashMap<>());
+        chains.get(exit).add(new LinkedHashMap<>());
       }
 
       workSet.addAll(controlFlowGraph.expectExit().getPredecessors());
@@ -388,7 +388,7 @@ public class RegAllocator {
 
       chains.put(exception, new ArrayList<>(n));
       for (int i = 0; i < n; i++) {
-        chains.get(exception).add(new HashMap<>());
+        chains.get(exception).add(new LinkedHashMap<>());
       }
 
       workSet.addAll(exception.getPredecessors());
@@ -406,7 +406,7 @@ public class RegAllocator {
         final int n = block.getInstructions().size() + 1;
         chains.put(block, new ArrayList<>(n));
         for (int i = 0; i < n; i++) {
-          chains.get(block).add(new HashMap<>());
+          chains.get(block).add(new LinkedHashMap<>());
         }
 
         workSet.addAll(block.getPredecessors());
