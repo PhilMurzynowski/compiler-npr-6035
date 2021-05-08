@@ -266,6 +266,7 @@ public class LLGenerator {
     ));
 
     int stackSize = methodDeclaration.setStackIndices();
+    stackSize += 40;
     if (stackSize > 0) {
       if (stackSize % 16 != 0) {
         stackSize += 8;

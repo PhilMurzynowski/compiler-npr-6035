@@ -21,7 +21,7 @@ import edu.mit.compilers.reg.*;
 class Main {
 
   // list of available optimizations
-  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "ule", "uce", "fi");
+  private static final List<String> optimizations = List.of("cp", "cse", "cf", "as", "dce", "ule", "uce", "fi", "reg");
 
   private static String tokenString(Token token) {
     StringBuilder output = new StringBuilder();
@@ -205,12 +205,16 @@ class Main {
         ll.accept(new UnreachableCodeElimination());
       }
     }
-    for (final LLMethodDeclaration method : ll.getMethodDeclarations()) {
-      RegAllocator.apply(method);
+    String assembly;
+    if (CLI.opts[optimizations.indexOf("reg")]) {
+      for (final LLMethodDeclaration method : ll.getMethodDeclarations()) {
+        RegAllocator.apply(method);
+      }
+      assembly = RegGenerator.generateProgram(ll);
+    } else {
+      assembly = LLGenerator.generateProgram(ll);
     }
     System.err.println(ll.prettyString(0));
-    //String assembly = LLGenerator.generateProgram(ll);
-    String assembly = RegGenerator.generateProgram(ll);
     outputStream.print(assembly);
   }
 
