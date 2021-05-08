@@ -382,9 +382,9 @@ public class RegAllocator {
 
     // Initialize the exception blocks' chains
     for (final LLBasicBlock exception : controlFlowGraph.getExceptions()) {
-      final int n = exception.getInstructions().size() + 1;
-
       precolor(exception, precolor2declaration);
+
+      final int n = exception.getInstructions().size() + 1;
 
       chains.put(exception, new ArrayList<>(n));
       for (int i = 0; i < n; i++) {
