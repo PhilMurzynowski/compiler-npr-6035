@@ -108,6 +108,8 @@ public class LLReturn implements LLInstruction {
     s.append("ret");
     if (expression.isPresent()) {
       s.append(" " + expression.get().prettyString(depth));
+    } else {
+      s.append(" " + "void");
     }
     int alignment = 32 - depth * 2 - s.length();
     s.append(" ".repeat(alignment > 0 ? alignment : 1) + "; webs { ");

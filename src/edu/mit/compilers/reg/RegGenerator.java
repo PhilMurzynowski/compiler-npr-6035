@@ -1000,11 +1000,13 @@ public class RegGenerator {
     // TODO: (same comment as in external) Use the webs to limit the amount of pushes/pops
     int totalPushed = 0;
     for (String register : Registers.CALLER_SAVED) {
-      if (!internalCall.getDefWebLocation().equals(register)) {
+      if (!internalCall.defInRegister() || !internalCall.getDefWebLocation().equals(register)) {
         s.append(generateInstruction("pushq", register));
         totalPushed++;
       }
     }
+
+
 
     // NOTE(rbd): Not necessary because of precoloring.
     // for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
@@ -1036,10 +1038,12 @@ public class RegGenerator {
       s.append(generateInstruction("addq", "$"+size, "%rsp"));
     }
 
-    s.append(generateInstruction("movq", "%rax", internalCall.getDefWebLocation()));
+    if (internalCall.getResult().isPresent()) {
+      s.append(generateInstruction("movq", "%rax", internalCall.getDefWebLocation()));
+    }
 
     for (int i = Registers.CALLER_SAVED.size() - 1; i >= 0; --i) {
-      if (!internalCall.getDefWebLocation().equals(Registers.CALLER_SAVED.get(i))) {
+      if (!internalCall.defInRegister() || !internalCall.getDefWebLocation().equals(Registers.CALLER_SAVED.get(i))) {
         s.append(generateInstruction("popq", Registers.CALLER_SAVED.get(i)));
       }
     }

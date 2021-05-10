@@ -628,7 +628,10 @@ public class LLGenerator {
       s.append(generateInstruction("addq", "$"+size, "%rsp"));
     }
 
-    s.append(generateInstruction("movq", "%rax", internalCall.getResult().location()));
+    if (internalCall.getResult().isPresent()) {
+      s.append(generateInstruction("movq", "%rax", internalCall.getResult().get().location()));
+    }
+
 
     // for (int i = registers.size() - 1; i >= 0; --i) {
     //   s.append(generateInstruction("popq", registers.get(i)));

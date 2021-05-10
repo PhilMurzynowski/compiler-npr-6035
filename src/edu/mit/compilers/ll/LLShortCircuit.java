@@ -1,6 +1,7 @@
 package edu.mit.compilers.ll;
 
 import java.util.Map;
+import java.util.Optional;
 
 import edu.mit.compilers.hl.*;
 import edu.mit.compilers.common.*;
@@ -132,7 +133,7 @@ public class LLShortCircuit {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     final LLAliasDeclaration callResult = methodDeclaration.newAlias();
-    final LLControlFlowGraph callCFG = LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, callResult, argumentAliases);
+    final LLControlFlowGraph callCFG = LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, Optional.of(callResult), argumentAliases);
     resultCFG = resultCFG.concatenate(callCFG);
 
     final LLBasicBlock compareBB = new LLBasicBlock(

@@ -10,11 +10,11 @@ public class LLInternalCall implements LLInstruction {
 
   private final LLMethodDeclaration declaration;
   private final List<LLDeclaration> arguments;
-  private final LLDeclaration result;
+  private final Optional<LLDeclaration> result;
   private Optional<Web> definitionWeb;
   private Map<LLDeclaration, Web> usesWebs;
 
-  public LLInternalCall(LLMethodDeclaration declaration, List<LLDeclaration> arguments, LLDeclaration result) {
+  public LLInternalCall(LLMethodDeclaration declaration, List<LLDeclaration> arguments, Optional<LLDeclaration> result) {
     this.declaration = declaration;
     this.arguments = arguments;
     this.result = result;
@@ -26,9 +26,9 @@ public class LLInternalCall implements LLInstruction {
 
     private final LLMethodDeclaration declaration;
     private final List<LLDeclaration> arguments;
-    private final LLDeclaration result;
+    private final Optional<LLDeclaration> result;
 
-    public Builder(LLMethodDeclaration declaration, LLDeclaration result) {
+    public Builder(LLMethodDeclaration declaration, Optional<LLDeclaration> result) {
       this.declaration = declaration;
       arguments = new ArrayList<>();
       this.result = result;
@@ -53,7 +53,7 @@ public class LLInternalCall implements LLInstruction {
     return arguments;
   }
 
-  public LLDeclaration getResult() {
+  public Optional<LLDeclaration> getResult() {
     return result;
   }
 
@@ -85,7 +85,7 @@ public class LLInternalCall implements LLInstruction {
 
   @Override
   public Optional<LLDeclaration> definition() {
-    return Optional.of(result);
+    return result;
   }
 
   @Override
@@ -154,7 +154,11 @@ public class LLInternalCall implements LLInstruction {
   public String prettyString(int depth) {
     StringBuilder s = new StringBuilder();
 
-    s.append(result.prettyString(depth) + " = call " + declaration.prettyString(depth) + "(");
+    if (result.isPresent()) {
+      s.append(result.get().prettyString(depth) + " = call " + declaration.prettyString(depth) + "(");
+    } else {
+      s.append("void call " + declaration.prettyString(depth) + "(");
+    }
 
     if (arguments.size() > 0) {
       s.append(arguments.get(0).prettyString(depth));
@@ -169,7 +173,7 @@ public class LLInternalCall implements LLInstruction {
     int alignment = 32 - depth * 2 - s.length();
     s.append(" ".repeat(alignment > 0 ? alignment : 1) + "; webs { ");
     if (definitionWeb.isPresent()) {
-      s.append(result.prettyString(depth) + " => (" + definitionWeb.get().getIndex() + ", " + definitionWeb.get().getLocation() + "), ");
+      s.append(result.get().prettyString(depth) + " => (" + definitionWeb.get().getIndex() + ", " + definitionWeb.get().getLocation() + "), ");
     }
     for (final Map.Entry<LLDeclaration, Web> entry : usesWebs.entrySet()) {
       s.append(entry.getKey().prettyString(depth) + " => (" + entry.getValue().getIndex() + ", " + entry.getValue().getLocation() + "), ");
@@ -189,7 +193,9 @@ public class LLInternalCall implements LLInstruction {
       s.append(indent(depth + 2) + argument.debugString(depth + 2) + ",\n");
     }
     s.append(indent(depth + 1) + "],\n");
-    s.append(indent(depth + 1) + "result: " + result.debugString(depth + 1) + ",\n");
+    if (result.isPresent()) {
+      s.append(indent(depth + 1) + "result: " + result.get().debugString(depth + 1) + ",\n");
+    }
     if (definitionWeb.isPresent()) {
       s.append(indent(depth + 1) + "definitionWeb: " + definitionWeb.get().debugString(depth + 1) + ",\n");
     }

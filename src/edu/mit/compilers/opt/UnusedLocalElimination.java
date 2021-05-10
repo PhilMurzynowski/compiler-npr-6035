@@ -1,5 +1,6 @@
 package edu.mit.compilers.opt;
 
+import edu.mit.compilers.common.MethodType;
 import edu.mit.compilers.ll.*;
 
 import java.util.HashSet;
@@ -97,8 +98,8 @@ public class UnusedLocalElimination implements Optimization{
       for (LLInstruction instruction : block.getInstructions()) {
         usedLocals.addAll(instruction.uses());
         // method results must always be used, never eliminated
-        if (instruction instanceof LLInternalCall internalCall) {
-          usedLocals.add(internalCall.getResult());
+        if (instruction instanceof LLInternalCall internalCall && internalCall.getDeclaration().getMethodType() != MethodType.VOID) {
+          usedLocals.add(internalCall.getResult().get());
         } else if (instruction instanceof  LLExternalCall externalCall) {
           usedLocals.add(externalCall.getResult());
         }

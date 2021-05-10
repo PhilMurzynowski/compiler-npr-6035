@@ -334,11 +334,16 @@ public class LLBuilder {
   // DONE: Phil
   public static LLControlFlowGraph buildCallStatement(HLCallStatement callStatement, LLMethodDeclaration methodDeclaration, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     final HLCallExpression callExpression = callStatement.getCall();
-    final LLAliasDeclaration callResult = methodDeclaration.newAlias();
 
     if (callExpression instanceof HLInternalCallExpression internalCallExpression) {
-      return LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, callResult, argumentAliases);
+      if (internalCallExpression.getDeclaration().getMethodType() == MethodType.VOID) {
+        return LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, Optional.empty(), argumentAliases);
+      } else {
+        final LLAliasDeclaration callResult = methodDeclaration.newAlias();
+        return LLBuilder.buildInternalCallExpression(internalCallExpression, methodDeclaration, Optional.of(callResult), argumentAliases);
+      }
     } else if (callExpression instanceof HLExternalCallExpression externalCallExpression) {
+      final LLAliasDeclaration callResult = methodDeclaration.newAlias();
       return LLBuilder.buildExternalCallExpression(externalCallExpression, methodDeclaration, callResult, argumentAliases);
     } else {
       throw new RuntimeException("unreachable");
@@ -439,11 +444,11 @@ public class LLBuilder {
         );
       }
     } else {
-      if (returnResult.isPresent()) {
+      if (returnTarget.isPresent()) { // function is inlined
         resultCFG = resultCFG.concatenate(returnTarget.get());
       } else {
         resultCFG = resultCFG.concatenate(
-          new LLReturn(Optional.empty(), methodDeclaration)
+            new LLReturn(Optional.empty(), methodDeclaration)
         );
       }
     }
@@ -496,7 +501,7 @@ public class LLBuilder {
     } else if (expression instanceof HLLoadExpression loadExpression) {
       return LLBuilder.buildLoadExpression(loadExpression, methodDeclaration, result, argumentAliases);
     } else if (expression instanceof HLCallExpression callExpression) {
-      return LLBuilder.buildCallExpression(callExpression, methodDeclaration, result, argumentAliases);
+      return LLBuilder.buildCallExpression(callExpression, methodDeclaration, Optional.of(result), argumentAliases);
     } else if (expression instanceof HLLengthExpression lengthExpression) {
       return LLBuilder.buildLengthExpression(lengthExpression, methodDeclaration, result);
     } else if (expression instanceof HLIntegerLiteral integerLiteral) {
@@ -630,18 +635,18 @@ public class LLBuilder {
   }
 
   // DONE: Noah
-  public static LLControlFlowGraph buildCallExpression(HLCallExpression callExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
+  public static LLControlFlowGraph buildCallExpression(HLCallExpression callExpression, LLMethodDeclaration methodDeclaration, Optional<LLDeclaration> result, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     if (callExpression instanceof HLInternalCallExpression internalCallExpression) {
       return buildInternalCallExpression(internalCallExpression, methodDeclaration, result, argumentAliases);
     } else if (callExpression instanceof HLExternalCallExpression externalCallExpression) {
-      return buildExternalCallExpression(externalCallExpression, methodDeclaration, result, argumentAliases);
+      return buildExternalCallExpression(externalCallExpression, methodDeclaration, result.get(), argumentAliases);
     } else {
       throw new RuntimeException("unreachable");
     }
   }
 
   // DONE: Phil
-  public static LLControlFlowGraph buildInternalCallExpression(HLInternalCallExpression internalCallExpression, LLMethodDeclaration methodDeclaration, LLDeclaration result, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
+  public static LLControlFlowGraph buildInternalCallExpression(HLInternalCallExpression internalCallExpression, LLMethodDeclaration methodDeclaration, Optional<LLDeclaration> result, Map<HLScalarFieldDeclaration, LLAliasDeclaration> argumentAliases) {
     LLControlFlowGraph resultCFG = LLControlFlowGraph.empty();
 
     if (internalCallExpression.shouldInline()) {
@@ -661,7 +666,7 @@ public class LLBuilder {
       }
 
       final LLBasicBlock returnTarget = new LLBasicBlock();
-      LLControlFlowGraph bodyCFG = buildBlock(inlineMethodDeclaration.getBody(), methodDeclaration, Optional.empty(), Optional.empty(), newArgumentAliases, Optional.of(result), Optional.of(returnTarget));
+      LLControlFlowGraph bodyCFG = buildBlock(inlineMethodDeclaration.getBody(), methodDeclaration, Optional.empty(), Optional.empty(), newArgumentAliases, result, Optional.of(returnTarget));
 
       if (bodyCFG.expectExit() != returnTarget) {
         if (inlineMethodDeclaration.getMethodType() != MethodType.VOID) {
