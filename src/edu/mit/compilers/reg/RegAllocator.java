@@ -90,6 +90,34 @@ public class RegAllocator {
           instruction.addUsesWeb(use, above.get(use).iterator().next().getWeb());
         }
       }
+
+      // for calls, store above/below sets
+      if (instruction instanceof LLInternalCall internalCall) {
+        for (LLDeclaration declaration : below.keySet()) {
+          for (Chain chain : below.get(declaration)) {
+            internalCall.addBelowWeb(chain.getWeb());
+          }
+        }
+
+        for (LLDeclaration declaration : above.keySet()) {
+          for (Chain chain : above.get(declaration)) {
+            internalCall.addAboveWeb(chain.getWeb());
+          }
+        }
+      } else if (instruction instanceof LLExternalCall externalCall) {
+        for (LLDeclaration declaration : below.keySet()) {
+          for (Chain chain : below.get(declaration)) {
+            externalCall.addBelowWeb(chain.getWeb());
+          }
+        }
+
+        for (LLDeclaration declaration : above.keySet()) {
+          for (Chain chain : above.get(declaration)) {
+            externalCall.addAboveWeb(chain.getWeb());
+          }
+        }
+      }
+
     }
     // set chains as interfering
     final Map<LLDeclaration, Set<Chain>> above = intermediaries.get(0);

@@ -13,6 +13,8 @@ public class LLInternalCall implements LLInstruction {
   private final Optional<LLDeclaration> result;
   private Optional<Web> definitionWeb;
   private Map<LLDeclaration, Web> usesWebs;
+  private final Set<Web> aboveWebs;
+  private final Set<Web> belowWebs;
 
   public LLInternalCall(LLMethodDeclaration declaration, List<LLDeclaration> arguments, Optional<LLDeclaration> result) {
     this.declaration = declaration;
@@ -20,6 +22,8 @@ public class LLInternalCall implements LLInstruction {
     this.result = result;
     this.definitionWeb = Optional.empty();
     this.usesWebs = new HashMap<>();
+    this.aboveWebs = new HashSet<>();
+    this.belowWebs = new HashSet<>();
   }
 
   public static class Builder {
@@ -69,6 +73,28 @@ public class LLInternalCall implements LLInstruction {
   @Override
   public void addUsesWeb(final LLDeclaration definition, final Web web) {
     usesWebs.put(definition, web);
+  }
+
+  public void addAboveWeb(final Web web) {
+    this.aboveWebs.add(web);
+  }
+
+  public void addBelowWeb(final Web web) {
+    this.belowWebs.add(web);
+  }
+
+  public Set<Web> getAboveWebs() {
+    return Set.copyOf(this.aboveWebs);
+  }
+
+  public Set<Web> getBelowWebs() {
+    return Set.copyOf(this.belowWebs);
+  }
+
+  public Set<Web> getWebsAcross() {
+    final Set<Web> intersection = new HashSet<>(this.aboveWebs);
+    intersection.retainAll(this.belowWebs);
+    return intersection;
   }
 
   @Override

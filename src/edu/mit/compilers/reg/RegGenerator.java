@@ -2,6 +2,8 @@ package edu.mit.compilers.reg;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import edu.mit.compilers.common.*;
 import edu.mit.compilers.ll.*;
@@ -32,6 +34,11 @@ public class RegGenerator {
     }
     s.append("\n");
     return s.toString();
+  }
+
+  private static String generateMove(String src, String dst) {
+    if (src.equals(dst)) return "";
+    else return generateInstruction("movq", src, dst);
   }
 
   // no work needed
@@ -179,14 +186,14 @@ public class RegGenerator {
   }
 
   // no work needed
-  public static String generateBasicBlock(LLBasicBlock basicBlock) {
+  public static String generateBasicBlock(LLBasicBlock basicBlock, LLMethodDeclaration methodDeclaration) {
     StringBuilder s = new StringBuilder();
 
     if (!basicBlock.isGenerated()) {
       s.append(generateLabel(basicBlock.location()));
 
       for (LLInstruction instruction : basicBlock.getInstructions()) {
-        s.append(generateInstruction(instruction));
+        s.append(generateInstruction(instruction, methodDeclaration));
       }
 
       basicBlock.setGenerated();
@@ -220,10 +227,10 @@ public class RegGenerator {
           if (basicBlock.getTrueTarget().isGenerated()) {
             s.append(generateInstruction("jmp", basicBlock.getTrueTarget().location()));
           } else {
-            s.append(generateBasicBlock(basicBlock.getTrueTarget()));
+            s.append(generateBasicBlock(basicBlock.getTrueTarget(), methodDeclaration));
           }
 
-          s.append(generateBasicBlock(basicBlock.getFalseTarget()));
+          s.append(generateBasicBlock(basicBlock.getFalseTarget(), methodDeclaration));
         } else {
           throw new RuntimeException("expected last instruction to be a comparison");
         }
@@ -231,7 +238,7 @@ public class RegGenerator {
         if (basicBlock.getTrueTarget().isGenerated()) {
           s.append(generateInstruction("jmp", basicBlock.getTrueTarget().location()));
         } else {
-          s.append(generateBasicBlock(basicBlock.getTrueTarget()));
+          s.append(generateBasicBlock(basicBlock.getTrueTarget(), methodDeclaration));
         }
       }
     }
@@ -239,10 +246,10 @@ public class RegGenerator {
     return s.toString();
   }
 
-  public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph) {
+  public static String generateControlFlowGraph(LLControlFlowGraph controlFlowGraph, LLMethodDeclaration methodDeclaration) {
     StringBuilder s = new StringBuilder();
 
-    s.append(generateBasicBlock(controlFlowGraph.getEntry()));
+    s.append(generateBasicBlock(controlFlowGraph.getEntry(), methodDeclaration));
 
     if (controlFlowGraph.hasExit()) {
       assert controlFlowGraph.expectExit().isGenerated() : "failed to generate control flow graph exit";
@@ -266,23 +273,27 @@ public class RegGenerator {
         "pushq",
         "%rbp"
     ));
-    s.append(generateInstruction(
-        "movq",
+    s.append(generateMove(
         "%rsp",
         "%rbp"
     ));
 
+    final Set<String> modifiedRegs = WebUtils.getAllDefColors(methodDeclaration);
+
     // callee saved registers
+    int modifiedCallee = 0;
     for (String register : Registers.CALLEE_SAVED) {
-      if (!register.equals(Registers.RBP)) {
+      if (!register.equals(Registers.RBP) && modifiedRegs.contains(register)) {
         s.append(generateInstruction("pushq", register));
+        modifiedCallee++;
       }
     }
 
     int stackSize = methodDeclaration.setStackIndices();
     stackSize += 8; // callq pushes rax
+
     if (stackSize > 0) {
-      if (stackSize % 16 == 0) {
+      if (stackSize % 16 == 0 ^ modifiedCallee % 2 == 0) {
         stackSize += 8;
       }
       s.append(generateInstruction(
@@ -296,7 +307,7 @@ public class RegGenerator {
     final List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
 
     for (int i = 0; i < registers.size() && i < methodDeclaration.getArgumentDeclarations().size(); ++i) {
-      s.append(generateInstruction("movq", registers.get(i), methodDeclaration.getArgumentDeclarations().get(i).location()));
+      s.append(generateMove(registers.get(i), methodDeclaration.getArgumentDeclarations().get(i).location()));
     }
 
     // NOTE(phil): arguments handled by caller
@@ -304,7 +315,7 @@ public class RegGenerator {
 
     if (methodDeclaration.hasBody()) {
       LLControlFlowGraph body = methodDeclaration.getBody();
-      s.append(generateControlFlowGraph(body));
+      s.append(generateControlFlowGraph(body, methodDeclaration));
     }
 
     return s.toString();
@@ -335,13 +346,13 @@ public class RegGenerator {
   }
 
   // no work needed
-  public static String generateInstruction(LLInstruction instruction) {
+  public static String generateInstruction(LLInstruction instruction, LLMethodDeclaration methodDeclaration) {
     if (instruction instanceof LLStoreScalar storeScalar) {
       return generateStoreScalar(storeScalar);
     } else if (instruction instanceof LLStoreArray storeArray) {
       return generateStoreArray(storeArray);
     } else if (instruction instanceof LLReturn llReturn) {
-      return generateReturn(llReturn);
+      return generateReturn(llReturn, methodDeclaration);
     } else if (instruction instanceof LLException llException) {
       return generateException(llException);
     } else if (instruction instanceof LLBinary binary) {
@@ -385,10 +396,10 @@ public class RegGenerator {
     final String expressionLocation = storeScalar.getUseWebLocation(expression);
 
     if (expressionInRegister || declarationInRegister) { 
-      s.append(generateInstruction("movq", expressionLocation, declarationLocation));
+      s.append(generateMove(expressionLocation, declarationLocation));
     } else {
-      s.append(generateInstruction("movq", expressionLocation, "%rax"));
-      s.append(generateInstruction("movq", "%rax", declarationLocation));
+      s.append(generateMove(expressionLocation, "%rax"));
+      s.append(generateMove("%rax", declarationLocation));
     }
 
     return s.toString();
@@ -408,47 +419,50 @@ public class RegGenerator {
     final String expressionLocation = storeArray.getUseWebLocation(expression);
 
     if (indexInRegister && expressionInRegister) {
-      s.append(generateInstruction("movq", expressionLocation, storeArray.getDeclaration().index(indexLocation)));
+      s.append(generateMove(expressionLocation, storeArray.getDeclaration().index(indexLocation)));
     } else if (indexInRegister && !expressionInRegister) {
-      s.append(generateInstruction("movq", expressionLocation, "%rax"));
-      s.append(generateInstruction("movq", "%rax", storeArray.getDeclaration().index(indexLocation)));
+      s.append(generateMove(expressionLocation, "%rax"));
+      s.append(generateMove("%rax", storeArray.getDeclaration().index(indexLocation)));
     } else if (!indexInRegister && expressionInRegister) {
-      s.append(generateInstruction("movq", indexLocation, "%r10"));
-      s.append(generateInstruction("movq", expressionLocation, storeArray.getDeclaration().index("%r10")));
+      s.append(generateMove(indexLocation, "%r10"));
+      s.append(generateMove(expressionLocation, storeArray.getDeclaration().index("%r10")));
     } else {
-      s.append(generateInstruction("movq", indexLocation, "%r10"));
-      s.append(generateInstruction("movq", expressionLocation, "%rax"));
-      s.append(generateInstruction("movq", "%rax", storeArray.getDeclaration().index("%r10")));
+      s.append(generateMove(indexLocation, "%r10"));
+      s.append(generateMove(expressionLocation, "%rax"));
+      s.append(generateMove("%rax", storeArray.getDeclaration().index("%r10")));
     }
 
     return s.toString();
   }
 
   // Noah: DONE
-  public static String generateReturn(LLReturn ret) {
+  public static String generateReturn(LLReturn ret, LLMethodDeclaration methodDeclaration) {
     StringBuilder s = new StringBuilder();
 
     Optional<LLDeclaration> returnExpression = ret.getExpression();
     if (returnExpression.isPresent()) {
-      s.append(generateInstruction("movq", ret.getUseWebLocation(returnExpression.get()), "%rax"));
+      s.append(generateMove(ret.getUseWebLocation(returnExpression.get()), "%rax"));
     } else {
-      s.append(generateInstruction("movq", "$0", "%rax"));
+      s.append(generateMove("$0", "%rax"));
     }
+
+    final Set<String> modifiedRegs = WebUtils.getAllDefColors(methodDeclaration);
 
     // add back space for stack allocated temporaries
     s.append(generateInstruction(
         "addq",
-        "$"+ret.getMethodDeclaration().getAllocatedSpace(),
+        "$"+(ret.getMethodDeclaration().getAllocatedSpace()),
         "%rsp"
     ));
 
     for (int i = Registers.CALLEE_SAVED.size() - 1; i >= 0; --i) {
-      if (!Registers.CALLEE_SAVED.get(i).equals(Registers.RBP)) {
-        s.append(generateInstruction("popq", Registers.CALLEE_SAVED.get(i)));
+      final String register = Registers.CALLEE_SAVED.get(i);
+      if (!register.equals(Registers.RBP) && modifiedRegs.contains(register)) {
+        s.append(generateInstruction("popq", register));
       }
     }
 
-    s.append(generateInstruction("movq", "%rbp", "%rsp"));
+    s.append(generateMove("%rbp", "%rsp"));
     s.append(generateInstruction("popq", "%rbp"));
 
     s.append(generateInstruction("retq"));
@@ -463,17 +477,17 @@ public class RegGenerator {
     if (exception.getType().equals(LLException.Type.OutOfBounds)) {
       s.append(generateInstruction("leaq", "out_of_bounds(%rip)", "%rdi"));
       s.append(generateInstruction("callq", "printf"));
-      s.append(generateInstruction("movq", "$-1", "%rdi"));
+      s.append(generateMove("$-1", "%rdi"));
       s.append(generateInstruction("callq", "exit"));
     } else if (exception.getType().equals(LLException.Type.NoReturnValue)) {
       s.append(generateInstruction("leaq", "no_return_value(%rip)", "%rdi"));
       s.append(generateInstruction("callq", "printf"));
-      s.append(generateInstruction("movq", "$-2", "%rdi"));
+      s.append(generateMove("$-2", "%rdi"));
       s.append(generateInstruction("callq", "exit"));
     } else if (exception.getType().equals(LLException.Type.DivideByZero)) {
       s.append(generateInstruction("leaq", "divide_by_zero(%rip)", "%rdi"));
       s.append(generateInstruction("callq", "printf"));
-      s.append(generateInstruction("movq", "$-3", "%rdi"));
+      s.append(generateMove("$-3", "%rdi"));
       s.append(generateInstruction("callq", "exit"));
     } else {
       throw new RuntimeException("unreachable");
@@ -505,13 +519,13 @@ public class RegGenerator {
           } else if (rightInRegister && rightLocation.equals(resultLocation)) {
             s.append(generateInstruction("orq", leftLocation, resultLocation));
           } else {
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("orq", rightLocation, resultLocation));
           }
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%rax"));
+          s.append(generateMove(leftLocation, "%rax"));
           s.append(generateInstruction("orq", rightLocation, "%rax"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case AND:
@@ -521,13 +535,13 @@ public class RegGenerator {
           } else if (rightInRegister && rightLocation.equals(resultLocation)) {
             s.append(generateInstruction("andq", leftLocation, resultLocation));
           } else {
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("andq", rightLocation, resultLocation));
           }
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%rax"));
+          s.append(generateMove(leftLocation, "%rax"));
           s.append(generateInstruction("andq", rightLocation, "%rax"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case EQUAL:
@@ -540,7 +554,7 @@ public class RegGenerator {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
             }
             s.append(generateInstruction("sete", "%al"));
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -551,16 +565,16 @@ public class RegGenerator {
             s.append(generateInstruction("sete", q2b(resultLocation)));
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("sete", q2b(resultLocation)));
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", "%rax", "%rax"));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("sete", "%al"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case NOT_EQUAL:
@@ -573,7 +587,7 @@ public class RegGenerator {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
             }
             s.append(generateInstruction("setne", "%al"));
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -584,16 +598,16 @@ public class RegGenerator {
             s.append(generateInstruction("setne", q2b(resultLocation)));
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setne", q2b(resultLocation)));
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", "%rax", "%rax"));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setne", "%al"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case LESS_THAN:
@@ -607,7 +621,7 @@ public class RegGenerator {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
               s.append(generateInstruction("setl", "%al"));
             }
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -619,16 +633,16 @@ public class RegGenerator {
             }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setl", q2b(resultLocation)));
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", "%rax", "%rax"));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setl", "%al"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case LESS_THAN_OR_EQUAL:
@@ -642,7 +656,7 @@ public class RegGenerator {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
               s.append(generateInstruction("setle", "%al"));
             }
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -654,16 +668,16 @@ public class RegGenerator {
             }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setle", q2b(resultLocation)));
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", "%rax", "%rax"));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setle", "%al"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
      case GREATER_THAN:
@@ -677,7 +691,7 @@ public class RegGenerator {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
               s.append(generateInstruction("setg", "%al"));
             }
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -689,16 +703,16 @@ public class RegGenerator {
             }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setg", q2b(resultLocation)));
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", "%rax", "%rax"));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setg", "%al"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case GREATER_THAN_OR_EQUAL:
@@ -712,7 +726,7 @@ public class RegGenerator {
               s.append(generateInstruction("cmpq", rightLocation, leftLocation));
               s.append(generateInstruction("setge", "%al"));
             }
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
             s.append(generateInstruction("xorq", resultLocation, resultLocation));
             if (left instanceof LLConstantDeclaration) {
@@ -724,16 +738,16 @@ public class RegGenerator {
             }
           }
         } else if (resultInRegister && !leftInRegister && !rightInRegister) {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", resultLocation, resultLocation));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setge", q2b(resultLocation)));
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%r10"));
+          s.append(generateMove(leftLocation, "%r10"));
           s.append(generateInstruction("xorq", "%rax", "%rax"));
           s.append(generateInstruction("cmpq", rightLocation, "%r10"));
           s.append(generateInstruction("setge", "%al"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case ADD:
@@ -743,13 +757,13 @@ public class RegGenerator {
           } else if (rightInRegister && rightLocation.equals(resultLocation)) {
             s.append(generateInstruction("addq", leftLocation, resultLocation));
           } else {
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("addq", rightLocation, resultLocation));
           }
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%rax"));
+          s.append(generateMove(leftLocation, "%rax"));
           s.append(generateInstruction("addq", rightLocation, "%rax"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case SUBTRACT:
@@ -757,17 +771,17 @@ public class RegGenerator {
           if (leftInRegister && leftLocation.equals(resultLocation)) {
             s.append(generateInstruction("subq", rightLocation, resultLocation));
           } else if (rightInRegister && rightLocation.equals(resultLocation)) {
-            s.append(generateInstruction("movq", leftLocation, "%rax"));
+            s.append(generateMove(leftLocation, "%rax"));
             s.append(generateInstruction("subq", rightLocation, "%rax"));
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("subq", rightLocation, resultLocation));
           }
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%rax"));
+          s.append(generateMove(leftLocation, "%rax"));
           s.append(generateInstruction("subq", rightLocation, "%rax"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case MULTIPLY:
@@ -777,80 +791,80 @@ public class RegGenerator {
           } else if (rightInRegister && rightLocation.equals(resultLocation)) {
             s.append(generateInstruction("imulq", leftLocation, resultLocation));
           } else {
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("imulq", rightLocation, resultLocation));
           }
         } else {
-          s.append(generateInstruction("movq", leftLocation, "%rax"));
+          s.append(generateMove(leftLocation, "%rax"));
           s.append(generateInstruction("imulq", rightLocation, "%rax"));
-          s.append(generateInstruction("movq", "%rax", resultLocation));
+          s.append(generateMove("%rax", resultLocation));
         }
         break;
       case DIVIDE: // TODO(rbd): Can be further optimized.
-        s.append(generateInstruction("movq", leftLocation, "%rax"));
+        s.append(generateMove(leftLocation, "%rax"));
         s.append(generateInstruction("cqto"));
         if (binary.getRight() instanceof LLConstantDeclaration) {
-          s.append(generateInstruction("movq", rightLocation, "%r10"));
+          s.append(generateMove(rightLocation, "%r10"));
           s.append(generateInstruction("idivq", "%r10"));
         } else {
           s.append(generateInstruction("idivq", rightLocation));
         }
-        s.append(generateInstruction("movq", "%rax", resultLocation));
+        s.append(generateMove("%rax", resultLocation));
         break;
       case MODULUS: // TODO(rbd): Can be further optimized.
-        s.append(generateInstruction("movq", leftLocation, "%rax"));
+        s.append(generateMove(leftLocation, "%rax"));
         s.append(generateInstruction("cqto"));
         if (binary.getRight() instanceof LLConstantDeclaration) {
-          s.append(generateInstruction("movq", rightLocation, "%r10"));
+          s.append(generateMove(rightLocation, "%r10"));
           s.append(generateInstruction("idivq", "%r10"));
         } else {
           s.append(generateInstruction("idivq", rightLocation));
         }
-        s.append(generateInstruction("movq", "%rdx", resultLocation));
+        s.append(generateMove("%rdx", resultLocation));
         break;
       case SHIFT_LEFT:
         if (resultInRegister) {
           if (right instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("shlq", rightLocation, resultLocation));
           } else {
-            s.append(generateInstruction("movq", rightLocation, "%rcx"));
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(rightLocation, "%rcx"));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("shlq", "%cl", resultLocation));
           }
         } else {
           if (right instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("movq", leftLocation, "%rax"));
+            s.append(generateMove(leftLocation, "%rax"));
             s.append(generateInstruction("shlq", rightLocation, "%rax"));
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
-            s.append(generateInstruction("movq", rightLocation, "%rcx"));
-            s.append(generateInstruction("movq", leftLocation, "%rax"));
+            s.append(generateMove(rightLocation, "%rcx"));
+            s.append(generateMove(leftLocation, "%rax"));
             s.append(generateInstruction("shlq", "%cl", "%rax"));
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           }
         }
         break;
       case SHIFT_RIGHT:
         if (resultInRegister) {
           if (right instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("shrq", rightLocation, resultLocation));
           } else {
-            s.append(generateInstruction("movq", rightLocation, "%rcx"));
-            s.append(generateInstruction("movq", leftLocation, resultLocation));
+            s.append(generateMove(rightLocation, "%rcx"));
+            s.append(generateMove(leftLocation, resultLocation));
             s.append(generateInstruction("shrq", "%cl", resultLocation));
           }
         } else {
           if (right instanceof LLConstantDeclaration) {
-            s.append(generateInstruction("movq", leftLocation, "%rax"));
+            s.append(generateMove(leftLocation, "%rax"));
             s.append(generateInstruction("shrq", rightLocation, "%rax"));
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           } else {
-            s.append(generateInstruction("movq", rightLocation, "%rcx"));
-            s.append(generateInstruction("movq", leftLocation, "%rax"));
+            s.append(generateMove(rightLocation, "%rcx"));
+            s.append(generateMove(leftLocation, "%rax"));
             s.append(generateInstruction("shrq", "%cl", "%rax"));
-            s.append(generateInstruction("movq", "%rax", resultLocation));
+            s.append(generateMove("%rax", resultLocation));
           }
         }
         break;
@@ -875,43 +889,43 @@ public class RegGenerator {
 
     if (unary.getType().equals(UnaryExpressionType.NEGATE)) {
       if (resultInRegister) {
-        s.append(generateInstruction("movq", expressionLocation, resultLocation));
+        s.append(generateMove(expressionLocation, resultLocation));
         s.append(generateInstruction("negq", resultLocation));
       } else {
-        s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
+        s.append(generateMove(unary.getExpression().location(), "%rax"));
         s.append(generateInstruction("negq", "%rax"));
-        s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+        s.append(generateMove("%rax", unary.getResult().location()));
       }
     } else if (unary.getType().equals(UnaryExpressionType.NOT)) {
       if (expressionInRegister) {
         s.append(generateInstruction("xorq", "%rax", "%rax"));
         s.append(generateInstruction("testq", expressionLocation, expressionLocation));
         s.append(generateInstruction("sete", "%al"));
-        s.append(generateInstruction("movq", "%rax", resultLocation));
+        s.append(generateMove("%rax", resultLocation));
       } else {
-        s.append(generateInstruction("movq", expressionLocation, "%r10"));
+        s.append(generateMove(expressionLocation, "%r10"));
         s.append(generateInstruction("xorq", "%rax", "%rax"));
         s.append(generateInstruction("testq", "%r10", "%r10"));
         s.append(generateInstruction("sete", "%al"));
-        s.append(generateInstruction("movq", "%rax", resultLocation));
+        s.append(generateMove("%rax", resultLocation));
       }
     } else if (unary.getType().equals(UnaryExpressionType.INCREMENT)) {
       if (resultInRegister) {
-        s.append(generateInstruction("movq", expressionLocation, resultLocation));
+        s.append(generateMove(expressionLocation, resultLocation));
         s.append(generateInstruction("incq", resultLocation));
       } else {
-        s.append(generateInstruction("movq", unary.getExpression().location(), "%rax"));
+        s.append(generateMove(unary.getExpression().location(), "%rax"));
         s.append(generateInstruction("incq", "%rax"));
-        s.append(generateInstruction("movq", "%rax", unary.getResult().location()));
+        s.append(generateMove("%rax", unary.getResult().location()));
       }
     } else if (unary.getType().equals(UnaryExpressionType.DECREMENT)) {
       if (resultInRegister) {
-        s.append(generateInstruction("movq", expressionLocation, resultLocation));
+        s.append(generateMove(expressionLocation, resultLocation));
         s.append(generateInstruction("decq", resultLocation));
       } else {
-        s.append(generateInstruction("movq", expressionLocation, "%rax"));
+        s.append(generateMove(expressionLocation, "%rax"));
         s.append(generateInstruction("decq", "%rax"));
-        s.append(generateInstruction("movq", "%rax", resultLocation));
+        s.append(generateMove("%rax", resultLocation));
       }
     }
 
@@ -934,7 +948,7 @@ public class RegGenerator {
     if (leftInRegister || rightInRegister) {
       s.append(generateInstruction("cmpq", rightLocation, leftLocation));
     } else {
-      s.append(generateInstruction("movq", leftLocation, "%rax"));
+      s.append(generateMove(leftLocation, "%rax"));
       s.append(generateInstruction("cmpq", rightLocation, "%rax"));
     }
 
@@ -954,10 +968,10 @@ public class RegGenerator {
     final String declarationLocation = loadScalar.getUseWebLocation(declaration);
 
     if (resultInRegister || declarationInRegister) {
-      s.append(generateInstruction("movq", declarationLocation, resultLocation));
+      s.append(generateMove(declarationLocation, resultLocation));
     } else {
-      s.append(generateInstruction("movq", declarationLocation, "%rax"));
-      s.append(generateInstruction("movq", "%rax", resultLocation));
+      s.append(generateMove(declarationLocation, "%rax"));
+      s.append(generateMove("%rax", resultLocation));
     }
 
     return s.toString();
@@ -974,17 +988,17 @@ public class RegGenerator {
     final String resultLocation = loadArray.getDefWebLocation();
 
     if (indexInRegister && resultInRegister) {
-      s.append(generateInstruction("movq", loadArray.getLocation().index(indexLocation), resultLocation));
+      s.append(generateMove(loadArray.getLocation().index(indexLocation), resultLocation));
     } else if (indexInRegister) {
-      s.append(generateInstruction("movq", loadArray.getLocation().index(indexLocation), "%rax"));
-      s.append(generateInstruction("movq", "%rax", resultLocation));
+      s.append(generateMove(loadArray.getLocation().index(indexLocation), "%rax"));
+      s.append(generateMove("%rax", resultLocation));
     } else if (resultInRegister) {
-      s.append(generateInstruction("movq", indexLocation, "%r10"));
-      s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), resultLocation));
+      s.append(generateMove(indexLocation, "%r10"));
+      s.append(generateMove(loadArray.getLocation().index("%r10"), resultLocation));
     } else {
-      s.append(generateInstruction("movq", indexLocation, "%r10"));
-      s.append(generateInstruction("movq", loadArray.getLocation().index("%r10"), "%rax"));
-      s.append(generateInstruction("movq", "%rax", resultLocation));
+      s.append(generateMove(indexLocation, "%r10"));
+      s.append(generateMove(loadArray.getLocation().index("%r10"), "%rax"));
+      s.append(generateMove("%rax", resultLocation));
     }
 
     return s.toString();
@@ -997,20 +1011,24 @@ public class RegGenerator {
     List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
     List<LLDeclaration> arguments = internalCall.getArguments();
 
-    // TODO: (same comment as in external) Use the webs to limit the amount of pushes/pops
     int totalPushed = 0;
+    // modified regs isn't relevant; an external call later on in the call stack
+    // could screw everything up (learned from experience)
+    final Set<String> modifiedRegs = WebUtils.getAllDefColors(internalCall.getDeclaration());
+    final Set<String> regsToPreserve = internalCall.getWebsAcross().stream().map(w -> w.getLocation()).collect(Collectors.toSet());
     for (String register : Registers.CALLER_SAVED) {
-      if (!internalCall.defInRegister() || !internalCall.getDefWebLocation().equals(register)) {
+      // only push caller-saved if called function modifies it
+      if (!(internalCall.defInRegister() && internalCall.getDefWebLocation().equals(register)) /*&& modifiedRegs.contains(register)*/ && regsToPreserve.contains(register)) {
         s.append(generateInstruction("pushq", register));
         totalPushed++;
       }
     }
 
-
+    //System.out.println("Def registers for " + internalCall.getDeclaration().getIdentifier() + ": " + WebUtils.getAllDefColors(internalCall.getDeclaration()));
 
     // NOTE(rbd): Not necessary because of precoloring.
     // for (int i = 0; i < registers.size() && i < arguments.size(); ++i) {
-    //   s.append(generateInstruction("movq", internalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
+    //   s.append(generateMove(internalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
     // }
 
     if (arguments.size() > registers.size()) {
@@ -1039,12 +1057,13 @@ public class RegGenerator {
     }
 
     if (internalCall.getResult().isPresent()) {
-      s.append(generateInstruction("movq", "%rax", internalCall.getDefWebLocation()));
+      s.append(generateMove("%rax", internalCall.getDefWebLocation()));
     }
 
     for (int i = Registers.CALLER_SAVED.size() - 1; i >= 0; --i) {
-      if (!internalCall.defInRegister() || !internalCall.getDefWebLocation().equals(Registers.CALLER_SAVED.get(i))) {
-        s.append(generateInstruction("popq", Registers.CALLER_SAVED.get(i)));
+      String register = Registers.CALLER_SAVED.get(i);
+      if (!(internalCall.defInRegister() && internalCall.getDefWebLocation().equals(register)) /*&& modifiedRegs.contains(register)*/ && regsToPreserve.contains(register)) {
+        s.append(generateInstruction("popq", register));
       }
     }
 
@@ -1058,10 +1077,10 @@ public class RegGenerator {
     List<String> registers = List.of("%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9");
     List<LLDeclaration> arguments = externalCall.getArguments();
 
-    // TODO(rbd): Use the webs to limit the amount of pushes/pops
     int totalPushed = 0;
+    final Set<String> regsToPreserve = externalCall.getWebsAcross().stream().map(w -> w.getLocation()).collect(Collectors.toSet());
     for (String register : Registers.CALLER_SAVED) {
-      if (!externalCall.getDefWebLocation().equals(register)) {
+      if (!externalCall.getDefWebLocation().equals(register) && regsToPreserve.contains(register)) {
         s.append(generateInstruction("pushq", register));
         totalPushed++;
       }
@@ -1072,7 +1091,7 @@ public class RegGenerator {
     //   if (arguments.get(i) instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
     //     s.append(generateInstruction("leaq", arguments.get(i).location()+"(%rip)", registers.get(i)));
     //   } else {
-    //     s.append(generateInstruction("movq", externalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
+    //     s.append(generateMove(externalCall.getUseWebLocation(arguments.get(i)), registers.get(i)));
     //   }
     // }
 
@@ -1101,11 +1120,12 @@ public class RegGenerator {
       s.append(generateInstruction("addq", "$"+size, "%rsp"));
     }
 
-    s.append(generateInstruction("movq", "%rax", externalCall.getDefWebLocation()));
+    s.append(generateMove("%rax", externalCall.getDefWebLocation()));
 
     for (int i = Registers.CALLER_SAVED.size() - 1; i >= 0; --i) {
-      if (!externalCall.getDefWebLocation().equals(Registers.CALLER_SAVED.get(i))) {
-        s.append(generateInstruction("popq", Registers.CALLER_SAVED.get(i)));
+      final String register = Registers.CALLER_SAVED.get(i);
+      if (!externalCall.getDefWebLocation().equals(register) && regsToPreserve.contains(register)) {
+        s.append(generateInstruction("popq", register));
       }
     }
 
@@ -1116,7 +1136,7 @@ public class RegGenerator {
   public static String generateLength(LLLength length) {
     StringBuilder s = new StringBuilder();
 
-    s.append(generateInstruction("movq", "$"+length.getDeclaration().getLength(), length.getDefWebLocation()));
+    s.append(generateMove("$"+length.getDeclaration().getLength(), length.getDefWebLocation()));
 
     return s.toString();
   }
@@ -1125,7 +1145,7 @@ public class RegGenerator {
   public static String generateIntegerLiteral(LLIntegerLiteral integerLiteral) {
     StringBuilder s = new StringBuilder();
 
-    s.append(generateInstruction("movq", "$"+integerLiteral.getValue(), integerLiteral.getDefWebLocation()));
+    s.append(generateMove("$"+integerLiteral.getValue(), integerLiteral.getDefWebLocation()));
 
     return s.toString();
   }
@@ -1145,7 +1165,7 @@ public class RegGenerator {
       s.append(generateInstruction("leaq", declarationLocation+"(%rip)", resultLocation));
     } else {
       s.append(generateInstruction("leaq", declarationLocation+"(%rip)", "%rax"));
-      s.append(generateInstruction("movq", "%rax", resultLocation));
+      s.append(generateMove("%rax", resultLocation));
     }
 
     return s.toString();
@@ -1167,15 +1187,15 @@ public class RegGenerator {
       if (input instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
         s.append(generateInstruction("leaq", inputLocation+"(%rip)", resultLocation));
       } else {
-        s.append(generateInstruction("movq", inputLocation, resultLocation));
+        s.append(generateMove(inputLocation, resultLocation));
       }
     } else {
       if (input instanceof LLStringLiteralDeclaration stringLiteralDeclaration) {
         s.append(generateInstruction("leaq", inputLocation+"(%rip)", "%rax"));
       } else {
-        s.append(generateInstruction("movq", inputLocation, "%rax"));
+        s.append(generateMove(inputLocation, "%rax"));
       }
-      s.append(generateInstruction("movq", "%rax", resultLocation));
+      s.append(generateMove("%rax", resultLocation));
     }
 
 
