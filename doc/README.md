@@ -26,3 +26,4 @@ No issues.
 - [Phase 2: Semantic Checking](2-semantics.md)
 - [Phase 3: Code Generation](3-codegen.md)
 - [Phase 4: Data Flow](4-dataflow.md)
+- [Phase 5: Optimizer](5-optimizer.md)
