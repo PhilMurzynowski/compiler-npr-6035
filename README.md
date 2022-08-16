@@ -15,8 +15,8 @@ Our code passes all test cases, and there are no bugs/failures that we are curre
  
 ## Docs Overview:
 
-- [Phase 1: Lexing and Parsing](1-lex-parse.md)
-- [Phase 2: Semantic Checking](2-semantics.md)
-- [Phase 3: Code Generation](3-codegen.md)
-- [Phase 4: Data Flow](4-dataflow.md)
-- [Phase 5: Optimizer](5-optimizer.md)
+- [Phase 1: Lexing and Parsing](doc/1-lex-parse.md)
+- [Phase 2: Semantic Checking](doc/2-semantics.md)
+- [Phase 3: Code Generation](doc/3-codegen.md)
+- [Phase 4: Data Flow](doc/4-dataflow.md)
+- [Phase 5: Optimizer](doc/5-optimizer.md)
